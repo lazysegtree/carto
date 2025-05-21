@@ -1,21 +1,19 @@
-from textual import work, events, on
+from textual import work, on
 from textual.app import App, ComposeResult
 from textual.containers import (
     HorizontalGroup,
-    VerticalGroup,
     HorizontalScroll,
     Vertical,
+    VerticalGroup,
 )
 from textual.widgets import (
-    RadioSet,
-    RadioButton,
     OptionList,
-    TabbedContent,
+    #    TabbedContent,
     TextArea,
-    Switch,
-    Label,
+    #    Switch,
+    #    Label,
     Button,
-    Static,
+    #    Static,
     Header,
     Footer,
     Input,
@@ -25,7 +23,7 @@ from FileList import FileList, update_file_list
 from os import getcwd, path, chdir
 from maps import ICONS
 from lzstring import LZString
-from textual_autocomplete import PathAutoComplete
+from path_autocomplete import PathAutoCompleteInput
 import state
 
 lzstring = LZString()
@@ -51,11 +49,9 @@ class Application(App):
 
     def compose(self) -> ComposeResult:
         path_switcher = Input(
-                    id="path_switcher",
-                    validators=[
-                        Function(lambda x: path.exists(x), "Path does not exist")
-                    ],
-                )
+            id="path_switcher",
+            validators=[Function(lambda x: path.exists(x), "Path does not exist")],
+        )
         yield Header(name="tfe", show_clock=True, icon="📁")
         yield Vertical(
             HorizontalScroll(
@@ -66,16 +62,22 @@ class Application(App):
                 ),
                 id="menu",
             ),
-            HorizontalGroup(
-                Button(ICONS["general"]["left"], id="back"),
-                Button(ICONS["general"]["right"], id="forward"),
-                Button(ICONS["general"]["up"], id="up"),
-                Button(ICONS["general"]["refresh"], id="reload"),
-                path_switcher,
-                PathAutoComplete(
+            VerticalGroup(
+                HorizontalGroup(
+                    Button(ICONS["general"]["left"], id="back"),
+                    Button(ICONS["general"]["right"], id="forward"),
+                    Button(ICONS["general"]["up"], id="up"),
+                    Button(ICONS["general"]["refresh"], id="reload"),
+                    path_switcher,
+                ),
+                # Container(
+                PathAutoCompleteInput(
                     target=path_switcher,
                     path=getcwd().split(path.sep)[0],
+                    folder_prefix=ICONS["folder"]["default"] + " ",
+                    file_prefix=ICONS["file"]["default"] + " ",
                 ),
+                # ),
                 id="below_menu",
             ),
             HorizontalGroup(
@@ -101,6 +103,13 @@ class Application(App):
             id="root",
         )
         yield Footer()
+
+    def on_mount(self):
+        self.query_one("#menu").border_title = "Options"
+        self.query_one("#below_menu").border_title = "Directory Actions"
+        self.query_one("#sidebar").border_title = "Sidebar"
+        self.query_one("#file_list").border_title = "Files"
+        self.query_one("#text_preview").border_title = "File Preview"
 
     @on(Button.Pressed, "#back")
     def go_back_in_history(self, event: Button.Pressed) -> None:

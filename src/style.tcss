@@ -9,7 +9,7 @@
 #main {
     padding: 0 1;
     height: 1fr;
-    border: solid blue;
+    border: solid white;
     align: center middle;
     /* I legit have no clue why there is a random right padding and i cant get rid of it, so compensation with a left padding */
     margin: 0 0 0 1;
@@ -24,24 +24,23 @@ Footer {
     margin: 0 1;
     width: 3fr;
     border: none;
-    padding: 1;
+    padding: 0 1;
     OptionList {
         height: 1fr;
     }
 }
-OptionList {
+OptionList#sidebar {
     height: 1fr;
     margin: 0;
     width: 1fr;
-    padding: 1;
-    border: none;
+    padding: 0 1;
 }
 TextArea {
     height: 1fr;
     margin: 0;
     width: 2fr;
     border: none;
-    padding: 1;
+    padding: 0 1;
 }
 /*
 * {
@@ -53,8 +52,17 @@ TextArea {
     width: 1fr;
     margin: 0 1 0 0;
     border: none;
-    padding: 1;
+    padding: 0 2 0 2;
+    border: solid white;
+    background: black 0%;
 }
+
+#below_menu Input.hide_border_bottom {
+    border-bottom: none;
+    height: 3;
+    background: $boost;
+}
+
 #below_menu Button {
     padding: 0 !important;
     margin: 0 1;
@@ -64,12 +72,22 @@ TextArea {
 }
 #below_menu {
     margin: 0 1 0 1;
-    border: solid red;
+    border: solid white;
+    max-height: 11
 }
-PathAutoComplete {
-    width: 50;
-    margin-right: 2;
-    padding-right: 2
+#below_menu PathAutoCompleteInput {
+    padding: 0 2 1 2;
+    margin: -1 1 0 33;
+    max-height: 9;
+    overlay: screen;
+    height: 9;
+    width: 1fr;
+    border: solid white;
+    border-top: none;
+    background: $boost;
+    Option {
+        width: 100%;
+    }
 }
 .option {
     border: none;
@@ -78,4 +96,16 @@ PathAutoComplete {
     width: 3;
     padding: 0;
     margin: 0;
+}
+
+#below_menu, #sidebar, #file_list, #text_preview {
+    background: black 0%;
+    border: solid $primary-darken-3;
+}
+
+#below_menu:focus-within,
+#sidebar:focus,
+#file_list:focus,
+#text_preview:focus {
+    border: solid $primary
 }

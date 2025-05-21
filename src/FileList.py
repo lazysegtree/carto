@@ -1,10 +1,8 @@
-from textual import events
-from textual.containers import VerticalGroup, HorizontalGroup
 from textual.widgets import OptionList, Static
 from textual.widgets.option_list import Option
 from textual.app import ComposeResult
 from os import listdir, path, walk, startfile, getcwd, chdir
-from maps import FOLDER_MAP, ICONS, FILES_MAP, EXT_TO_LANG_MAP
+from maps import FOLDER_MAP, ICONS, FILES_MAP
 from humanize import naturalsize
 from typing import Literal
 from lzstring import LZString
