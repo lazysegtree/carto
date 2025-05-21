@@ -12,6 +12,7 @@ dependencies = [
     "toml>=0.10.2",
     "humanize>=4.12.3",
     "lzstring>=1.0.4",
+    "textual-autocomplete>=4.0.4",
 ]
 
 [dependency-groups]

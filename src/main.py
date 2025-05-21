@@ -25,7 +25,8 @@ from FileList import FileList, update_file_list
 from os import getcwd, path, chdir
 from maps import ICONS
 from lzstring import LZString
-import state  # Import the state module
+from textual_autocomplete import PathAutoComplete
+import state
 
 lzstring = LZString()
 
@@ -49,6 +50,12 @@ class Application(App):
         self.cwd = getcwd()
 
     def compose(self) -> ComposeResult:
+        path_switcher = Input(
+                    id="path_switcher",
+                    validators=[
+                        Function(lambda x: path.exists(x), "Path does not exist")
+                    ],
+                )
         yield Header(name="tfe", show_clock=True, icon="📁")
         yield Vertical(
             HorizontalScroll(
@@ -64,11 +71,10 @@ class Application(App):
                 Button(ICONS["general"]["right"], id="forward"),
                 Button(ICONS["general"]["up"], id="up"),
                 Button(ICONS["general"]["refresh"], id="reload"),
-                Input(
-                    id="path_switcher",
-                    validators=[
-                        Function(lambda x: path.exists(x), "Path does not exist")
-                    ],
+                path_switcher,
+                PathAutoComplete(
+                    target=path_switcher,
+                    path=getcwd().split(path.sep)[0],
                 ),
                 id="below_menu",
             ),

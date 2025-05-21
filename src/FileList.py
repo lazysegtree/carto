@@ -111,7 +111,7 @@ def update_file_list(
                 id=LZString.compressToEncodedURIComponent(item["name"]),
             )
         )
-    appInstance.query_one("#path_switcher").value = cwd
+    appInstance.query_one("#path_switcher").value = cwd.replace(path.sep, "/")
     # session handler
     if add_to_session:
         if state.sessionHistoryIndex != len(state.sessionDirectories) - 1:

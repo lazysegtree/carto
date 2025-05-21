@@ -628,6 +628,19 @@ syntax = [
 ]
 
 [[package]]
+name = "textual-autocomplete"
+version = "4.0.4"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "textual" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/7a/cf/9cf23ac193c70e7b0a6999dc9409650e9ab9960b1be167e7dda54f1028a8/textual_autocomplete-4.0.4.tar.gz", hash = "sha256:0969987b90a53c1f75753dfe3ad2c7ea0d974b5839dc2a00a2d332c000057871", size = 94120, upload-time = "2025-03-23T23:36:59.707Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/83/de/ac2027c20f6f047abaf89da06bedbe6ee54616ffa8d92b6ea43f23f2266d/textual_autocomplete-4.0.4-py3-none-any.whl", hash = "sha256:c37b389cd7f682442aeae15667bf315d382a8968b0e022dd032a8eb8ae2777e5", size = 15846, upload-time = "2025-03-23T23:36:58.51Z" },
+]
+
+[[package]]
 name = "textual-dev"
 version = "1.7.0"
 source = { registry = "https://pypi.org/simple" }
@@ -708,6 +721,7 @@ dependencies = [
     { name = "humanize" },
     { name = "lzstring" },
     { name = "textual", extra = ["syntax"] },
+    { name = "textual-autocomplete" },
     { name = "textual-dev" },
     { name = "textual-image", extra = ["textual"] },
     { name = "textual-web" },
@@ -724,6 +738,7 @@ requires-dist = [
     { name = "humanize", specifier = ">=4.12.3" },
     { name = "lzstring", specifier = ">=1.0.4" },
     { name = "textual", extras = ["dev", "syntax"], specifier = ">=3.2.0" },
+    { name = "textual-autocomplete", specifier = ">=4.0.4" },
     { name = "textual-dev", specifier = ">=1.7.0" },
     { name = "textual-image", extras = ["textual"], specifier = ">=0.8.2" },
     { name = "textual-web", specifier = ">=0.4.2" },

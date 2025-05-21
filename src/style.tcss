@@ -66,6 +66,11 @@ TextArea {
     margin: 0 1 0 1;
     border: solid red;
 }
+PathAutoComplete {
+    width: 50;
+    margin-right: 2;
+    padding-right: 2
+}
 .option {
     border: none;
     height: 1;
