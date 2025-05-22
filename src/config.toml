@@ -1,0 +1,9 @@
+[interface]
+
+[interface.border]
+style = "solid"
+inactive_color = "$primary-darken-3"
+color = "$primary-lighten-3"
+
+[interface.theme]
+default = "nord"

@@ -1,23 +1,15 @@
 from textual.widgets import OptionList, Static
 from textual.widgets.option_list import Option
-from textual.app import ComposeResult
+from textual.app import ComposeResult, App
 from os import listdir, path, walk, startfile, getcwd, chdir
 from maps import FOLDER_MAP, ICONS, FILES_MAP
 from humanize import naturalsize
 from typing import Literal
 from lzstring import LZString
-import state  # Import the state module
+import state
 
+log = state.log
 lzstring = LZString()
-
-
-def log(string):
-    with open(
-        f"{path.sep.join(path.realpath(__file__).split(path.sep)[:-1])}{path.sep}log.txt",
-        "+a",
-    ) as logger:
-        logger.write(f"FileList.py {string}\n")
-
 
 def get_folder_size(folder_path: str) -> int:
     """Get the size of a folder in bytes.
@@ -41,10 +33,10 @@ def get_folder_size(folder_path: str) -> int:
 
 
 def update_file_list(
-    appInstance,
+    appInstance:App,
     file_list_id: str,
-    sort_by: str = Literal["name", "size"],
-    sort_order: str = Literal["ascending", "descending"],
+    sort_by: str = "name",
+    sort_order: str = "ascending",
     add_to_session: bool = True,
 ) -> None:
     """Update the file list with the current directory contents.
@@ -109,7 +101,7 @@ def update_file_list(
                 id=LZString.compressToEncodedURIComponent(item["name"]),
             )
         )
-    appInstance.query_one("#path_switcher").value = cwd.replace(path.sep, "/")
+    appInstance.query_one("#path_switcher").value = cwd.replace(path.sep, "/") + "/"
     # session handler
     if add_to_session:
         if state.sessionHistoryIndex != len(state.sessionDirectories) - 1:

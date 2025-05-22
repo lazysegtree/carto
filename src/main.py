@@ -26,20 +26,18 @@ from lzstring import LZString
 from path_autocomplete import PathAutoCompleteInput
 import state
 
+log = state.log
 lzstring = LZString()
 
-
-def log(string):
-    with open(
-        f"{path.sep.join(path.realpath(__file__).split(path.sep)[:-1])}{path.sep}log.txt",
-        "+a",
-    ) as logger:
-        logger.write(f"main.py {string}\n")
-
+state.load_config()
 
 class Application(App):
+    BINDINGS = [
+        ("escape", "focus_file_list()", "Focus File List"),
+        ("ctrl+enter", "submit()", "Submit"),
+    ]
     CSS_PATH = "style.tcss"
-
+    
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.prev_selected_option = None
@@ -76,6 +74,7 @@ class Application(App):
                     path=getcwd().split(path.sep)[0],
                     folder_prefix=ICONS["folder"]["default"] + " ",
                     file_prefix=ICONS["file"]["default"] + " ",
+                    id="path_autocomplete",
                 ),
                 # ),
                 id="below_menu",
@@ -110,6 +109,7 @@ class Application(App):
         self.query_one("#sidebar").border_title = "Sidebar"
         self.query_one("#file_list").border_title = "Files"
         self.query_one("#text_preview").border_title = "File Preview"
+        self.theme = state.config["interface"]["theme"]["default"]
 
     @on(Button.Pressed, "#back")
     def go_back_in_history(self, event: Button.Pressed) -> None:
@@ -172,6 +172,13 @@ class Application(App):
     async def update_session_dicts(self, sessionDirs, sessionHisIndex):
         """Update the session directories and history index"""
         state.update_session_state(sessionDirs, sessionHisIndex)
+    
+    def action_focus_file_list(self):
+        """Focus the file list. What more did you expect?"""
+        self.query_one("#file_list").focus()
 
+    async def action_submit(self):
+        """Submit the current input. What more did you expect?"""
+        await self.query_exactly_one("#path_switcher").action_submit()
 
-Application().run()
+Application(watch_css=True).run()

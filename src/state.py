@@ -1,8 +1,54 @@
-"""Module that holds variable states"""
+"""Module that holds variable states + other functions"""
+
+from tomllib import load
+from os import path
+from time import sleep
+from watchdog.events import FileSystemEventHandler
+from watchdog.observers import Observer
+import re
+from threading import Thread
+
+def log(*object):
+    with open(
+        path.join(path.dirname(__file__), "log.txt"),
+        "+a",
+    ) as logger:
+        logger.write(f"{' '.join(object) if type(object) is list else object}\n")
 
 sessionDirectories = []
 sessionHistoryIndex = 0
 sessionLastHighlighted = {}
+config = {}
+"""
+def log(string):
+    with open(
+        path.join(path.dirname(__file__), "log.txt"),
+        "+a",
+    ) as logger:
+        logger.write(f"{string}\n")
+"""
+
+
+def get_nested_value(dictionary, keys_list):
+    """
+    Get a value from a nested dictionary using a list of keys.
+
+    Args:
+        dictionary (dict): The dictionary to traverse
+        keys_list (list): List of keys to navigate the dictionary
+        default: Value to return if the path doesn't exist (default: None)
+
+    Returns:
+        The value at the specified path or default if not found
+    """
+    current = dictionary
+
+    try:
+        for key in keys_list:
+            current = current[key]
+        return current
+    except (KeyError, TypeError):
+        return None
 
 
 def update_session_state(directories, index, lastHighlighted={}) -> None:
@@ -20,3 +66,61 @@ def update_session_state(directories, index, lastHighlighted={}) -> None:
     sessionDirectories = directories
     sessionHistoryIndex = index
     sessionLastHighlighted = lastHighlighted
+
+
+def load_config() -> None:
+    """
+    Load the configuration from a TOML file.
+
+    Args:
+        config_path (str): Path to the configuration file.
+    """
+
+    global config
+    with open(path.join(path.dirname(__file__), "config.toml"), "rb") as f:
+        config = load(f)
+    log(config)
+    # update styles
+    # get vars to replace
+    with open(path.join(path.dirname(__file__), "template_style.tcss"), "r") as f:
+        template = f.read()
+    # replace vars with values from config
+    vars = r"\$\-([^\$]+)-\$"
+    for match in re.findall(vars, template):
+        match_keys = match.split("-")
+        log(match_keys)
+        config_value = get_nested_value(config, match_keys)
+        if config_value is not None:
+            template = template.replace(f"$-{match}-$", str(config_value))
+    with open(path.join(path.dirname(__file__), "style.tcss"), "w") as f:
+        f.write(template)
+
+
+class FileEventHandler(FileSystemEventHandler):
+    @staticmethod
+    def on_modified(event):
+        if event.is_directory:
+            return
+        elif path.basename(event.src_path) == "config.toml":
+            log(f"File modified: {event.src_path}")
+            load_config()
+
+
+def watch_config_file() -> None:
+    event_handler = FileEventHandler()
+    observer = Observer()
+    observer.schedule(event_handler, path=path.dirname(__file__), recursive=False)
+    observer.start()
+    log("Watching for changes in config.toml")
+    try:
+        while True:
+            sleep(1)
+    except:
+        observer.stop()
+    observer.join()
+
+
+Thread(
+    target=watch_config_file,
+    daemon=True,
+).start()

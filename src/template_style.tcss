@@ -7,9 +7,8 @@
 }
 
 #main {
-    padding: 0 1;
+    padding: 0 0;
     height: 1fr;
-    border: solid white;
     align: center middle;
     /* I legit have no clue why there is a random right padding and i cant get rid of it, so compensation with a left padding */
     margin: 0 0 0 1;
@@ -53,7 +52,7 @@ TextArea {
     margin: 0 1 0 0;
     border: none;
     padding: 0 2 0 2;
-    border: solid white;
+    border: $-interface-border-style-$ white;
     background: black 0%;
 }
 
@@ -72,7 +71,7 @@ TextArea {
 }
 #below_menu {
     margin: 0 1 0 1;
-    border: solid white;
+    border: $-interface-border-style-$ white;
     max-height: 11
 }
 #below_menu PathAutoCompleteInput {
@@ -82,9 +81,12 @@ TextArea {
     overlay: screen;
     height: 9;
     width: 1fr;
-    border: solid white;
+    border: $-interface-border-style-$ white;
     border-top: none;
     background: $boost;
+    AutoCompleteList {
+        width: 1fr;
+    }
     Option {
         width: 100%;
     }
@@ -100,12 +102,12 @@ TextArea {
 
 #below_menu, #sidebar, #file_list, #text_preview {
     background: black 0%;
-    border: solid $primary-darken-3;
+    border: $-interface-border-style-$ $-interface-border-inactive_color-$;
 }
 
 #below_menu:focus-within,
 #sidebar:focus,
 #file_list:focus,
 #text_preview:focus {
-    border: solid $primary
+    border: $-interface-border-style-$ $-interface-border-color-$;
 }
