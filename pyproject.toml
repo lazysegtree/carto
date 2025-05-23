@@ -12,8 +12,8 @@ dependencies = [
     "lzstring>=1.0.4",
     "textual-autocomplete>=4.0.4",
     "watchdog>=6.0.0",
-    "textual-imageview>=0.1.1",
     "pillow>=11.2.1",
+    "textual-image[textual]>=0.8.2",
 ]
 
 [dependency-groups]
