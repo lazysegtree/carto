@@ -41,9 +41,8 @@ class Application(App):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.prev_selected_option = None
-        self.main_sort_by = "name"
-        self.main_sort_order = "ascending"
-        self.cwd = getcwd()
+        self.main_sort_by = state.config["file_list"]["sort_by"]
+        self.main_sort_order = state.config["file_list"]["sort_order"]
 
     def compose(self) -> ComposeResult:
         path_switcher = Input(
