@@ -4,6 +4,7 @@ from maps import get_icon_for_file, get_icon_for_folder, EXT_TO_LANG_MAP
 from os import listdir, path, walk, startfile, getcwd, chdir, scandir
 from pathlib import Path
 import state
+from textual import events
 from textual.app import ComposeResult, App
 from textual.containers import Container
 from textual.widgets import OptionList, Static
@@ -73,12 +74,6 @@ class PathAutoCompleteInput(PathAutoComplete):
             for item in results
         ]
 
-    async def post_completion(self) -> None:
-        """Called after a completion is selected."""
-        super().post_completion()
-        log(self._target.id)
-        await self.app.query_one(f"#{self._target.id}").action_submit()
-
     def _align_to_target(self) -> None:
         """Empty function that was supposed to align the completion box to the cursor."""
         pass
@@ -88,14 +83,10 @@ class PathAutoCompleteInput(PathAutoComplete):
         self._target.add_class("hide_border_bottom", update=True)
 
     async def _on_hide(self, event):
-        """Handle hide events for the autocomplete."""
         super()._on_hide(event)
         self._target.remove_class("hide_border_bottom", update=True)
-
-        # Only submit if we didn't just hide an empty directory dropdown
-        if not getattr(self, "_empty_directory", False):
-            log("submitting", self._target.id)
-            await self.app.query_one(f"#{self._target.id}").action_submit()
+        await self._target.action_submit()
+        self._target.focus()
 
 
 def get_folder_size(folder_path: str) -> int:

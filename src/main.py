@@ -171,7 +171,12 @@ class Application(App):
         """Focus a widget by its ID"""
         self.query_one(widget_selector).focus()
 
-    def on_key(self, event: events.Key) -> None:
+    async def on_key(self, event: events.Key) -> None:
+        if self.focused.id == "path_switcher" and event.key in ["enter", "escape"]:
+            self.query_one("#file_list").focus()
+            await self.query_one("#path_switcher").action_submit()
+        elif self.focused.id == "path_switcher" and event.key == "backspace":
+            return
         if event.key == state.config["keybinds"]["focus"]["pinned_sidebar"]:
             self.query_one("#sidebar").focus()
         elif event.key == state.config["keybinds"]["focus"]["file_list"]:
@@ -186,5 +191,6 @@ class Application(App):
             self.query_one("#up").focus()
         elif event.key == state.config["keybinds"]["navigation"]["reload"]:
             self.query_one("#reload").focus()
-    
+
+
 Application(watch_css=True).run()
