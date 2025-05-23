@@ -199,6 +199,8 @@ EXT_TO_LANG_MAP = {
     ".sh": "bash",
     ".xml": "xml",
 }
+
+
 def get_icon_for_file(location: str) -> str:
     """Get the icon for a file based on its name or extension.
 

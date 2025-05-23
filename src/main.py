@@ -30,13 +30,14 @@ lzstring = LZString()
 
 state.load_config()
 
+
 class Application(App):
     BINDINGS = [
         ("escape", "focus_file_list()", "Focus File List"),
         ("ctrl+enter", "submit()", "Submit"),
     ]
     CSS_PATH = "style.tcss"
-    
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.prev_selected_option = None
@@ -170,7 +171,7 @@ class Application(App):
     async def update_session_dicts(self, sessionDirs, sessionHisIndex):
         """Update the session directories and history index"""
         state.update_session_state(sessionDirs, sessionHisIndex)
-    
+
     def action_focus_file_list(self):
         """Focus the file list. What more did you expect?"""
         self.query_one("#file_list").focus()
@@ -178,5 +179,6 @@ class Application(App):
     async def action_submit(self):
         """Submit the current input. What more did you expect?"""
         await self.query_exactly_one("#path_switcher").action_submit()
+
 
 Application(watch_css=True).run()

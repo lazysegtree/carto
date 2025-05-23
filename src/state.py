@@ -8,12 +8,14 @@ from watchdog.observers import Observer
 import re
 from threading import Thread
 
+
 def log(*object):
     with open(
         path.join(path.dirname(__file__), "log.txt"),
         "+a",
     ) as logger:
         logger.write(f"{' '.join(object) if type(object) is list else object}\n")
+
 
 sessionDirectories = []
 sessionHistoryIndex = 0

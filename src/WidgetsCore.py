@@ -1,13 +1,14 @@
-from textual.widgets import OptionList, Static
-from textual.widgets.option_list import Option
-from textual.app import ComposeResult, App
-from os import listdir, path, walk, startfile, getcwd, chdir, scandir
-from maps import get_icon_for_file, get_icon_for_folder, EXT_TO_LANG_MAP
 from humanize import naturalsize
 from lzstring import LZString
-from textual_autocomplete import PathAutoComplete, TargetState, DropdownItem
+from maps import get_icon_for_file, get_icon_for_folder, EXT_TO_LANG_MAP
+from os import listdir, path, walk, startfile, getcwd, chdir, scandir
 from pathlib import Path
 import state
+from textual.app import ComposeResult, App
+from textual.containers import Container
+from textual.widgets import OptionList, Static
+from textual.widgets.option_list import Option
+from textual_autocomplete import PathAutoComplete, TargetState, DropdownItem
 
 log = state.log
 lzstring = LZString()
@@ -95,11 +96,6 @@ class PathAutoCompleteInput(PathAutoComplete):
         if not getattr(self, "_empty_directory", False):
             log("submitting", self._target.id)
             await self.app.query_one(f"#{self._target.id}").action_submit()
-
-
-#
-# File List Functions and Widgets
-#
 
 
 def get_folder_size(folder_path: str) -> int:
