@@ -1,4 +1,4 @@
-from textual import work, on
+from textual import work, on, events
 from textual.app import App, ComposeResult
 from textual.containers import (
     HorizontalGroup,
@@ -32,17 +32,13 @@ state.load_config()
 
 
 class Application(App):
-    BINDINGS = [
-        ("escape", "focus_file_list()", "Focus File List"),
-        ("ctrl+enter", "submit()", "Submit"),
-    ]
     CSS_PATH = "style.tcss"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.prev_selected_option = None
-        self.main_sort_by = state.config["file_list"]["sort_by"]
-        self.main_sort_order = state.config["file_list"]["sort_order"]
+        self.main_sort_by = state.config["filelist"]["sort_by"]
+        self.main_sort_order = state.config["filelist"]["sort_order"]
 
     def compose(self) -> ComposeResult:
         path_switcher = Input(
@@ -171,13 +167,24 @@ class Application(App):
         """Update the session directories and history index"""
         state.update_session_state(sessionDirs, sessionHisIndex)
 
-    def action_focus_file_list(self):
-        """Focus the file list. What more did you expect?"""
-        self.query_one("#file_list").focus()
+    def action_focus(self, widget_selector: str) -> None:
+        """Focus a widget by its ID"""
+        self.query_one(widget_selector).focus()
 
-    async def action_submit(self):
-        """Submit the current input. What more did you expect?"""
-        await self.query_exactly_one("#path_switcher").action_submit()
-
-
+    def on_key(self, event: events.Key) -> None:
+        if event.key == state.config["keybinds"]["focus"]["pinned_sidebar"]:
+            self.query_one("#sidebar").focus()
+        elif event.key == state.config["keybinds"]["focus"]["file_list"]:
+            self.query_one("#file_list").focus()
+        elif event.key == state.config["keybinds"]["focus"]["path_switcher"]:
+            self.query_one("#path_switcher").focus()
+        elif event.key == state.config["keybinds"]["navigation"]["previous"]:
+            self.query_one("#back").focus()
+        elif event.key == state.config["keybinds"]["navigation"]["next"]:
+            self.query_one("#forward").focus()
+        elif event.key == state.config["keybinds"]["navigation"]["up"]:
+            self.query_one("#up").focus()
+        elif event.key == state.config["keybinds"]["navigation"]["reload"]:
+            self.query_one("#reload").focus()
+    
 Application(watch_css=True).run()

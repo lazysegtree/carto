@@ -5,6 +5,11 @@ style = "solid"
 inactive_color = "$primary-darken-3"
 color = "$primary-lighten-3"
 
+[interface.fractions]
+pinned_sidebar = 1
+file_list = 3
+preview = 2
+
 [interface.theme]
 default = "nord"
 
@@ -19,3 +24,15 @@ start = "print(\"Hello, world!\")"
 [filelist]
 sort_by = "name"
 sort_order = "ascending"
+
+[keybinds]
+[keybinds.focus]
+pinned_sidebar = "s"
+file_list = "escape"
+preview = "m"
+path_switcher = "slash"
+[keybinds.navigation]
+previous = "backspace"
+next = "space"
+up = "shift+up"
+reload = "ctrl+r"
