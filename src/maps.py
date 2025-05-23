@@ -199,3 +199,44 @@ EXT_TO_LANG_MAP = {
     ".sh": "bash",
     ".xml": "xml",
 }
+def get_icon_for_file(location: str) -> str:
+    """Get the icon for a file based on its name or extension.
+
+    Args:
+        location (str): The name or path of the file.
+
+    Returns:
+        str: The icon for the file.
+    """
+    file_name = location.lower()
+    # Map extensions to icons
+    if file_name.startswith(".git"):
+        return ICONS["file"]["git"]
+    elif file_name in FILES_MAP:
+        return ICONS["file"][FILES_MAP[file_name]]
+    elif "." in file_name:
+        extension = f".{file_name.split('.')[-1]}"
+        if extension in FILES_MAP:
+            return ICONS["file"][FILES_MAP[extension]]
+    if file_name.startswith(".git"):
+        return ICONS["file"]["git"]
+    else:
+        # Default file icon
+        return ICONS["file"]["default"]
+
+
+def get_icon_for_folder(location: str) -> str:
+    """Get the icon for a folder based on its name.
+
+    Args:
+        location (str): The name or path of the folder.
+
+    Returns:
+        str: The icon for the folder.
+    """
+    folder_name = location.lower()
+    # Check for special folder types
+    if folder_name in FOLDER_MAP:
+        return ICONS["folder"][FOLDER_MAP[folder_name]]
+    else:
+        return ICONS["folder"]["default"]

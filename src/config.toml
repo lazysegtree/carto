@@ -7,3 +7,8 @@ color = "$primary-lighten-3"
 
 [interface.theme]
 default = "nord"
+
+[sidebar.text]
+error = "Hmm, I think this file got corrupted (or maybe not?)"
+binary = "010101 0101\nJust kidding, this is a binary file"
+folder = "Nesting? What's that?"

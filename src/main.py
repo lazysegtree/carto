@@ -19,11 +19,10 @@ from textual.widgets import (
     Input,
 )
 from textual.validation import Function
-from FileList import FileList, update_file_list
 from os import getcwd, path, chdir
 from maps import ICONS
 from lzstring import LZString
-from path_autocomplete import PathAutoCompleteInput
+from WidgetsCore import PathAutoCompleteInput, FileList, update_file_list
 import state
 
 log = state.log
@@ -85,7 +84,6 @@ class Application(App):
                     id="file_list",
                     name="File List",
                     classes="file-list",
-                    cwd=self.cwd,
                     sort_by=self.main_sort_by,
                     sort_order=self.main_sort_order,
                 ),

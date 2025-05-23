@@ -1,15 +1,106 @@
 from textual.widgets import OptionList, Static
 from textual.widgets.option_list import Option
 from textual.app import ComposeResult, App
-from os import listdir, path, walk, startfile, getcwd, chdir
-from maps import FOLDER_MAP, ICONS, FILES_MAP
+from os import listdir, path, walk, startfile, getcwd, chdir, scandir
+from maps import get_icon_for_file, get_icon_for_folder, EXT_TO_LANG_MAP
 from humanize import naturalsize
-from typing import Literal
 from lzstring import LZString
+from textual_autocomplete import PathAutoComplete, TargetState, DropdownItem
+from pathlib import Path
 import state
 
 log = state.log
 lzstring = LZString()
+
+
+class PathDropdownItem(DropdownItem):
+    def __init__(self, completion: str, path: Path) -> None:
+        super().__init__(completion)
+        self.path = path
+
+
+class PathAutoCompleteInput(PathAutoComplete):
+    def get_candidates(self, target_state: TargetState) -> list[DropdownItem]:
+        """Get the candidates for the current path segment, folders only."""
+        current_input = target_state.text[: target_state.cursor_position]
+
+        if "/" in current_input:
+            last_slash_index = current_input.rindex("/")
+            path_segment = current_input[:last_slash_index] or "/"
+            directory = self.path / path_segment if path_segment != "/" else self.path
+        else:
+            directory = self.path
+
+        # Use the directory path as the cache key
+        cache_key = str(directory)
+        cached_entries = self._directory_cache.get(cache_key)
+
+        if cached_entries is not None:
+            entries = cached_entries
+        else:
+            try:
+                entries = list(scandir(directory))
+                self._directory_cache[cache_key] = entries
+            except OSError:
+                return []
+
+        results: list[PathDropdownItem] = []
+        has_directories = False
+
+        for entry in entries:
+            if entry.is_dir():
+                has_directories = True
+                completion = entry.name
+                if not self.show_dotfiles and completion.startswith("."):
+                    continue
+                completion += "/"
+                results.append(PathDropdownItem(completion, path=Path(entry.path)))
+
+        if not has_directories:
+            self._empty_directory = True
+            return [DropdownItem("", prefix="No folders found")]
+        else:
+            self._empty_directory = False
+
+        results.sort(key=self.sort_key)
+        folder_prefix = self.folder_prefix
+        return [
+            DropdownItem(
+                item.main,
+                prefix=folder_prefix,
+            )
+            for item in results
+        ]
+
+    async def post_completion(self) -> None:
+        """Called after a completion is selected."""
+        super().post_completion()
+        log(self._target.id)
+        await self.app.query_one(f"#{self._target.id}").action_submit()
+
+    def _align_to_target(self) -> None:
+        """Empty function that was supposed to align the completion box to the cursor."""
+        pass
+
+    def _on_show(self, event):
+        super()._on_show(event)
+        self._target.add_class("hide_border_bottom", update=True)
+
+    async def _on_hide(self, event):
+        """Handle hide events for the autocomplete."""
+        super()._on_hide(event)
+        self._target.remove_class("hide_border_bottom", update=True)
+
+        # Only submit if we didn't just hide an empty directory dropdown
+        if not getattr(self, "_empty_directory", False):
+            log("submitting", self._target.id)
+            await self.app.query_one(f"#{self._target.id}").action_submit()
+
+
+#
+# File List Functions and Widgets
+#
+
 
 def get_folder_size(folder_path: str) -> int:
     """Get the size of a folder in bytes.
@@ -33,7 +124,7 @@ def get_folder_size(folder_path: str) -> int:
 
 
 def update_file_list(
-    appInstance:App,
+    appInstance: App,
     file_list_id: str,
     sort_by: str = "name",
     sort_order: str = "ascending",
@@ -137,55 +228,11 @@ def update_file_list(
     )
 
 
-def get_icon_for_file(location: str) -> str:
-    """Get the icon for a file based on its name or extension.
-
-    Args:
-        location (str): The name or path of the file.
-
-    Returns:
-        str: The icon for the file.
-    """
-    file_name = location.lower()
-    # Map extensions to icons
-    if file_name.startswith(".git"):
-        return ICONS["file"]["git"]
-    elif file_name in FILES_MAP:
-        return ICONS["file"][FILES_MAP[file_name]]
-    elif "." in file_name:
-        extension = f".{file_name.split('.')[-1]}"
-        if extension in FILES_MAP:
-            return ICONS["file"][FILES_MAP[extension]]
-    if file_name.startswith(".git"):
-        return ICONS["file"]["git"]
-    else:
-        # Default file icon
-        return ICONS["file"]["default"]
-
-
-def get_icon_for_folder(location: str) -> str:
-    """Get the icon for a folder based on its name.
-
-    Args:
-        location (str): The name or path of the folder.
-
-    Returns:
-        str: The icon for the folder.
-    """
-    folder_name = location.lower()
-    # Check for special folder types
-    if folder_name in FOLDER_MAP:
-        return ICONS["folder"][FOLDER_MAP[folder_name]]
-    else:
-        return ICONS["folder"]["default"]
-
-
 class FileList(OptionList):
     CSS_PATH = "style.tcss"
 
-    def __init__(self, cwd, sort_by, sort_order, **kwargs):
+    def __init__(self, sort_by, sort_order, **kwargs):
         super().__init__(**kwargs)
-        self.cwd = cwd
         self.sort_by = sort_by
         self.sort_order = sort_order
 
@@ -219,15 +266,28 @@ class FileList(OptionList):
         # Get the file name from the option id
         file_name = lzstring.decompressFromEncodedURIComponent(highlighted_option.id)
         # Check if it's a folder or a file
-        file_path = path.join(self.cwd, file_name)
+        file_path = path.join(getcwd(), file_name)
         if not path.isdir(file_path):
             try:
                 with open(file_path, "r", encoding="utf-8") as f:
                     self.app.query_one("#text_preview").text = f.read()
+                    file_lang = EXT_TO_LANG_MAP.get(
+                        path.splitext(file_name)[1], "markdown"
+                    )
+                    self.app.query_one("#text_preview").language = file_lang
+                    log(file_lang)
             except UnicodeDecodeError:
-                self.app.query_one("#text_preview").text = "Binary file..."
+                self.app.query_one("#text_preview").text = state.config["sidebar"][
+                    "text"
+                ]["binary"]
             except (FileNotFoundError, PermissionError, OSError):
-                self.app.query_one("#text_preview").text = "Error reading file..."
+                self.app.query_one("#text_preview").text = state.config["sidebar"][
+                    "text"
+                ]["error"]
+        else:
+            self.app.query_one("#text_preview").text = state.config["sidebar"]["text"][
+                "folder"
+            ]
 
     def on_mount(self) -> None:
         update_file_list(
