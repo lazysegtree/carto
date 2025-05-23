@@ -103,7 +103,7 @@ class FileEventHandler(FileSystemEventHandler):
     def on_modified(event):
         if event.is_directory:
             return
-        elif path.basename(event.src_path) == "config.toml":
+        elif path.basename(event.src_path) in ["config.toml", "template_style.tcss"]:
             log(f"File modified: {event.src_path}")
             load_config()
 
@@ -113,7 +113,7 @@ def watch_config_file() -> None:
     observer = Observer()
     observer.schedule(event_handler, path=path.dirname(__file__), recursive=False)
     observer.start()
-    log("Watching for changes in config.toml")
+    log("Watching for changes in config.toml and template_style.tcss")
     try:
         while True:
             sleep(1)

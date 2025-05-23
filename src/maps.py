@@ -200,6 +200,44 @@ EXT_TO_LANG_MAP = {
     ".xml": "xml",
 }
 
+PIL_EXTENSIONS = [
+    ".avif",
+    ".bmp",
+    ".dds",
+    ".eps", ".ps",
+    ".gif",
+    ".icns",
+    ".ico",
+    ".im",
+    ".jpg", ".jpeg", ".jpe",
+    ".msp",
+    ".pcx",
+    ".png",
+    ".pbm", ".pgm", ".ppm", ".pnm",
+    ".sgi", ".rgb", ".rgba", ".bw",
+    ".spi",
+    ".tga",
+    ".tif", ".tiff",
+    ".webp",
+    ".xbm",
+    ".j2k", ".jp2", ".jpx", ".j2c",
+    ".jxr", ".wdp",
+    ".apng",
+    ".fit", ".fits",
+    ".flif",
+    ".ftex",
+    ".heic", ".heif",
+    ".mim",
+    ".mpo",
+    ".psd",
+    ".svg",
+    ".palm",
+    ".pdf",
+    ".pxr",
+    ".qoi",
+    ".tim",
+]
+
 
 def get_icon_for_file(location: str) -> str:
     """Get the icon for a file based on its name or extension.
