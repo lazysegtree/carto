@@ -48,7 +48,7 @@ class Application(App):
             id="path_switcher",
             validators=[Function(lambda x: path.exists(x), "Path does not exist")],
         )
-        yield Header(name="tfe", show_clock=True, icon="📁")
+        yield Header(name="carto", show_clock=True, icon="📁")
         yield Vertical(
             HorizontalScroll(
                 Button(

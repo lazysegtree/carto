@@ -1,22 +1,20 @@
-# tfe
+## carto: Your map through the uncharted directories
 
-A File Explorer built for the terminal.
+> [!caution]
+> This project is in its very early stages. Feedback is appreciated, but this cannot be daily-driven yet.
 
-**Caution: This project is in its very early stages.**
-
-## Setup
+### Setup
 ```py
-git clone https://github.com/NSPC911/tfe
-cd tfe
+git clone https://github.com/NSPC911/carto
+cd carto
 uv sync
 ```
-## Run
+### Run
 ```py
 uv run src/main.py
 ```
 
-## Roadmap
-
+### Roadmap
 This is a list of features that I plan to add before releasing v1 and where they are inspired from.
 - [x] Directory Autocompletion (explorer)
 - [x] Button Navigation (explorer)
