@@ -128,7 +128,7 @@ requires-dist = [
     { name = "humanize", specifier = ">=4.12.3" },
     { name = "lzstring", specifier = ">=1.0.4" },
     { name = "pillow", specifier = ">=11.2.1" },
-    { name = "textual", extras = ["dev", "syntax"], specifier = ">=3.2.0" },
+    { name = "textual", extras = ["syntax"], specifier = ">=3.2.0" },
     { name = "textual-autocomplete", specifier = ">=4.0.4" },
     { name = "textual-dev", specifier = ">=1.7.0" },
     { name = "textual-image", extras = ["textual"], specifier = ">=0.8.2" },
