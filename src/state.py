@@ -79,12 +79,12 @@ def load_config() -> None:
     """
 
     global config
-    with open(path.join(path.dirname(__file__), "config.toml"), "r") as f:
+    with open(path.join(path.dirname(__file__), "config/config.toml"), "r") as f:
         config = loads(f.read())
     log(config)
     # update styles
     # get vars to replace
-    with open(path.join(path.dirname(__file__), "template_style.tcss"), "r") as f:
+    with open(path.join(path.dirname(__file__), "config/template_style.tcss"), "r") as f:
         template = f.read()
     # replace vars with values from config
     vars = r"\$\-([^\$]+)-\$"
@@ -96,18 +96,6 @@ def load_config() -> None:
             template = template.replace(f"$-{match}-$", str(config_value))
     with open(path.join(path.dirname(__file__), "style.tcss"), "w") as f:
         f.write(template)
-
-
-def dump_config(config: dict) -> None:
-    """
-    Dump the configuration to a TOML file.
-
-    Args:
-        config (dict): Configuration dictionary to be dumped.
-    """
-    with open(path.join(path.dirname(__file__), "config.toml"), "w") as f:
-        f.write(dumps(config))
-    log("Config dumped")
 
 
 class FileEventHandler(FileSystemEventHandler):

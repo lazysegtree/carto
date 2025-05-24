@@ -52,7 +52,3 @@ reload = "ctrl+r"
 
 [keybinds.mode]
 visual = "v"
-
-[keybinds.panel_size]
-increase = "plus"
-decrease = "minus"

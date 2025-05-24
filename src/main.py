@@ -10,6 +10,7 @@ from textual.containers import (
     Vertical,
     VerticalGroup,
 )
+from textual.css.scalar import Scalar, Unit
 from textual.widgets import (
     OptionList,
     #    TabbedContent,
@@ -200,20 +201,6 @@ class Application(App):
             self.query_one("#up").action_press()
         elif event.key == state.config["keybinds"]["navigation"]["reload"]:
             self.query_one("#reload").action_press()
-        elif event.key == state.config["keybinds"]["panel_size"]["increase"]:
-            if self.focused.id in ["file_list", "pinned_sidebar"]:
-                state.config["interface"]["fractions"][self.focused.id] += 0.5
-                state.dump_config(state.config)
-            elif self.focused.parent.id == "preview_sidebar":
-                state.config["interface"]["fractions"]["preview_sidebar"] += 0.5
-                state.dump_config(state.config)
-        elif event.key == state.config["keybinds"]["panel_size"]["decrease"]:
-            if self.focused.id in ["file_list", "pinned_sidebar"]:
-                state.config["interface"]["fractions"][self.focused.id] -= 0.5
-                state.dump_config(state.config)
-            elif self.focused.parent.id == "preview_sidebar":
-                state.config["interface"]["fractions"]["preview_sidebar"] -= 0.5
-                state.dump_config(state.config)
 
 
 state.load_config()
