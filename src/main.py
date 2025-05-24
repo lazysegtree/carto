@@ -1,3 +1,7 @@
+from lzstring import LZString
+from maps import ICONS
+from os import getcwd, path, chdir
+import state
 from textual import work, on, events
 from textual.app import App, ComposeResult
 from textual.containers import (
@@ -18,17 +22,13 @@ from textual.widgets import (
     Input,
 )
 from textual.validation import Function
-from os import getcwd, path, chdir
-from maps import ICONS
-from lzstring import LZString
+from themes import get_custom_themes
 from WidgetsCore import (
     PathAutoCompleteInput,
     FileList,
     update_file_list,
     PreviewContainer,
-    dummy_update_file_list,
 )
-import state
 
 log = state.log
 lzstring = LZString()
@@ -100,6 +100,8 @@ class Application(App):
         self.query_one("#below_menu").border_title = "Directory Actions"
         self.query_one("#pinned_sidebar").border_title = "Sidebar"
         self.query_one("#file_list").border_title = "Files"
+        for theme in get_custom_themes():
+            self.register_theme(theme)
         self.theme = state.config["interface"]["theme"]["default"]
 
     @on(Button.Pressed, "#back")

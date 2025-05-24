@@ -24,6 +24,20 @@ preview_sidebar = 2
 [interface.theme]
 default = "nord"
 
+[interface.theme.high_contrast_dark]
+name = "High Contrast Dark"
+primary = "#ffffff"
+secondary = "#cccccc"
+accent = "#00ff00"
+foreground = "#ffffff"
+background = "#000000"
+success = "#00ff00"
+warning = "#ffff00"
+error = "#ff0000"
+surface = "#1a1a1a"
+panel = "#0d0d0d"
+is_dark = true
+
 [keybinds.focus]
 pinned_sidebar = "s"
 file_list = "escape"
