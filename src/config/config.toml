@@ -24,7 +24,7 @@ preview_sidebar = 2
 [interface.theme]
 default = "nord"
 
-[interface.theme.high_contrast_dark]
+[[interface.custom_theme]]
 name = "High Contrast Dark"
 primary = "#ffffff"
 secondary = "#cccccc"
