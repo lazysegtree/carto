@@ -9,7 +9,6 @@ from textual.containers import (
 from textual.widgets import (
     OptionList,
     #    TabbedContent,
-    TextArea,
     #    Switch,
     #    Label,
     Button,
@@ -22,13 +21,17 @@ from textual.validation import Function
 from os import getcwd, path, chdir
 from maps import ICONS
 from lzstring import LZString
-from WidgetsCore import PathAutoCompleteInput, FileList, update_file_list
+from WidgetsCore import (
+    PathAutoCompleteInput,
+    FileList,
+    update_file_list,
+    PreviewContainer,
+    dummy_update_file_list,
+)
 import state
 
 log = state.log
 lzstring = LZString()
-
-state.load_config()
 
 
 class Application(App):
@@ -75,7 +78,7 @@ class Application(App):
                 id="below_menu",
             ),
             HorizontalGroup(
-                OptionList("hi", id="sidebar"),
+                OptionList("hi", id="pinned_sidebar"),
                 FileList(
                     id="file_list",
                     name="File List",
@@ -83,13 +86,8 @@ class Application(App):
                     sort_by=self.main_sort_by,
                     sort_order=self.main_sort_order,
                 ),
-                TextArea(
-                    'print("Welcome to tfe!")',
-                    language="python",
-                    show_line_numbers=True,
-                    read_only=True,
-                    id="text_preview",
-                    soft_wrap=False,
+                PreviewContainer(
+                    id="preview_sidebar",
                 ),
                 id="main",
             ),
@@ -100,14 +98,13 @@ class Application(App):
     def on_mount(self):
         self.query_one("#menu").border_title = "Options"
         self.query_one("#below_menu").border_title = "Directory Actions"
-        self.query_one("#sidebar").border_title = "Sidebar"
+        self.query_one("#pinned_sidebar").border_title = "Sidebar"
         self.query_one("#file_list").border_title = "Files"
-        self.query_one("#text_preview").border_title = "File Preview"
         self.theme = state.config["interface"]["theme"]["default"]
 
     @on(Button.Pressed, "#back")
     def go_back_in_history(self, event: Button.Pressed) -> None:
-        """Go back in the session's history"""
+        """Go back in the session's history or go up the directory tree"""
         state.sessionHistoryIndex = state.sessionHistoryIndex - 1
         log(state.sessionHistoryIndex)
         chdir(state.sessionDirectories[state.sessionHistoryIndex]["path"])
@@ -167,30 +164,56 @@ class Application(App):
         """Update the session directories and history index"""
         state.update_session_state(sessionDirs, sessionHisIndex)
 
-    def action_focus(self, widget_selector: str) -> None:
-        """Focus a widget by its ID"""
-        self.query_one(widget_selector).focus()
-
     async def on_key(self, event: events.Key) -> None:
         if self.focused.id == "path_switcher" and event.key in ["enter", "escape"]:
             self.query_one("#file_list").focus()
             await self.query_one("#path_switcher").action_submit()
         elif self.focused.id == "path_switcher" and event.key == "backspace":
             return
-        if event.key == state.config["keybinds"]["focus"]["pinned_sidebar"]:
-            self.query_one("#sidebar").focus()
+        elif event.key == state.config["keybinds"]["focus"]["pinned_sidebar"]:
+            if self.focused.id == "pinned_sidebar":
+                self.query_one("#file_list").focus()
+            else:
+                self.query_one("#pinned_sidebar").focus()
         elif event.key == state.config["keybinds"]["focus"]["file_list"]:
             self.query_one("#file_list").focus()
+        elif event.key == state.config["keybinds"]["focus"]["preview_sidebar"]:
+            if (
+                self.focused.id == "preview_sidebar"
+                or self.focused.parent.id == "preview_sidebar"
+            ):
+                self.query_one("#file_list").focus()
+            else:
+                self.query_one("#preview_sidebar *").focus()
         elif event.key == state.config["keybinds"]["focus"]["path_switcher"]:
             self.query_one("#path_switcher").focus()
         elif event.key == state.config["keybinds"]["navigation"]["previous"]:
-            self.query_one("#back").focus()
+            if self.query_one("#back").disabled:
+                self.query_one("#up").action_press()
+            else:
+                self.query_one("#back").action_press()
         elif event.key == state.config["keybinds"]["navigation"]["next"]:
-            self.query_one("#forward").focus()
+            self.query_one("#forward").action_press()
         elif event.key == state.config["keybinds"]["navigation"]["up"]:
-            self.query_one("#up").focus()
+            self.query_one("#up").action_press()
         elif event.key == state.config["keybinds"]["navigation"]["reload"]:
-            self.query_one("#reload").focus()
+            self.query_one("#reload").action_press()
+        elif event.key == state.config["keybinds"]["panel_size"]["increase"]:
+            if self.focused.id in ["file_list", "pinned_sidebar"]:
+                state.config["interface"]["fractions"][self.focused.id] += 0.5
+                state.dump_config(state.config)
+            elif self.focused.parent.id == "preview_sidebar":
+                state.config["interface"]["fractions"]["preview_sidebar"] += 0.5
+                state.dump_config(state.config)
+        elif event.key == state.config["keybinds"]["panel_size"]["decrease"]:
+            if self.focused.id in ["file_list", "pinned_sidebar"]:
+                state.config["interface"]["fractions"][self.focused.id] -= 0.5
+                state.dump_config(state.config)
+            elif self.focused.parent.id == "preview_sidebar":
+                state.config["interface"]["fractions"]["preview_sidebar"] -= 0.5
+                state.dump_config(state.config)
 
 
-Application(watch_css=True).run()
+state.load_config()
+app = Application(watch_css=True)
+app.run()

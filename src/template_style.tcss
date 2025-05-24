@@ -3,7 +3,6 @@
     height: 3;
     margin: 0 1 0 1;
     padding: 0 1;
-    border: solid white;
 }
 
 #main {
@@ -28,17 +27,18 @@ Footer {
         height: 1fr;
     }
 }
-OptionList#sidebar {
+OptionList#pinned_sidebar {
     height: 1fr;
     margin: 0;
     padding: 0 1;
+    width: $-interface-fractions-pinned_sidebar-$fr;
 }
-TextArea {
+PreviewContainer {
     height: 1fr;
     margin: 0;
     width: 2fr;
     border: none;
-    width: $-interface-fractions-pinned_sidebar-$fr;
+    width: $-interface-fractions-preview_sidebar-$fr;
     padding: 0 1;
 }
 /*
@@ -100,14 +100,27 @@ TextArea {
     margin: 0;
 }
 
-#below_menu, #sidebar, #file_list, #text_preview {
+#menu, #below_menu, #pinned_sidebar, #file_list, PreviewContainer {
     background: black 0%;
     border: $-interface-border-style-$ $-interface-border-inactive_color-$;
 }
 
+#menu:focus-within,
 #below_menu:focus-within,
-#sidebar:focus,
+#pinned_sidebar:focus,
 #file_list:focus,
-#text_preview:focus {
+PreviewContainer:focus-within,
+PreviewContainer:focus {
     border: $-interface-border-style-$ $-interface-border-color-$;
+}
+PreviewContainer > * {
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+}
+AutoImage {
+    width: auto;
+    height: auto;
+    align: center bottom;
 }

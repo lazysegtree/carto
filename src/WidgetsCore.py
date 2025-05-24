@@ -1,15 +1,16 @@
 from humanize import naturalsize
 from lzstring import LZString
-from maps import get_icon_for_file, get_icon_for_folder, EXT_TO_LANG_MAP
+from maps import get_icon_for_file, get_icon_for_folder, EXT_TO_LANG_MAP, PIL_EXTENSIONS
 from os import listdir, path, walk, startfile, getcwd, chdir, scandir
 from pathlib import Path
 import state
-from textual import events
 from textual.app import ComposeResult, App
 from textual.containers import Container
-from textual.widgets import OptionList, Static
+from textual.css.query import NoMatches
+from textual.widgets import OptionList, Static, TextArea
 from textual.widgets.option_list import Option
 from textual_autocomplete import PathAutoComplete, TargetState, DropdownItem
+from textual_image.widget import AutoImage
 
 log = state.log
 lzstring = LZString()
@@ -22,6 +23,14 @@ class PathDropdownItem(DropdownItem):
 
 
 class PathAutoCompleteInput(PathAutoComplete):
+    def should_show_dropdown(self, search_string: str) -> bool:
+        default_behavior = super().should_show_dropdown(search_string)
+        return (
+            default_behavior
+            or (search_string == "" and self.target.value != "")
+            and self.option_list.option_count > 0
+        )
+
     def get_candidates(self, target_state: TargetState) -> list[DropdownItem]:
         """Get the candidates for the current path segment, folders only."""
         current_input = target_state.text[: target_state.cursor_position]
@@ -110,28 +119,9 @@ def get_folder_size(folder_path: str) -> int:
     return total_size
 
 
-def update_file_list(
-    appInstance: App,
-    file_list_id: str,
-    sort_by: str = "name",
-    sort_order: str = "ascending",
-    add_to_session: bool = True,
-) -> None:
-    """Update the file list with the current directory contents.
-
-    Args:
-        appInstance: The application instance.
-        file_list_id (str): The ID of the file list widget.
-        sort_by (str): The attribute to sort by ("name" or "size").
-        sort_order (str): The order to sort by ("ascending" or "descending").
-        add_to_session (bool): Whether to add the current directory to the session history.
-    """
-    cwd = getcwd()
-    file_list = appInstance.query_one(f"{file_list_id}")
-    file_list.clear_options()
-    # seperate folders and files
+def get_cwd_object(cwd: str, sort_order: str, sort_by: str) -> list[dict]:
     folders, files = [], []
-    for item in listdir(getcwd()):
+    for item in listdir(cwd):
         if path.isdir(path.join(cwd, item)):
             folders.append(
                 {
@@ -169,6 +159,31 @@ def update_file_list(
             key=lambda x: path.getsize(path.join(cwd, x["name"])),
             reverse=(sort_order == "descending"),
         )
+    return folders, files
+
+
+def update_file_list(
+    appInstance: App,
+    file_list_id: str,
+    sort_by: str = "name",
+    sort_order: str = "ascending",
+    add_to_session: bool = True,
+) -> None:
+    """Update the file list with the current directory contents.
+
+    Args:
+        appInstance: The application instance.
+        file_list_id (str): The ID of the file list widget.
+        sort_by (str): The attribute to sort by ("name" or "size").
+        sort_order (str): The order to sort by ("ascending" or "descending").
+        add_to_session (bool): Whether to add the current directory to the session history.
+    """
+    cwd = getcwd()
+    log(cwd)
+    file_list = appInstance.query_one(f"{file_list_id}")
+    file_list.clear_options()
+    # seperate folders and files
+    folders, files = get_cwd_object(cwd, sort_order, sort_by)
     file_list_options = (
         files + folders if sort_order == "descending" else folders + files
     )
@@ -179,9 +194,9 @@ def update_file_list(
                 id=LZString.compressToEncodedURIComponent(item["name"]),
             )
         )
-    appInstance.query_one("#path_switcher").value = cwd.replace(path.sep, "/") + "/"
     # session handler
     if add_to_session:
+        appInstance.query_one("#path_switcher").value = cwd.replace(path.sep, "/") + "/"
         if state.sessionHistoryIndex != len(state.sessionDirectories) - 1:
             state.sessionDirectories = state.sessionDirectories[
                 : state.sessionHistoryIndex + 1
@@ -195,16 +210,13 @@ def update_file_list(
         state.sessionHistoryIndex = len(state.sessionDirectories) - 1
         log(state.sessionDirectories)
         log(state.sessionHistoryIndex)
+        appInstance.update_session_dicts(
+            state.sessionDirectories,
+            state.sessionHistoryIndex,
+        )
     else:
         log(state.sessionDirectories[state.sessionHistoryIndex])
         log(state.sessionHistoryIndex)
-    file_list.highlighted = file_list.get_option_index(
-        state.sessionDirectories[state.sessionHistoryIndex]["highlighted"]
-    )
-    appInstance.update_session_dicts(
-        state.sessionDirectories,
-        state.sessionHistoryIndex,
-    )
     appInstance.query_one("Button#back").disabled = (
         True if state.sessionHistoryIndex == 0 else False
     )
@@ -213,20 +225,69 @@ def update_file_list(
         if state.sessionHistoryIndex == len(state.sessionDirectories) - 1
         else False
     )
+    file_list.highlighted = file_list.get_option_index(
+        state.sessionDirectories[state.sessionHistoryIndex]["highlighted"]
+    )
+
+
+def dummy_update_file_list(
+    appInstance: App,
+    file_list_id: str,
+    sort_by: str = "name",
+    sort_order: str = "ascending",
+    cwd: str = "",
+) -> None:
+    """Update the file list with the current directory contents.
+
+    Args:
+        appInstance: The application instance.
+        file_list_id (str): The ID of the file list widget.
+        sort_by (str): The attribute to sort by ("name" or "size").
+        sort_order (str): The order to sort by ("ascending" or "descending").
+        cwd (str): The current working directory.
+    """
+    if cwd == "":
+        cwd = getcwd()
+    log(cwd)
+    file_list = appInstance.query_one(f"{file_list_id}")
+    file_list.clear_options()
+    # seperate folders and files
+    folders, files = get_cwd_object(cwd, sort_order, sort_by)
+    file_list_options = (
+        files + folders if sort_order == "descending" else folders + files
+    )
+    for item in file_list_options:
+        file_list.add_option(
+            Option(
+                f"{item['icon']} {item['name']} {LZString.compressToEncodedURIComponent(item['name'])}",
+                id=LZString.compressToEncodedURIComponent(item["name"]),
+            )
+        )
 
 
 class FileList(OptionList):
     CSS_PATH = "style.tcss"
 
-    def __init__(self, sort_by, sort_order, **kwargs):
+    def __init__(
+        self,
+        sort_by: str,
+        sort_order: str,
+        dummy: bool = False,
+        enter_into: str = "",
+        **kwargs,
+    ):
         super().__init__(**kwargs)
         self.sort_by = sort_by
         self.sort_order = sort_order
+        self.dummy = dummy
+        self.enter_into = enter_into
 
     def compose(self) -> ComposeResult:
         yield Static()
 
     def on_option_list_option_selected(self, event: OptionList.OptionSelected) -> None:
+        if self.dummy:
+            return
         cwd = getcwd()
         # Get the selected option
         selected_option = event.option
@@ -241,9 +302,11 @@ class FileList(OptionList):
         else:
             startfile(path.join(cwd, file_name))
 
-    def on_option_list_option_highlighted(
+    async def on_option_list_option_highlighted(
         self, event: OptionList.OptionHighlighted
     ) -> None:
+        if self.dummy:
+            return
         # Get the highlighted option
         highlighted_option = event.option
         state.sessionDirectories[state.sessionHistoryIndex]["highlighted"] = (
@@ -254,34 +317,107 @@ class FileList(OptionList):
         file_name = lzstring.decompressFromEncodedURIComponent(highlighted_option.id)
         # Check if it's a folder or a file
         file_path = path.join(getcwd(), file_name)
-        if not path.isdir(file_path):
-            try:
-                with open(file_path, "r", encoding="utf-8") as f:
-                    self.app.query_one("#text_preview").text = f.read()
-                    file_lang = EXT_TO_LANG_MAP.get(
-                        path.splitext(file_name)[1], "markdown"
-                    )
-                    self.app.query_one("#text_preview").language = file_lang
-                    log(file_lang)
-            except UnicodeDecodeError:
-                self.app.query_one("#text_preview").text = state.config["sidebar"][
-                    "text"
-                ]["binary"]
-            except (FileNotFoundError, PermissionError, OSError):
-                self.app.query_one("#text_preview").text = state.config["sidebar"][
-                    "text"
-                ]["error"]
+        if path.isdir(file_path):
+            await self.app.query_one("#preview_sidebar").show_folder(file_path)
         else:
-            self.app.query_one("#text_preview").text = state.config["sidebar"]["text"][
-                "folder"
-            ]
+            await self.app.query_one("#preview_sidebar").show_file(file_path)
 
     def on_mount(self) -> None:
-        update_file_list(
-            self.app,
-            "#file_list",
-            sort_by=self.sort_by,
-            sort_order=self.sort_order,
+        try:
+            self.query_one("Static").remove()
+        except NoMatches:
+            pass
+        if not self.dummy:
+            update_file_list(
+                self.app,
+                "#file_list",
+                sort_by=self.sort_by,
+                sort_order=self.sort_order,
+            )
+            self.focus()
+
+
+class PreviewContainer(Container):
+    def compose(self) -> ComposeResult:
+        yield TextArea(
+            id="text_preview",
+            show_line_numbers=True,
+            soft_wrap=False,
+            read_only=True,
+            text=state.config["sidebar"]["text"]["start"],
+            language="markdown",
+            compact=True,
         )
-        self.focus()
-        self.query_one("Static").remove()
+
+    async def show_file(self, file_path: str) -> None:
+        """Show the file in the preview container."""
+        await self.remove_children()
+        if any(file_path.endswith(ext) for ext in PIL_EXTENSIONS):
+            await self.mount(AutoImage(file_path, id="image_preview"))
+            self.border_title = "Image Preview"
+            self.query_one("#image_preview").can_focus = True
+        else:
+            try:
+                with open(file_path, "r", encoding="utf-8") as f:
+                    await self.mount(
+                        TextArea(
+                            id="text_preview",
+                            show_line_numbers=True,
+                            soft_wrap=False,
+                            read_only=True,
+                            text=f.read(),
+                            language=EXT_TO_LANG_MAP.get(
+                                path.splitext(file_path)[1], "markdown"
+                            ),
+                            compact=True,
+                        )
+                    )
+            except UnicodeDecodeError:
+                await self.mount(
+                    TextArea(
+                        id="text_preview",
+                        show_line_numbers=True,
+                        soft_wrap=False,
+                        read_only=True,
+                        text=state.config["sidebar"]["text"]["binary"],
+                        language="markdown",
+                        compact=True,
+                    )
+                )
+            except (FileNotFoundError, PermissionError, OSError):
+                await self.mount(
+                    TextArea(
+                        id="text_preview",
+                        show_line_numbers=True,
+                        soft_wrap=False,
+                        read_only=True,
+                        text=state.config["sidebar"]["text"]["error"],
+                        language="markdown",
+                        compact=True,
+                    )
+                )
+            finally:
+                self.border_title = "File Preview"
+
+    async def show_folder(self, folder_path: str) -> None:
+        """Show the folder in the preview container."""
+        await self.remove_children()
+        await self.mount(
+            FileList(
+                id="folder_preview",
+                name=folder_path,
+                classes="file-list",
+                sort_by="name",
+                sort_order="ascending",
+                dummy=True,
+                enter_into=path.relpath(getcwd(), folder_path),
+            )
+        )
+        dummy_update_file_list(
+            self.app,
+            "#folder_preview",
+            sort_by="name",
+            sort_order="ascending",
+            cwd=folder_path,
+        )
+        self.border_title = "Folder Preview"

@@ -1,4 +1,15 @@
-[interface]
+[sidebar]
+wrap = true
+
+[filelist]
+sort_by = "name"
+sort_order = "ascending"
+
+[sidebar.text]
+error = "Hmm, I think this file got corrupted (or maybe not?)"
+binary = "010101 0101\nJust kidding, this is a binary file"
+folder = "Nesting? What's that?"
+start = "print(\"Hello, world!\")"
 
 [interface.border]
 style = "solid"
@@ -8,31 +19,26 @@ color = "$primary-lighten-3"
 [interface.fractions]
 pinned_sidebar = 1
 file_list = 3
-preview = 2
+preview_sidebar = 2
 
 [interface.theme]
 default = "nord"
 
-[sidebar]
-wrap = true
-[sidebar.text]
-error = "Hmm, I think this file got corrupted (or maybe not?)"
-binary = "010101 0101\nJust kidding, this is a binary file"
-folder = "Nesting? What's that?"
-start = "print(\"Hello, world!\")"
-
-[filelist]
-sort_by = "name"
-sort_order = "ascending"
-
-[keybinds]
 [keybinds.focus]
 pinned_sidebar = "s"
 file_list = "escape"
-preview = "m"
+preview_sidebar = "m"
 path_switcher = "slash"
+
 [keybinds.navigation]
 previous = "backspace"
 next = "space"
 up = "shift+up"
 reload = "ctrl+r"
+
+[keybinds.mode]
+visual = "v"
+
+[keybinds.panel_size]
+increase = "plus"
+decrease = "minus"
