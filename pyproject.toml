@@ -15,6 +15,9 @@ dependencies = [
     "textual-web>=0.4.2",
     "toml>=0.10.2",
     "watchdog>=6.0.0",
+    "platformdirs>=4.3.8",
+    "thefuzz>=0.22.1",
+    "ujson>=5.10.0",
 ]
 
 [dependency-groups]

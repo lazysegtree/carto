@@ -1,6 +1,8 @@
 import state
 from textual.theme import Theme
+
 state.load_config()
+
 
 def get_custom_themes():
     """
@@ -13,7 +15,9 @@ def get_custom_themes():
     for theme in state.config["interface"]["custom_theme"]:
         custom_themes.append(
             Theme(
-                name=theme["name"].lower().replace(" ", "-"), # keep it similar to default textual behaviour
+                name=theme["name"]
+                .lower()
+                .replace(" ", "-"),  # keep it similar to default textual behaviour
                 primary=theme["primary"],
                 secondary=theme["secondary"],
                 accent=theme["accent"],

@@ -1,13 +1,16 @@
 """Module that holds variable states + other functions"""
 
 import base64
-from toml import loads, dumps
+import toml
+from maps import VAR_TO_DIR
 from os import path
+from platformdirs import *  # leaving it here just in case we need it later
+import re
 from time import sleep
+from threading import Thread
+import ujson
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
-import re
-from threading import Thread
 
 
 def log(*object):
@@ -22,6 +25,7 @@ sessionDirectories = []
 sessionHistoryIndex = 0
 sessionLastHighlighted = {}
 config = {}
+pins = {}
 """
 def log(string):
     with open(
@@ -81,11 +85,12 @@ def load_config() -> None:
 
     global config
     with open(path.join(path.dirname(__file__), "config/config.toml"), "r") as f:
-        config = loads(f.read())
-    log(config)
+        config = toml.loads(f.read())
     # update styles
     # get vars to replace
-    with open(path.join(path.dirname(__file__), "config/template_style.tcss"), "r") as f:
+    with open(
+        path.join(path.dirname(__file__), "config/template_style.tcss"), "r"
+    ) as f:
         template = f.read()
     # replace vars with values from config
     vars = r"\$\-([^\$]+)-\$"
@@ -99,20 +104,173 @@ def load_config() -> None:
         f.write(template)
 
 
+def load_pins() -> None:
+    """
+    Load the pinned files from a JSON file.
+    """
+    global pins
+    pins_file_path = path.join(path.dirname(__file__), "config/pins.json")
+
+    if not path.exists(pins_file_path):
+        pins = {"default": [], "pins": []}
+        try:
+            with open(pins_file_path, "w") as f:
+                ujson.dump(pins, f, escape_forward_slashes=False, indent=2)
+        except IOError:
+            log(f"Error: Could not create pins.json at {pins_file_path}")
+        return
+
+    try:
+        with open(pins_file_path, "r") as f:
+            loaded_data = ujson.load(f)
+    except (IOError, ValueError):
+        log(
+            f"Error: Could not read or parse pins.json at {pins_file_path}. Initializing with empty pins."
+        )
+        pins = {"default": [], "pins": []}
+        return
+
+    for section_key in ["default", "pins"]:
+        if section_key in loaded_data:
+            for item in loaded_data[section_key]:
+                if (
+                    isinstance(item, dict)
+                    and "path" in item
+                    and isinstance(item["path"], str)
+                ):
+                    # Expand variables
+                    for var, dir_path_val in VAR_TO_DIR.items():
+                        item["path"] = item["path"].replace(f"${var}", dir_path_val)
+                    # Normalize to forward slashes
+                    item["path"] = item["path"].replace("\\", "/")
+    pins = loaded_data
+
+
+def add_pin(pin_name: str, pin_path: str) -> None:
+    """
+    Add a pin to the pins file.
+
+    Args:
+        pin_name (str): Name of the pin.
+        pin_path (str): Path of the pin.
+    """
+    global pins
+
+    pins_to_write = ujson.loads(ujson.dumps(pins))
+
+    pin_path_normalized = pin_path.replace("\\", "/")
+    pins_to_write.setdefault("pins", []).append(
+        {"name": pin_name, "path": pin_path_normalized}
+    )
+
+    sorted_vars = sorted(VAR_TO_DIR.items(), key=lambda x: len(x[1]), reverse=True)
+    for section_key in ["default", "pins"]:
+        if section_key in pins_to_write:
+            for item in pins_to_write[section_key]:
+                if (
+                    isinstance(item, dict)
+                    and "path" in item
+                    and isinstance(item["path"], str)
+                ):
+                    for var, dir_path_val in sorted_vars:
+                        item["path"] = item["path"].replace(dir_path_val, f"${var}")
+
+    try:
+        with open(path.join(path.dirname(__file__), "config/pins.json"), "w") as f:
+            ujson.dump(pins_to_write, f, escape_forward_slashes=False, indent=2)
+        log(f"Pin added: {pin_name} -> {pin_path_normalized}")
+    except IOError:
+        log(f"Error: Could not write to pins.json for add_pin.")
+
+    load_pins()
+
+
+def remove_pin(pin_path: str) -> None:
+    """
+    Remove a pin from the pins file.
+
+    Args:
+        pin_path (str): Path of the pin to remove.
+    """
+    global pins
+
+    pins_to_write = ujson.loads(ujson.dumps(pins))
+
+    pin_path_normalized = pin_path.replace("\\", "/")
+    if "pins" in pins_to_write:
+        pins_to_write["pins"] = [
+            pin
+            for pin in pins_to_write["pins"]
+            if not (isinstance(pin, dict) and pin.get("path") == pin_path_normalized)
+        ]
+
+    sorted_vars = sorted(VAR_TO_DIR.items(), key=lambda x: len(x[1]), reverse=True)
+    for section_key in ["default", "pins"]:
+        if section_key in pins_to_write:
+            for item in pins_to_write[section_key]:
+                if (
+                    isinstance(item, dict)
+                    and "path" in item
+                    and isinstance(item["path"], str)
+                ):
+                    for var, dir_path_val in sorted_vars:
+                        item["path"] = item["path"].replace(dir_path_val, f"${var}")
+
+    try:
+        with open(path.join(path.dirname(__file__), "config/pins.json"), "w") as f:
+            ujson.dump(pins_to_write, f, escape_forward_slashes=False, indent=2)
+        log(f"Pin removed: {pin_path_normalized}")
+    except IOError:
+        log(f"Error: Could not write to pins.json for remove_pin.")
+
+    load_pins()  # Reload
+
+
+def toggle_pin(pin_name: str, pin_path: str) -> None:
+    """
+    Toggle a pin in the pins file. If it exists, remove it; if not, add it.
+
+    Args:
+        pin_name (str): Name of the pin.
+        pin_path (str): Path of the pin.
+    """
+    pin_path_normalized = pin_path.replace("\\", "/")
+
+    pin_exists = False
+    if "pins" in pins:
+        for pin_item in pins["pins"]:
+            if (
+                isinstance(pin_item, dict)
+                and pin_item.get("path") == pin_path_normalized
+            ):
+                pin_exists = True
+                break
+
+    if pin_exists:
+        remove_pin(pin_path_normalized)
+    else:
+        add_pin(pin_name, pin_path_normalized)
+
+
 class FileEventHandler(FileSystemEventHandler):
     @staticmethod
     def on_modified(event):
         if event.is_directory:
             return
-        elif path.basename(event.src_path) in ["config.toml", "template_style.tcss"]:
+        src_path_basename = path.basename(event.src_path)
+        if src_path_basename in ["config.toml", "template_style.tcss"]:
             log(f"File modified: {event.src_path}")
             load_config()
+        elif src_path_basename == "pins.json":
+            log(f"File modified: {event.src_path}")
 
 
 def watch_config_file() -> None:
     event_handler = FileEventHandler()
     observer = Observer()
-    observer.schedule(event_handler, path=path.dirname(__file__), recursive=False)
+    observer.schedule(
+        event_handler, path=path.join(path.dirname(__file__), "config"), recursive=False
+    )
     observer.start()
     log("Watching for changes in config.toml and template_style.tcss")
     try:
@@ -123,13 +281,20 @@ def watch_config_file() -> None:
     observer.join()
 
 
-Thread(
-    target=watch_config_file,
-    daemon=True,
-).start()
-
 def encode_base64(text: str) -> str:
-    return base64.b64encode(text.encode('utf-8')).decode('utf-8')
+    return base64.b64encode(text.encode("utf-8")).decode("utf-8")
+
 
 def decode_base64(text: str) -> str:
-    return base64.b64decode(text.encode('utf-8')).decode('utf-8')
+    return base64.b64decode(text.encode("utf-8")).decode("utf-8")
+
+
+def start_watcher():
+    Thread(
+        target=watch_config_file,
+        daemon=True,
+    ).start()
+
+
+if __name__ == "__main__":
+    start_watcher()

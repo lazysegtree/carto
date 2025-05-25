@@ -28,8 +28,11 @@ from WidgetsCore import (
     FileList,
     update_file_list,
     PreviewContainer,
+    PinnedSidebar,
 )
 
+state.load_config()
+state.load_pins()
 log = state.log
 
 
@@ -77,13 +80,19 @@ class Application(App):
                 id="below_menu",
             ),
             HorizontalGroup(
-                OptionList("hi", id="pinned_sidebar"),
-                FileList(
-                    id="file_list",
-                    name="File List",
-                    classes="file-list",
-                    sort_by=self.main_sort_by,
-                    sort_order=self.main_sort_order,
+                VerticalGroup(
+                    PinnedSidebar(id="pinned_sidebar"),
+                    id="pinned_sidebar_container",
+                ),
+                VerticalGroup(
+                    FileList(
+                        id="file_list",
+                        name="File List",
+                        classes="file-list",
+                        sort_by=self.main_sort_by,
+                        sort_order=self.main_sort_order,
+                    ),
+                    id="file_list_container",
                 ),
                 PreviewContainer(
                     id="preview_sidebar",
@@ -97,8 +106,8 @@ class Application(App):
     def on_mount(self):
         self.query_one("#menu").border_title = "Options"
         self.query_one("#below_menu").border_title = "Directory Actions"
-        self.query_one("#pinned_sidebar").border_title = "Sidebar"
-        self.query_one("#file_list").border_title = "Files"
+        self.query_one("#pinned_sidebar_container").border_title = "Sidebar"
+        self.query_one("#file_list_container").border_title = "Files"
         for theme in get_custom_themes():
             self.register_theme(theme)
         self.theme = state.config["interface"]["theme"]["default"]
@@ -146,7 +155,8 @@ class Application(App):
     @on(Input.Submitted, "#path_switcher")
     def switch_to_path(self, event: Input.Submitted) -> None:
         """Use a custom path entered as the current workind directory"""
-        chdir(event.value)
+        if path.exists(event.value):
+            chdir(event.value)
         update_file_list(self, "#file_list", self.main_sort_by, self.main_sort_order)
 
     @on(Button.Pressed, "#reload")
@@ -166,19 +176,28 @@ class Application(App):
         state.update_session_state(sessionDirs, sessionHisIndex)
 
     async def on_key(self, event: events.Key) -> None:
+        if not self.focused.id:
+            return
         if self.focused.id == "path_switcher" and event.key in ["enter", "escape"]:
             self.query_one("#file_list").focus()
             await self.query_one("#path_switcher").action_submit()
-        elif self.focused.id == "path_switcher" and event.key == "backspace":
+        elif "search" in self.focused.id and event.key == "escape":
+            if self.focused.id == "search_file_list":
+                self.query_one("#file_list").focus()
+            elif self.focused.id == "search_pinned_sidebar":
+                self.query_one("#pinned_sidebar").focus()
+        elif (
+            self.focused.id == "path_switcher" or "search" in self.focused.id
+        ) and event.key == "backspace":
             return
-        elif event.key == state.config["keybinds"]["focus"]["pinned_sidebar"]:
+        elif event.key in state.config["keybinds"]["focus"]["pinned_sidebar"]:
             if self.focused.id == "pinned_sidebar":
                 self.query_one("#file_list").focus()
             else:
                 self.query_one("#pinned_sidebar").focus()
-        elif event.key == state.config["keybinds"]["focus"]["file_list"]:
+        elif event.key in state.config["keybinds"]["focus"]["file_list"]:
             self.query_one("#file_list").focus()
-        elif event.key == state.config["keybinds"]["focus"]["preview_sidebar"]:
+        elif event.key in state.config["keybinds"]["focus"]["preview_sidebar"]:
             if (
                 self.focused.id == "preview_sidebar"
                 or self.focused.parent.id == "preview_sidebar"
@@ -186,21 +205,24 @@ class Application(App):
                 self.query_one("#file_list").focus()
             else:
                 self.query_one("#preview_sidebar *").focus()
-        elif event.key == state.config["keybinds"]["focus"]["path_switcher"]:
+        elif event.key in state.config["keybinds"]["focus"]["path_switcher"]:
             self.query_one("#path_switcher").focus()
-        elif event.key == state.config["keybinds"]["navigation"]["previous"]:
+        elif event.key in state.config["keybinds"]["navigation"]["previous"]:
             if self.query_one("#back").disabled:
                 self.query_one("#up").action_press()
             else:
                 self.query_one("#back").action_press()
-        elif event.key == state.config["keybinds"]["navigation"]["next"]:
+        elif event.key in state.config["keybinds"]["navigation"]["next"]:
             self.query_one("#forward").action_press()
-        elif event.key == state.config["keybinds"]["navigation"]["up"]:
+        elif event.key in state.config["keybinds"]["navigation"]["up"]:
             self.query_one("#up").action_press()
-        elif event.key == state.config["keybinds"]["navigation"]["reload"]:
+        elif event.key in state.config["keybinds"]["navigation"]["reload"]:
             self.query_one("#reload").action_press()
+        elif event.key in state.config["keybinds"]["toggle_pin"]:
+            state.toggle_pin(path.basename(getcwd()), getcwd())
+            await self.query_one("#pinned_sidebar").reload_pins()
 
 
-state.load_config()
+state.start_watcher()
 app = Application(watch_css=True)
 app.run()

@@ -17,23 +17,32 @@ Footer {
     height: 1;
 }
 
-#file_list {
+#file_list_container {
     height: 1fr;
-    margin: 0 1;
-    width: $-interface-fractions-file_list-$fr;
     border: none;
-    padding: 0 1;
-    OptionList {
-        height: 1fr;
-    }
+    width: $-interface-fractions-file_list-$fr;
 }
-OptionList#pinned_sidebar {
+
+#pinned_sidebar_container {
     height: 1fr;
     margin: 0;
-    padding: 0 1;
     width: $-interface-fractions-pinned_sidebar-$fr;
 }
-PreviewContainer {
+#pinned_sidebar_container > Input,
+#file_list_container > Input {
+    padding: 0 1;
+    margin: 0 1;
+    background: transparent;
+    height: 1;
+    border: none;
+}
+#pinned_sidebar_container OptionList,
+#file_list_container OptionList {
+    background: transparent;
+    border: none;
+}
+
+#preview_sidebar {
     height: 1fr;
     margin: 0;
     width: 2fr;
@@ -100,20 +109,20 @@ PreviewContainer {
     margin: 0;
 }
 
-#menu, #below_menu, #pinned_sidebar, #file_list, PreviewContainer {
+#menu, #below_menu, #pinned_sidebar_container, #file_list_container, #preview_sidebar {
     background: black 0%;
     border: $-interface-border-style-$ $-interface-border-inactive_color-$;
 }
 
 #menu:focus-within,
 #below_menu:focus-within,
-#pinned_sidebar:focus,
-#file_list:focus,
-PreviewContainer:focus-within,
-PreviewContainer:focus {
+#pinned_sidebar_container:focus-within,
+#file_list_container:focus-within,
+#preview_sidebar:focus-within,
+#preview_sidebar:focus {
     border: $-interface-border-style-$ $-interface-border-color-$;
 }
-PreviewContainer > * {
+#preview_sidebar > * {
     background: transparent;
     border: none;
     padding: 0;
@@ -123,4 +132,14 @@ AutoImage {
     width: auto;
     height: auto;
     align: center bottom;
+}
+PinnedSidebar Option {
+    color: red !important;
+}
+.hidden {
+    display: none;
+}
+
+PinnedSidebar {
+    scrollbar-size: 0 0 !important;
 }

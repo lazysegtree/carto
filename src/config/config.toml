@@ -38,17 +38,24 @@ surface = "#1a1a1a"
 panel = "#0d0d0d"
 is_dark = true
 
+[keybinds]
+toggle_pin = ["p"]
+
 [keybinds.focus]
-pinned_sidebar = "s"
-file_list = "escape"
-preview_sidebar = "m"
-path_switcher = "slash"
+pinned_sidebar = ["s"]
+file_list = ["escape"]
+preview_sidebar = ["m"]
+path_switcher = ["slash", "question_mark"]
+search = ["f"]
 
 [keybinds.navigation]
-previous = "backspace"
-next = "space"
-up = "shift+up"
-reload = "ctrl+r"
+previous = ["backspace"]
+next = ["space"]
+up = ["shift+up"]
+reload = ["ctrl+r"]
 
 [keybinds.mode]
-visual = "v"
+visual = ["v"]
+
+[search]
+threshold = 50

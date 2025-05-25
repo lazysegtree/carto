@@ -1,3 +1,18 @@
+from platformdirs import PlatformDirs
+from os import path
+
+dirs = PlatformDirs("NSPC911", "carto")
+
+VAR_TO_DIR = {
+    "DOCUMENTS": dirs.user_documents_dir.replace("\\", "/"),
+    "DOWNLOADS": dirs.user_downloads_dir.replace("\\", "/"),
+    "MUSIC": dirs.user_music_dir.replace("\\", "/"),
+    "PICTURES": dirs.user_pictures_dir.replace("\\", "/"),
+    "DESKTOP": dirs.user_desktop_dir.replace("\\", "/"),
+    "HOME": path.expanduser("~").replace("\\", "/"),
+    "VIDEOS": dirs.user_videos_dir.replace("\\", "/"),
+}
+
 ICONS = {
     "general": {
         "new": "\uf415",

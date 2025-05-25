@@ -10,8 +10,11 @@ from textual.css.query import NoMatches
 from textual.widgets import OptionList, Static, TextArea
 from textual.widgets.option_list import Option
 from textual_autocomplete import PathAutoComplete, TargetState, DropdownItem
-from textual_image.widget import AutoImage
 
+try:
+    from textual_image.widget import AutoImage
+except TimeoutError:
+    pass
 log = state.log
 
 
@@ -124,7 +127,7 @@ def get_cwd_object(cwd: str, sort_order: str, sort_by: str) -> list[dict]:
         if path.isdir(path.join(cwd, item)):
             folders.append(
                 {
-                    "name": item,
+                    "name": f"{item}{path.sep}",
                     "icon": f" {get_icon_for_folder(item)}",
                 }
             )
@@ -194,8 +197,8 @@ def update_file_list(
             )
         )
     # session handler
+    appInstance.query_one("#path_switcher").value = cwd.replace(path.sep, "/") + "/"
     if add_to_session:
-        appInstance.query_one("#path_switcher").value = cwd.replace(path.sep, "/") + "/"
         if state.sessionHistoryIndex != len(state.sessionDirectories) - 1:
             state.sessionDirectories = state.sessionDirectories[
                 : state.sessionHistoryIndex + 1
@@ -247,7 +250,6 @@ def dummy_update_file_list(
     """
     if cwd == "":
         cwd = getcwd()
-    log(cwd)
     file_list = appInstance.query_one(f"{file_list_id}")
     file_list.clear_options()
     # seperate folders and files
@@ -420,3 +422,102 @@ class PreviewContainer(Container):
             cwd=folder_path,
         )
         self.border_title = "Folder Preview"
+
+
+class FolderNotFileError(Exception):
+    """Raised when a folder is expected but a file is provided instead."""
+
+    def __init__(self, message: str):
+        super().__init__(message)
+        self.message = message
+
+
+class PinnedSidebar(OptionList):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.default = state.pins["default"]
+        self.pins = state.pins["pins"]
+        self.drives = [
+            f"{letter}:/" for letter in ascii_uppercase if path.exists(f"{letter}:/")
+        ]
+
+    def compose(self) -> ComposeResult:
+        yield Static()
+
+    async def reload_pins(self):
+        # be extra sure
+        state.load_pins()
+        self.pins = state.pins["pins"]
+        self.default = state.pins["default"]
+        await self.remove_children()
+        self.clear_options()
+        log("Mounting PinnedSidebar")
+        for default_folder in self.default:
+            if not path.isdir(default_folder["path"]):
+                raise FolderNotFileError(
+                    f"Expected a folder but got a file: {default_folder['path']}"
+                )
+            if "icon" in default_folder:
+                icon = default_folder["icon"]
+            elif path.isdir(default_folder["path"]):
+                icon = get_icon_for_folder(default_folder["name"])
+            else:
+                icon = get_icon_for_file(default_folder["name"])
+            self.add_option(
+                Option(
+                    f" {icon} {default_folder['name']}",
+                    id=f"{state.encode_base64(default_folder['path'])}-default",
+                )
+            )
+        self.add_option(Option("Pinned", id="pinned-header"))
+        for pin in self.pins:
+            try:
+                pin["path"]
+            except KeyError:
+                break
+            if not path.isdir(pin["path"]):
+                raise FolderNotFileError(
+                    f"Expected a folder but got a file: {pin['path']}"
+                )
+            if "icon" in pin:
+                icon = pin["icon"]
+            elif path.isdir(pin["path"]):
+                icon = get_icon_for_folder(pin["name"])
+            else:
+                icon = get_icon_for_file(pin["name"])
+            self.add_option(
+                Option(
+                    f" {icon} {pin['name']}",
+                    id=f"{state.encode_base64(pin['path'])}-pinned",
+                )
+            )
+        self.add_option(Option("Drives", id="drives-header"))
+        for drive in self.drives:
+            self.add_option(
+                Option(
+                    f" \uf0a0 {drive}",
+                    id=f"{state.encode_base64(drive)}-drives",
+                )
+            )
+        self.disable_option("pinned-header")
+        self.disable_option("drives-header")
+
+    async def on_mount(self):
+        """Reload the pinned files from the config."""
+        state.load_pins()
+        self.pins = state.pins["pins"]
+        await self.reload_pins()
+
+    async def on_option_list_option_selected(
+        self, event: OptionList.OptionSelected
+    ) -> None:
+        """Handle the selection of an option in the pinned sidebar."""
+        selected_option = event.option
+        log(f"Selected pinned option: {selected_option}")
+        # Get the file path from the option id
+        file_path = state.decode_base64(selected_option.id.split("-")[0])
+        if not path.isdir(file_path):
+            raise FolderNotFileError(f"Expected a folder but got a file: {file_path}")
+        chdir(file_path)
+        update_file_list(self.app, "#file_list", "name", "ascending")
+        self.app.query_one("#file_list").focus()
