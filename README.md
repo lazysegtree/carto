@@ -1,4 +1,6 @@
-## carto: Your map through the uncharted directories
+## carto
+
+> Your map through the uncharted directories
 
 > [!caution]
 > This project is in its very early stages. Feedback is appreciated, but this cannot be daily-driven yet.
@@ -15,7 +17,8 @@ uv run src/main.py
 ```
 
 ### Roadmap
-This is a list of features that I plan to add before releasing v1 and where they are inspired from.
+This is a list of features that I plan to add before releasing the appropriate version and where they are inspired from.
+#### v1
 - [x] Directory Autocompletion (explorer)
 - [x] Button Navigation (explorer)
 - [ ] Keyboard Navigation
@@ -33,3 +36,6 @@ This is a list of features that I plan to add before releasing v1 and where they
 - [ ] Clipboard (superfile)
 - [ ] Active and Completed processes (superfile)
 - [ ] Actions (explorer)
+
+#### v2
+- [ ] Plugins using [pytest-dev/pluggy](https://github.com/pytest-dev/pluggy) or a custom way (i wish not)
