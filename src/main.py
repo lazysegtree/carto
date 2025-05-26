@@ -39,6 +39,8 @@ log = state.log
 class Application(App):
     CSS_PATH = "style.tcss"
 
+    HORIZONTAL_BREAKPOINTS = [(0, "-filelistonly"), (60, "-nopreview"), (90, "-all")]
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.prev_selected_option = None

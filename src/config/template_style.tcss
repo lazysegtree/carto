@@ -58,7 +58,7 @@ Footer {
 #below_menu Input {
     height: 3;
     width: 1fr;
-    margin: 0 1 0 0;
+    margin: 0 1 0 1;
     border: none;
     padding: 0 2 0 2;
     border: $-interface-border-style-$ white;
@@ -142,4 +142,34 @@ PinnedSidebar Option {
 
 PinnedSidebar {
     scrollbar-size: 0 0 !important;
+}
+#pinned_sidebar_container {
+    min-width: 15;
+}
+Option {
+    height: 1;
+    min-height: 1;
+    overflow-x: hidden;
+    overflow-y: hidden;
+    max-height: 1;
+}
+OptionList {
+    overflow-x: hidden;
+}
+Screen.-filelistonly {
+    #pinned_sidebar_container,
+    #preview_sidebar {
+        display: none;
+    }
+    #below_menu Button {
+        display: none;
+    }
+}
+Screen.-nopreview {
+    #preview_sidebar {
+        display: none;
+    }
+    #below_menu Button {
+        display: none;
+    }
 }
