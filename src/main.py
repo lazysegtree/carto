@@ -225,14 +225,14 @@ class Application(App):
             await self.query_one("#pinned_sidebar").reload_pins()
         elif event.key in state.config["keybinds"]["hide"]["pinned_sidebar"]:
             if self.query_one("#pinned_sidebar_container").display:
-                self.query_one("#pinned_sidebar_container").display = False
+                self.query_one("#pinned_sidebar_container").add_class("hide")
             else:
-                self.query_one("#pinned_sidebar_container").display = True
+                self.query_one("#pinned_sidebar_container").remove_class("hide")
         elif event.key in state.config["keybinds"]["hide"]["preview_sidebar"]:
             if self.query_one("#preview_sidebar").display:
-                self.query_one("#preview_sidebar").display = False
+                self.query_one("#preview_sidebar").add_class("hide")
             else:
-                self.query_one("#preview_sidebar").display = True
+                self.query_one("#preview_sidebar").remove_class("hide")
 
 
 state.start_watcher()

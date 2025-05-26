@@ -1,54 +1,54 @@
 #menu {
-    align: left middle;
-    height: 3;
-    margin: 0 1 0 1;
-    padding: 0 1;
+  align: left middle;
+  height: 3;
+  margin: 0 1 0 1;
+  padding: 0 1;
 }
 
 #main {
-    padding: 0 0;
-    height: 1fr;
-    align: center middle;
-    /* I legit have no clue why there is a random right padding and i cant get rid of it, so compensation with a left padding */
-    margin: 0 0 0 1;
+  padding: 0 0;
+  height: 1fr;
+  align: center middle;
+  /* I legit have no clue why there is a random right padding and i cant get rid of it, so compensation with a left padding */
+  margin: 0 0 0 1;
 }
 
 Footer {
-    height: 1;
+  height: 1;
 }
 
 #file_list_container {
-    height: 1fr;
-    border: none;
-    width: $-interface-fractions-file_list-$fr;
+  height: 1fr;
+  border: none;
+  width: $-interface-fractions-file_list-$fr;
 }
 
 #pinned_sidebar_container {
-    height: 1fr;
-    margin: 0;
-    width: $-interface-fractions-pinned_sidebar-$fr;
+  height: 1fr;
+  margin: 0;
+  width: $-interface-fractions-pinned_sidebar-$fr;
 }
 #pinned_sidebar_container > Input,
 #file_list_container > Input {
-    padding: 0 1;
-    margin: 0 1;
-    background: transparent;
-    height: 1;
-    border: none;
+  padding: 0 1;
+  margin: 0 1;
+  background: transparent;
+  height: 1;
+  border: none;
 }
 #pinned_sidebar_container OptionList,
 #file_list_container OptionList {
-    background: transparent;
-    border: none;
+  background: transparent;
+  border: none;
 }
 
 #preview_sidebar {
-    height: 1fr;
-    margin: 0;
-    width: 2fr;
-    border: none;
-    width: $-interface-fractions-preview_sidebar-$fr;
-    padding: 0 1;
+  height: 1fr;
+  margin: 0;
+  width: 2fr;
+  border: none;
+  width: $-interface-fractions-preview_sidebar-$fr;
+  padding: 0 1;
 }
 /*
 * {
@@ -56,62 +56,66 @@ Footer {
 }*/
 
 #below_menu Input {
-    height: 3;
-    width: 1fr;
-    margin: 0 1 0 1;
-    border: none;
-    padding: 0 2 0 2;
-    border: $-interface-border-style-$ white;
-    background: transparent;
+  height: 3;
+  width: 1fr;
+  margin: 0 1 0 1;
+  border: none;
+  padding: 0 2 0 2;
+  border: $-interface-border-style-$ white;
+  background: transparent;
 }
 
 #below_menu Input.hide_border_bottom {
-    border-bottom: none;
-    height: 3;
-    background: $boost;
+  border-bottom: none;
+  height: 3;
+  background: $boost;
 }
 
 #below_menu Button {
-    padding: 0 !important;
-    margin: 0 1;
-    height: 3;
-    max-width: 7;
-    border: none;
+  padding: 0 !important;
+  margin: 0 1;
+  height: 3;
+  max-width: 7;
+  border: none;
 }
 #below_menu {
-    margin: 0 1 0 1;
-    border: $-interface-border-style-$ white;
-    max-height: 11
+  margin: 0 1 0 1;
+  border: $-interface-border-style-$ white;
+  max-height: 11;
 }
 #below_menu PathAutoCompleteInput {
-    padding: 0 2 1 2;
-    margin: -1 1 0 33;
-    max-height: 9;
-    overlay: screen;
-    height: 9;
+  padding: 0 2 1 2;
+  margin: -1 1 0 33;
+  max-height: 9;
+  overlay: screen;
+  height: 9;
+  width: 1fr;
+  border: $-interface-border-style-$ white;
+  border-top: none;
+  background: $boost;
+  AutoCompleteList {
     width: 1fr;
-    border: $-interface-border-style-$ white;
-    border-top: none;
-    background: $boost;
-    AutoCompleteList {
-        width: 1fr;
-    }
-    Option {
-        width: 100%;
-    }
+  }
+  Option {
+    width: 100%;
+  }
 }
 .option {
-    border: none;
-    height: 1;
-    max-width: 3;
-    width: 3;
-    padding: 0;
-    margin: 0;
+  border: none;
+  height: 1;
+  max-width: 3;
+  width: 3;
+  padding: 0;
+  margin: 0;
 }
 
-#menu, #below_menu, #pinned_sidebar_container, #file_list_container, #preview_sidebar {
-    background: black 0%;
-    border: $-interface-border-style-$ $-interface-border-inactive_color-$;
+#menu,
+#below_menu,
+#pinned_sidebar_container,
+#file_list_container,
+#preview_sidebar {
+  background: black 0%;
+  border: $-interface-border-style-$ $-interface-border-inactive_color-$;
 }
 
 #menu:focus-within,
@@ -120,56 +124,49 @@ Footer {
 #file_list_container:focus-within,
 #preview_sidebar:focus-within,
 #preview_sidebar:focus {
-    border: $-interface-border-style-$ $-interface-border-color-$;
+  border: $-interface-border-style-$ $-interface-border-color-$;
 }
 #preview_sidebar > * {
-    background: transparent;
-    border: none;
-    padding: 0;
-    margin: 0;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
 }
 AutoImage {
-    width: auto;
-    height: auto;
-    align: center bottom;
+  width: auto;
+  height: auto;
+  align: center bottom;
 }
 PinnedSidebar Option {
-    color: red !important;
+  color: red !important;
 }
 .hidden {
-    display: none;
+  display: none;
 }
 
 PinnedSidebar {
-    scrollbar-size: 0 0 !important;
+  scrollbar-size: 0 0 !important;
 }
 #pinned_sidebar_container {
-    min-width: 15;
-}
-Option {
-    height: 1;
-    min-height: 1;
-    overflow-x: hidden;
-    overflow-y: hidden;
-    max-height: 1;
+  min-width: 15;
 }
 OptionList {
-    overflow-x: hidden;
+  text-wrap: nowrap;
+  text-overflow: ellipsis;
 }
 Screen.-filelistonly {
-    #pinned_sidebar_container,
-    #preview_sidebar {
-        display: none;
-    }
-    #below_menu Button {
-        display: none;
-    }
+  #pinned_sidebar_container,
+  #preview_sidebar,
+  #below_menu Button {
+    display: none !important;
+  }
 }
 Screen.-nopreview {
-    #preview_sidebar {
-        display: none;
-    }
-    #below_menu Button {
-        display: none;
-    }
+  #preview_sidebar,
+  #below_menu Button {
+    display: none !important;
+  }
+}
+.hide {
+  display: none !important;
 }
