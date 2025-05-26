@@ -41,6 +41,10 @@ is_dark = true
 [keybinds]
 toggle_pin = ["p"]
 
+[keybinds.hide]
+pinned_sidebar = ["S"]
+preview_sidebar = ["M"]
+
 [keybinds.focus]
 pinned_sidebar = ["s"]
 file_list = ["escape"]
