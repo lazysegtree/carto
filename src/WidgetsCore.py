@@ -15,7 +15,6 @@ try:
     from textual_image.widget import AutoImage
 except TimeoutError:
     pass
-log = state.log
 
 
 class PathDropdownItem(DropdownItem):
@@ -105,7 +104,6 @@ def get_cwd_object(cwd: str, sort_order: str, sort_by: str) -> list[dict]:
     try:
         listed_dir = listdir(cwd)
     except (PermissionError, FileNotFoundError, OSError) as e:
-        log(f"Error listing directory {cwd}: {e}")
         return [PermissionError], [PermissionError]
     for item in listed_dir:
         if path.isdir(path.join(cwd, item)):
@@ -149,7 +147,6 @@ def update_file_list(
         add_to_session (bool): Whether to add the current directory to the session history.
     """
     cwd = getcwd()
-    log(cwd)
     file_list = appInstance.query_one(f"{file_list_id}")
     file_list.clear_options()
     # seperate folders and files
@@ -178,15 +175,10 @@ def update_file_list(
             }
         )
         state.sessionHistoryIndex = len(state.sessionDirectories) - 1
-        log(state.sessionDirectories)
-        log(state.sessionHistoryIndex)
         appInstance.update_session_dicts(
             state.sessionDirectories,
             state.sessionHistoryIndex,
         )
-    else:
-        log(state.sessionDirectories[state.sessionHistoryIndex])
-        log(state.sessionHistoryIndex)
     appInstance.query_one("Button#back").disabled = (
         True if state.sessionHistoryIndex == 0 else False
     )
@@ -260,7 +252,6 @@ class FileList(OptionList):
         cwd = getcwd()
         # Get the selected option
         selected_option = event.option
-        log(f"selected {selected_option}")
         # Get the file name from the option id
         file_name = state.decompress(selected_option.id)
         # Check if it's a folder or a file
@@ -281,7 +272,6 @@ class FileList(OptionList):
         state.sessionDirectories[state.sessionHistoryIndex]["highlighted"] = (
             event.option.id
         )
-        log(f"highlighted {highlighted_option}")
         # Get the file name from the option id
         file_name = state.decompress(highlighted_option.id)
         # Check if it's a folder or a file
@@ -419,7 +409,6 @@ class PinnedSidebar(OptionList):
         self.default = state.pins["default"]
         await self.remove_children()
         self.clear_options()
-        log("Mounting PinnedSidebar")
         for default_folder in self.default:
             if not path.isdir(default_folder["path"]):
                 raise FolderNotFileError(
@@ -481,7 +470,6 @@ class PinnedSidebar(OptionList):
     ) -> None:
         """Handle the selection of an option in the pinned sidebar."""
         selected_option = event.option
-        log(f"Selected pinned option: {selected_option}")
         # Get the file path from the option id
         file_path = state.decompress(selected_option.id.split("-")[0])
         if not path.isdir(file_path):

@@ -32,10 +32,12 @@ from WidgetsCore import (
     PreviewContainer,
     PinnedSidebar,
 )
+from rich.console import Console
+print = Console().log
+
 
 state.load_config()
 state.load_pins()
-log = state.log
 
 
 class Application(App):
@@ -50,6 +52,7 @@ class Application(App):
         self.main_sort_order = state.config["filelist"]["sort_order"]
 
     def compose(self) -> ComposeResult:
+        print("Starting Carto...")
         path_switcher = Input(
             id="path_switcher",
             validators=[Function(lambda x: path.exists(x), "Path does not exist")],
@@ -126,6 +129,7 @@ class Application(App):
         yield Footer()
 
     def on_mount(self):
+        print("Mounting...")
         self.query_one("#menu").border_title = "Options"
         self.query_one("#below_menu").border_title = "Directory Actions"
         self.query_one("#pinned_sidebar_container").border_title = "Sidebar"
@@ -142,12 +146,12 @@ class Application(App):
         for theme in get_custom_themes():
             self.register_theme(theme)
         self.theme = state.config["interface"]["theme"]["default"]
+        print("Done?")
 
     @on(Button.Pressed, "#back")
     def go_back_in_history(self, event: Button.Pressed) -> None:
         """Go back in the session's history or go up the directory tree"""
         state.sessionHistoryIndex = state.sessionHistoryIndex - 1
-        log(state.sessionHistoryIndex)
         chdir(state.sessionDirectories[state.sessionHistoryIndex]["path"])
         update_file_list(
             self,
@@ -161,7 +165,6 @@ class Application(App):
     def go_forward_in_history(self, event: Button.Pressed) -> None:
         """Go forward in the session's history"""
         state.sessionHistoryIndex = state.sessionHistoryIndex + 1
-        log(state.sessionHistoryIndex)
         chdir(state.sessionDirectories[state.sessionHistoryIndex]["path"])
         update_file_list(
             self,
@@ -171,15 +174,9 @@ class Application(App):
             add_to_session=False,
         )
 
-    @on(Button.Pressed)
-    @work
-    async def button_log_i_guess(self, event: Button.Pressed) -> None:
-        log(f"button {event.button.id}")
-
     @on(Button.Pressed, "#up")
     def go_up_path(self, event: Button.Pressed) -> None:
         """Go up the current location's directory"""
-        log(f"up {state.sessionDirectories[state.sessionHistoryIndex]}")
         chdir(path.sep.join(getcwd().split(path.sep)[:-1]))
         update_file_list(self, "#file_list", self.main_sort_by, self.main_sort_order)
 

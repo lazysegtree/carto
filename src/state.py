@@ -14,28 +14,11 @@ from lzstring import LZString
 lzstring = LZString()
 
 
-def log(*object):
-    with open(
-        path.join(path.dirname(__file__), "log.txt"),
-        "+a",
-    ) as logger:
-        logger.write(f"{' '.join(object) if type(object) is list else object}\n")
-
-
 sessionDirectories = []
 sessionHistoryIndex = 0
 sessionLastHighlighted = {}
 config = {}
 pins = {}
-"""
-def log(string):
-    with open(
-        path.join(path.dirname(__file__), "log.txt"),
-        "+a",
-    ) as logger:
-        logger.write(f"{string}\n")
-"""
-
 
 def get_nested_value(dictionary, keys_list):
     """
@@ -97,7 +80,6 @@ def load_config() -> None:
     vars = r"\$\-([^\$]+)-\$"
     for match in re.findall(vars, template):
         match_keys = match.split("-")
-        log(match_keys)
         config_value = get_nested_value(config, match_keys)
         if config_value is not None:
             template = template.replace(f"$-{match}-$", str(config_value))
@@ -118,16 +100,13 @@ def load_pins() -> None:
             with open(pins_file_path, "w") as f:
                 ujson.dump(pins, f, escape_forward_slashes=False, indent=2)
         except IOError:
-            log(f"Error: Could not create pins.json at {pins_file_path}")
+            pass
         return
 
     try:
         with open(pins_file_path, "r") as f:
             loaded_data = ujson.load(f)
     except (IOError, ValueError):
-        log(
-            f"Error: Could not read or parse pins.json at {pins_file_path}. Initializing with empty pins."
-        )
         pins = {"default": [], "pins": []}
         return
 
@@ -179,9 +158,8 @@ def add_pin(pin_name: str, pin_path: str) -> None:
     try:
         with open(path.join(path.dirname(__file__), "config/pins.json"), "w") as f:
             ujson.dump(pins_to_write, f, escape_forward_slashes=False, indent=2)
-        log(f"Pin added: {pin_name} -> {pin_path_normalized}")
     except IOError:
-        log(f"Error: Could not write to pins.json for add_pin.")
+        pass
 
     load_pins()
 
@@ -220,9 +198,8 @@ def remove_pin(pin_path: str) -> None:
     try:
         with open(path.join(path.dirname(__file__), "config/pins.json"), "w") as f:
             ujson.dump(pins_to_write, f, escape_forward_slashes=False, indent=2)
-        log(f"Pin removed: {pin_path_normalized}")
     except IOError:
-        log(f"Error: Could not write to pins.json for remove_pin.")
+        pass
 
     load_pins()  # Reload
 
@@ -260,10 +237,9 @@ class FileEventHandler(FileSystemEventHandler):
             return
         src_path_basename = path.basename(event.src_path)
         if src_path_basename in ["config.toml", "template_style.tcss"]:
-            log(f"File modified: {event.src_path}")
             load_config()
         elif src_path_basename == "pins.json":
-            log(f"File modified: {event.src_path}")
+            pass
 
 
 def watch_config_file() -> None:
@@ -273,7 +249,6 @@ def watch_config_file() -> None:
         event_handler, path=path.join(path.dirname(__file__), "config"), recursive=False
     )
     observer.start()
-    log("Watching for changes in config.toml and template_style.tcss")
     try:
         while True:
             sleep(1)
