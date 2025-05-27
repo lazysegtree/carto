@@ -33,6 +33,7 @@ from WidgetsCore import (
     PinnedSidebar,
 )
 from rich.console import Console
+
 print = Console().log
 
 

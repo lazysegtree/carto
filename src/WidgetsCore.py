@@ -121,12 +121,8 @@ def get_cwd_object(cwd: str, sort_order: str, sort_by: str) -> list[dict]:
                 }
             )
     # Sort folders and files properly
-    folders.sort(
-        key=lambda x: x["name"].lower(), reverse=(sort_order == "descending")
-    )
-    files.sort(
-        key=lambda x: x["name"].lower(), reverse=(sort_order == "descending")
-    )
+    folders.sort(key=lambda x: x["name"].lower(), reverse=(sort_order == "descending"))
+    files.sort(key=lambda x: x["name"].lower(), reverse=(sort_order == "descending"))
     return folders, files
 
 

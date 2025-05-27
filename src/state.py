@@ -11,6 +11,7 @@ import ujson
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 from lzstring import LZString
+
 lzstring = LZString()
 
 
@@ -19,6 +20,7 @@ sessionHistoryIndex = 0
 sessionLastHighlighted = {}
 config = {}
 pins = {}
+
 
 def get_nested_value(dictionary, keys_list):
     """
