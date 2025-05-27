@@ -1,6 +1,5 @@
 """Module that holds variable states + other functions"""
 
-import base64
 import toml
 from maps import VAR_TO_DIR
 from os import path
@@ -11,6 +10,8 @@ from threading import Thread
 import ujson
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
+from lzstring import LZString
+lzstring = LZString()
 
 
 def log(*object):
@@ -281,12 +282,12 @@ def watch_config_file() -> None:
     observer.join()
 
 
-def encode_base64(text: str) -> str:
-    return base64.b64encode(text.encode("utf-8")).decode("utf-8")
+def compress(text: str) -> str:
+    return lzstring.compressToEncodedURIComponent(text)
 
 
-def decode_base64(text: str) -> str:
-    return base64.b64decode(text.encode("utf-8")).decode("utf-8")
+def decompress(text: str) -> str:
+    return lzstring.decompressFromEncodedURIComponent(text)
 
 
 def start_watcher():

@@ -109,12 +109,12 @@ class Application(App):
                 RadioSet(
                     RadioButton(
                         path.join(path.dirname(__file__), "log.txt"),
-                        id=state.encode_base64("log.txt"),
+                        id=state.compress("log.txt"),
                         compact=True,
                     ),
                     RadioButton(
                         path.join(path.dirname(__file__), "error.txt"),
-                        id=state.encode_base64("error.txt"),
+                        id=state.compress("error.txt"),
                         compact=True,
                     ),
                     id="clipboard",

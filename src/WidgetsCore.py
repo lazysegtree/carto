@@ -161,7 +161,7 @@ def update_file_list(
         file_list.add_option(
             Option(
                 f"{item['icon']} {item['name']}",
-                id=state.encode_base64(item["name"]),
+                id=state.compress(item["name"]),
             )
         )
     # session handler
@@ -229,7 +229,7 @@ def dummy_update_file_list(
         file_list.add_option(
             Option(
                 f"{item['icon']} {item['name']}",
-                id=state.encode_base64(item["name"]),
+                id=state.compress(item["name"]),
             )
         )
 
@@ -262,7 +262,7 @@ class FileList(OptionList):
         selected_option = event.option
         log(f"selected {selected_option}")
         # Get the file name from the option id
-        file_name = state.decode_base64(selected_option.id)
+        file_name = state.decompress(selected_option.id)
         # Check if it's a folder or a file
         if path.isdir(path.join(cwd, file_name)):
             # If it's a folder, navigate into it
@@ -283,7 +283,7 @@ class FileList(OptionList):
         )
         log(f"highlighted {highlighted_option}")
         # Get the file name from the option id
-        file_name = state.decode_base64(highlighted_option.id)
+        file_name = state.decompress(highlighted_option.id)
         # Check if it's a folder or a file
         file_path = path.join(getcwd(), file_name)
         if path.isdir(file_path):
@@ -434,7 +434,7 @@ class PinnedSidebar(OptionList):
             self.add_option(
                 Option(
                     f" {icon} {default_folder['name']}",
-                    id=f"{state.encode_base64(default_folder['path'])}-default",
+                    id=f"{state.compress(default_folder['path'])}-default",
                 )
             )
         self.add_option(Option("Pinned", id="pinned-header"))
@@ -456,7 +456,7 @@ class PinnedSidebar(OptionList):
             self.add_option(
                 Option(
                     f" {icon} {pin['name']}",
-                    id=f"{state.encode_base64(pin['path'])}-pinned",
+                    id=f"{state.compress(pin['path'])}-pinned",
                 )
             )
         self.add_option(Option("Drives", id="drives-header"))
@@ -464,7 +464,7 @@ class PinnedSidebar(OptionList):
             self.add_option(
                 Option(
                     f" \uf0a0 {drive}",
-                    id=f"{state.encode_base64(drive)}-drives",
+                    id=f"{state.compress(drive)}-drives",
                 )
             )
         self.disable_option("pinned-header")
@@ -483,7 +483,7 @@ class PinnedSidebar(OptionList):
         selected_option = event.option
         log(f"Selected pinned option: {selected_option}")
         # Get the file path from the option id
-        file_path = state.decode_base64(selected_option.id.split("-")[0])
+        file_path = state.decompress(selected_option.id.split("-")[0])
         if not path.isdir(file_path):
             raise FolderNotFileError(f"Expected a folder but got a file: {file_path}")
         chdir(file_path)

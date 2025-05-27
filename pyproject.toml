@@ -18,6 +18,8 @@ dependencies = [
     "platformdirs>=4.3.8",
     "thefuzz>=0.22.1",
     "ujson>=5.10.0",
+    "rich>=14.0.0",
+    "lzstring>=1.0.4",
 ]
 
 [dependency-groups]
