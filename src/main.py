@@ -235,17 +235,22 @@ class Application(App):
                 self.query_one("#preview_sidebar *").focus()
         elif event.key in state.config["keybinds"]["focus"]["path_switcher"]:
             self.query_one("#path_switcher").focus()
+        # this is so scuffed
         elif event.key in state.config["keybinds"]["navigation"]["previous"]:
             if self.query_one("#back").disabled:
-                self.query_one("#up").action_press()
+                self.go_up_path(Button.Pressed(self.query_one("#up")))
             else:
-                self.query_one("#back").action_press()
+                self.go_back_in_history(Button.Pressed(self.query_one("#back")))
         elif event.key in state.config["keybinds"]["navigation"]["next"]:
-            self.query_one("#forward").action_press()
+            self.go_forward_in_history(
+                Button.Pressed(
+                    self.query_one("#forward"),
+                )
+            )
         elif event.key in state.config["keybinds"]["navigation"]["up"]:
-            self.query_one("#up").action_press()
+            self.go_up_path(Button.Pressed(self.query_one("#up")))
         elif event.key in state.config["keybinds"]["navigation"]["reload"]:
-            self.query_one("#reload").action_press()
+            self.go_back_in_history(Button.Pressed(self.query_one("#reload")))
         elif event.key in state.config["keybinds"]["toggle_pin"]:
             state.toggle_pin(path.basename(getcwd()), getcwd())
             await self.query_one("#pinned_sidebar").reload_pins()
