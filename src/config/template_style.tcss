@@ -20,13 +20,13 @@ Footer {
 #file_list_container {
   height: 1fr;
   border: none;
-  width: $-interface-fractions-file_list-$fr;
+  width: $-interface-widths-file_list-$;
 }
 
 #pinned_sidebar_container {
   height: 1fr;
   margin: 0;
-  width: $-interface-fractions-pinned_sidebar-$fr;
+  width: $-interface-widths-pinned_sidebar-$;
 }
 #pinned_sidebar_container > Input,
 #file_list_container > Input {
@@ -47,7 +47,7 @@ Footer {
   margin: 0;
   width: 2fr;
   border: none;
-  width: $-interface-fractions-preview_sidebar-$fr;
+  width: $-interface-widths-preview_sidebar-$;
   padding: 0 1;
 }
 /*
@@ -169,4 +169,25 @@ Screen.-nopreview {
 }
 .hide {
   display: none !important;
+}
+#footer {
+  height: 0.25fr;
+  margin: 0 0 0 1;
+}
+#footer:focus-within {
+  height: 0.5fr;
+}
+#footer > * {
+  border: $-interface-border-style-$ $-interface-border-inactive_color-$;
+  height: 1fr;
+  background: transparent;
+}
+#footer > *:focus-within {
+  border: $-interface-border-style-$ $-interface-border-color-$;
+}
+RichLog {
+  scrollbar-size: 0 0 !important;
+}
+#processes {
+  padding: 0 1;
 }

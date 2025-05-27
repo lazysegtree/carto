@@ -100,30 +100,14 @@ class PathAutoCompleteInput(PathAutoComplete):
         self._target.focus()
 
 
-def get_folder_size(folder_path: str) -> int:
-    """Get the size of a folder in bytes.
-
-    Args:
-        folder_path (str): The path to the folder.
-
-    Returns:
-        int: The size of the folder in bytes.
-    """
-    total_size = 0
-    for dirpath, dirnames, filenames in walk(folder_path):
-        for filename in filenames:
-            file_path = path.join(dirpath, filename)
-            if path.isfile(file_path) and not path.islink(file_path):
-                try:
-                    total_size += path.getsize(file_path)
-                except (FileNotFoundError, PermissionError, OSError):
-                    pass
-    return total_size
-
-
 def get_cwd_object(cwd: str, sort_order: str, sort_by: str) -> list[dict]:
     folders, files = [], []
-    for item in listdir(cwd):
+    try:
+        listed_dir = listdir(cwd)
+    except (PermissionError, FileNotFoundError, OSError) as e:
+        log(f"Error listing directory {cwd}: {e}")
+        return [PermissionError], [PermissionError]
+    for item in listed_dir:
         if path.isdir(path.join(cwd, item)):
             folders.append(
                 {
@@ -131,9 +115,6 @@ def get_cwd_object(cwd: str, sort_order: str, sort_by: str) -> list[dict]:
                     "icon": f" {get_icon_for_folder(item)}",
                 }
             )
-            if sort_by == "size":
-                folders[-1]["size"] = get_folder_size(path.join(cwd, item))
-                folders[-1]["better-size"] = naturalsize(folders[-1]["size"])
         else:
             files.append(
                 {
@@ -141,26 +122,13 @@ def get_cwd_object(cwd: str, sort_order: str, sort_by: str) -> list[dict]:
                     "icon": f" {get_icon_for_file(item)}",
                 }
             )
-            if sort_by == "size":
-                files[-1]["size"] = path.getsize(path.join(cwd, item))
-                files[-1]["better-size"] = naturalsize(files[-1]["size"])
     # Sort folders and files properly
-    if sort_by == "name":
-        folders.sort(
-            key=lambda x: x["name"].lower(), reverse=(sort_order == "descending")
-        )
-        files.sort(
-            key=lambda x: x["name"].lower(), reverse=(sort_order == "descending")
-        )
-    elif sort_by == "size":
-        folders.sort(
-            key=lambda x: get_folder_size(path.join(cwd, x["name"])),
-            reverse=(sort_order == "descending"),
-        )
-        files.sort(
-            key=lambda x: path.getsize(path.join(cwd, x["name"])),
-            reverse=(sort_order == "descending"),
-        )
+    folders.sort(
+        key=lambda x: x["name"].lower(), reverse=(sort_order == "descending")
+    )
+    files.sort(
+        key=lambda x: x["name"].lower(), reverse=(sort_order == "descending")
+    )
     return folders, files
 
 

@@ -9,17 +9,19 @@ from textual.containers import (
     Vertical,
     VerticalGroup,
 )
-from textual.css.scalar import Scalar, Unit
 from textual.widgets import (
     OptionList,
     #    TabbedContent,
     #    Switch,
-    #    Label,
+    Label,
     Button,
     #    Static,
     Header,
     Footer,
     Input,
+    RichLog,
+    RadioSet,
+    RadioButton,
 )
 from textual.validation import Function
 from themes import get_custom_themes
@@ -101,6 +103,24 @@ class Application(App):
                 ),
                 id="main",
             ),
+            HorizontalGroup(
+                RichLog(id="processes", highlight=True, markup=True, wrap=True),
+                VerticalGroup(id="metadata"),
+                RadioSet(
+                    RadioButton(
+                        path.join(path.dirname(__file__), "log.txt"),
+                        id=state.encode_base64("log.txt"),
+                        compact=True,
+                    ),
+                    RadioButton(
+                        path.join(path.dirname(__file__), "error.txt"),
+                        id=state.encode_base64("error.txt"),
+                        compact=True,
+                    ),
+                    id="clipboard",
+                ),
+                id="footer",
+            ),
             id="root",
         )
         yield Footer()
@@ -110,6 +130,15 @@ class Application(App):
         self.query_one("#below_menu").border_title = "Directory Actions"
         self.query_one("#pinned_sidebar_container").border_title = "Sidebar"
         self.query_one("#file_list_container").border_title = "Files"
+        self.query_one("#processes").border_title = "Processes"
+        self.query_one("#metadata").border_title = "Metadata"
+        self.query_one("#clipboard").border_title = "Clipboard"
+        self.query_one("#processes").write(
+            "Welcome to [red]Carto[/red]!",
+        )
+        self.query_one("#processes").write(
+            "This is a file manager application built with [green]Textual[/green].",
+        )
         for theme in get_custom_themes():
             self.register_theme(theme)
         self.theme = state.config["interface"]["theme"]["default"]

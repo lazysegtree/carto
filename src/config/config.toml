@@ -16,10 +16,12 @@ style = "solid"
 inactive_color = "$primary-darken-3"
 color = "$primary-lighten-3"
 
-[interface.fractions]
-pinned_sidebar = 1
-file_list = 3
-preview_sidebar = 2
+[interface.widths]
+pinned_sidebar = "15"
+file_list = "3fr"
+preview_sidebar = "2fr"
+footer_unfocus = "10"
+footer_focus = "20"
 
 [interface.theme]
 default = "nord"
