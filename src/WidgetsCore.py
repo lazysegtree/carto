@@ -1,6 +1,8 @@
 from humanize import naturalsize
 from maps import get_icon_for_file, get_icon_for_folder, EXT_TO_LANG_MAP, PIL_EXTENSIONS
-from os import listdir, path, walk, startfile, getcwd, chdir, scandir
+from os import listdir, path, walk, getcwd, chdir, scandir
+import platform
+import subprocess
 from pathlib import Path
 import state
 from string import ascii_uppercase
@@ -10,6 +12,28 @@ from textual.css.query import NoMatches
 from textual.widgets import OptionList, Static, TextArea
 from textual.widgets.option_list import Option
 from textual_autocomplete import PathAutoComplete, TargetState, DropdownItem
+
+
+def open_file(filepath: str) -> None:
+    """Cross-platform function to open files with their default application.
+
+    Args:
+        filepath (str): Path to the file to open
+    """
+    system = platform.system().lower()
+
+    try:
+        if system == "windows":
+            from os import startfile
+
+            startfile(filepath)
+        elif system == "darwin":  # macOS
+            subprocess.run(["open", filepath], check=True)
+        else:  # Linux and other Unix-like
+            subprocess.run(["xdg-open", filepath], check=True)
+    except Exception as e:
+        print(f"Error opening file: {e}")
+
 
 try:
     from textual_image.widget import AutoImage
@@ -256,7 +280,7 @@ class FileList(OptionList):
             chdir(path.join(cwd, file_name))
             update_file_list(self.app, "#file_list", self.sort_by, self.sort_order)
         else:
-            startfile(path.join(cwd, file_name))
+            open_file(path.join(cwd, file_name))
 
     async def on_option_list_option_highlighted(
         self, event: OptionList.OptionHighlighted
