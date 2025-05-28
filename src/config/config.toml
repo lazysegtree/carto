@@ -15,6 +15,7 @@ start = "print(\"Hello, world!\")"
 style = "solid"
 inactive_color = "$primary-darken-3"
 color = "$primary-lighten-3"
+subtitle = "$primary-muted"
 
 [interface.widths]
 pinned_sidebar = "20"
@@ -41,18 +42,22 @@ panel = "#0d0d0d"
 is_dark = true
 
 [keybinds]
-toggle_pin = ["p"]
+toggle_pin = ["P"]
 
 [keybinds.hide]
 pinned_sidebar = ["S"]
-preview_sidebar = ["M"]
+preview_sidebar = ["I"]
+footer = ["F"]
 
 [keybinds.focus]
 pinned_sidebar = ["s"]
 file_list = ["escape"]
-preview_sidebar = ["m"]
+preview_sidebar = ["i"]
 path_switcher = ["slash", "question_mark"]
 search = ["f"]
+processes = ["p"]
+clipboard = ["c"]
+metadata = ["m"]
 
 [keybinds.navigation]
 previous = ["backspace"]

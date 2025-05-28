@@ -1,16 +1,17 @@
 from humanize import naturalsize
 from maps import get_icon_for_file, get_icon_for_folder, EXT_TO_LANG_MAP, PIL_EXTENSIONS
-from os import listdir, path, walk, getcwd, chdir, scandir
+from os import listdir, path, getcwd, chdir, scandir
 import platform
 import subprocess
 from pathlib import Path
 import state
-from string import ascii_uppercase
+from textual import events
 from textual.app import ComposeResult, App
 from textual.containers import Container
+from textual.content import Content
 from textual.css.query import NoMatches
 from textual.widgets import OptionList, Static, TextArea
-from textual.widgets.option_list import Option
+from textual.widgets.option_list import Option, OptionDoesNotExist
 from textual_autocomplete import PathAutoComplete, TargetState, DropdownItem
 
 
@@ -133,17 +134,12 @@ def get_cwd_object(cwd: str, sort_order: str, sort_by: str) -> list[dict]:
         if path.isdir(path.join(cwd, item)):
             folders.append(
                 {
-                    "name": f"{item}{path.sep}",
-                    "icon": f" {get_icon_for_folder(item)}",
+                    "name": f"{item}",
+                    "icon": get_icon_for_folder(item),
                 }
             )
         else:
-            files.append(
-                {
-                    "name": item,
-                    "icon": f" {get_icon_for_file(item)}",
-                }
-            )
+            files.append({"name": item, "icon": get_icon_for_file(item)})
     # Sort folders and files properly
     folders.sort(key=lambda x: x["name"].lower(), reverse=(sort_order == "descending"))
     files.sort(key=lambda x: x["name"].lower(), reverse=(sort_order == "descending"))
@@ -171,16 +167,28 @@ def update_file_list(
     file_list.clear_options()
     # seperate folders and files
     folders, files = get_cwd_object(cwd, sort_order, sort_by)
-    file_list_options = (
-        files + folders if sort_order == "descending" else folders + files
-    )
-    for item in file_list_options:
+    if folders == [PermissionError] or files == [PermissionError]:
         file_list.add_option(
             Option(
-                f"{item['icon']} {item['name']}",
-                id=state.compress(item["name"]),
+                "Permission Error: Unable to access this directory.",
+                id="HTI",
             )
         )
+        file_list_options = [".."]
+    else:
+        file_list_options = (
+            files + folders if sort_order == "descending" else folders + files
+        )
+        for item in file_list_options:
+            file_list.add_option(
+                Option(
+                    Content.from_markup(
+                        f" [{item['icon'][1]}]{item['icon'][0]}[/{item['icon'][1]}] $name",
+                        name=item["name"],
+                    ),
+                    id=state.compress(item["name"]),
+                )
+            )
     # session handler
     appInstance.query_one("#path_switcher").value = cwd.replace(path.sep, "/") + "/"
     if add_to_session:
@@ -207,9 +215,13 @@ def update_file_list(
         if state.sessionHistoryIndex == len(state.sessionDirectories) - 1
         else False
     )
-    file_list.highlighted = file_list.get_option_index(
-        state.sessionDirectories[state.sessionHistoryIndex]["highlighted"]
-    )
+    try:
+        file_list.highlighted = file_list.get_option_index(
+            state.sessionDirectories[state.sessionHistoryIndex]["highlighted"]
+        )
+    except OptionDoesNotExist:
+        file_list.highlighted = 0
+    appInstance.title = f"carto - {cwd.replace(path.sep, '/')}"
 
 
 def dummy_update_file_list(
@@ -234,15 +246,23 @@ def dummy_update_file_list(
     file_list.clear_options()
     # seperate folders and files
     folders, files = get_cwd_object(cwd, sort_order, sort_by)
+    if folders == [PermissionError] or files == [PermissionError]:
+        file_list.add_option(
+            Option(
+                "Permission Error: Unable to access this directory.",
+                id="HTI",
+            )
+        )
+        return
     file_list_options = (
         files + folders if sort_order == "descending" else folders + files
     )
     for item in file_list_options:
         file_list.add_option(
-            Option(
-                f"{item['icon']} {item['name']}",
-                id=state.compress(item["name"]),
-            )
+            Content.from_markup(
+                f" [{item['icon'][1]}]{item['icon'][0]}[/{item['icon'][1]}] $name",
+                name=item["name"],
+            ),
         )
 
 
@@ -294,6 +314,9 @@ class FileList(OptionList):
         )
         # Get the file name from the option id
         file_name = state.decompress(highlighted_option.id)
+        # total files as footer
+        self.parent.border_subtitle = f"{self.highlighted + 1}/{self.option_count}"
+
         # Check if it's a folder or a file
         file_path = path.join(getcwd(), file_name)
         if path.isdir(file_path):
@@ -314,6 +337,21 @@ class FileList(OptionList):
                 sort_order=self.sort_order,
             )
             self.focus()
+
+    # ignore single clicks
+    async def _on_click(self, event: events.Click) -> None:
+        """React to the mouse being clicked on an item.
+
+        Args:
+            event: The click event.
+        """
+        event.prevent_default()
+        clicked_option: int | None = event.style.meta.get("option")
+        if clicked_option is not None and not self._options[clicked_option].disabled:
+            if self.highlighted == clicked_option:
+                self.action_select()
+            else:
+                self.highlighted = clicked_option
 
 
 class PreviewContainer(Container):
@@ -445,7 +483,10 @@ class PinnedSidebar(OptionList):
                 icon = get_icon_for_file(default_folder["name"])
             self.add_option(
                 Option(
-                    f" {icon} {default_folder['name']}",
+                    Content.from_markup(
+                        f" [{icon[1]}]{icon[0]}[/{icon[1]}] $name",
+                        name=default_folder["name"],
+                    ),
                     id=f"{state.compress(default_folder['path'])}-default",
                 )
             )
@@ -467,7 +508,10 @@ class PinnedSidebar(OptionList):
                 icon = get_icon_for_file(pin["name"])
             self.add_option(
                 Option(
-                    f" {icon} {pin['name']}",
+                    Content.from_markup(
+                        f" [{icon[1]}]{icon[0]}[/{icon[1]}] $name",
+                        name=pin["name"],
+                    ),
                     id=f"{state.compress(pin['path'])}-pinned",
                 )
             )

@@ -61,7 +61,7 @@ Footer {
   margin: 0 1 0 1;
   border: none;
   padding: 0 2 0 2;
-  border: $-interface-border-style-$ white;
+  border: $-interface-border-style-$ $-interface-border-inactive_color-$;
   background: transparent;
 }
 
@@ -116,6 +116,8 @@ Footer {
 #preview_sidebar {
   background: black 0%;
   border: $-interface-border-style-$ $-interface-border-inactive_color-$;
+  border-subtitle-color: $background;
+  border-subtitle-background: $-interface-border-inactive_color-$;
 }
 
 #menu:focus-within,
@@ -123,8 +125,10 @@ Footer {
 #pinned_sidebar_container:focus-within,
 #file_list_container:focus-within,
 #preview_sidebar:focus-within,
-#preview_sidebar:focus {
-  border: $-interface-border-style-$ $-interface-border-color-$;
+#preview_sidebar:focus,
+Input:focus-within {
+  border: $-interface-border-style-$ $-interface-border-color-$ !important;
+  border-subtitle-background: $-interface-border-color-$;
 }
 #preview_sidebar > * {
   background: transparent;

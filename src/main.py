@@ -9,21 +9,21 @@ from textual.containers import (
     Vertical,
     VerticalGroup,
 )
+from textual.widgets.selection_list import Selection
+from textual.validation import Function
 from textual.widgets import (
-    OptionList,
-    #    TabbedContent,
-    #    Switch,
-    Label,
+    # OptionList,
+    # TabbedContent,
+    # Switch,
+    # Label,
     Button,
-    #    Static,
+    # Static,
     Header,
     Footer,
     Input,
     RichLog,
-    RadioSet,
-    RadioButton,
+    SelectionList,
 )
-from textual.validation import Function
 from themes import get_custom_themes
 from WidgetsCore import (
     PathAutoCompleteInput,
@@ -59,7 +59,7 @@ class Application(App):
         yield Vertical(
             HorizontalScroll(
                 Button(
-                    ICONS["general"]["up"],
+                    ICONS["general"]["up"][0],
                     classes="option",
                     id="sort_order",
                 ),
@@ -67,18 +67,18 @@ class Application(App):
             ),
             VerticalGroup(
                 HorizontalGroup(
-                    Button(ICONS["general"]["left"], id="back"),
-                    Button(ICONS["general"]["right"], id="forward"),
-                    Button(ICONS["general"]["up"], id="up"),
-                    Button(ICONS["general"]["refresh"], id="reload"),
+                    Button(ICONS["general"]["left"][0], id="back"),
+                    Button(ICONS["general"]["right"][0], id="forward"),
+                    Button(ICONS["general"]["up"][0], id="up"),
+                    Button(ICONS["general"]["refresh"][0], id="reload"),
                     path_switcher,
                 ),
                 # Container(
                 PathAutoCompleteInput(
                     target=path_switcher,
                     path=getcwd().split(path.sep)[0],
-                    folder_prefix=ICONS["folder"]["default"] + " ",
-                    file_prefix=ICONS["file"]["default"] + " ",
+                    folder_prefix=ICONS["folder"]["default"][0] + " ",
+                    file_prefix=ICONS["file"]["default"][0] + " ",
                     id="path_autocomplete",
                 ),
                 # ),
@@ -105,18 +105,17 @@ class Application(App):
                 id="main",
             ),
             HorizontalGroup(
+                # ? should we switch to a vertical scroll?
                 RichLog(id="processes", highlight=True, markup=True, wrap=True),
                 VerticalGroup(id="metadata"),
-                RadioSet(
-                    RadioButton(
+                SelectionList[str](
+                    Selection(
                         path.join(path.dirname(__file__), "log.txt"),
-                        id=state.compress("log.txt"),
-                        compact=True,
+                        path.join(path.dirname(__file__), "log.txt"),
                     ),
-                    RadioButton(
+                    Selection(
                         path.join(path.dirname(__file__), "error.txt"),
-                        id=state.compress("error.txt"),
-                        compact=True,
+                        path.join(path.dirname(__file__), "error.txt"),
                     ),
                     id="clipboard",
                 ),
@@ -127,7 +126,6 @@ class Application(App):
         yield Footer()
 
     def on_mount(self):
-        print("Mounting...")
         self.query_one("#menu").border_title = "Options"
         self.query_one("#below_menu").border_title = "Directory Actions"
         self.query_one("#pinned_sidebar_container").border_title = "Sidebar"
@@ -135,21 +133,16 @@ class Application(App):
         self.query_one("#processes").border_title = "Processes"
         self.query_one("#metadata").border_title = "Metadata"
         self.query_one("#clipboard").border_title = "Clipboard"
-        self.query_one("#processes").write(
-            "Welcome to [red]Carto[/red]!",
-        )
-        self.query_one("#processes").write(
-            "This is a file manager application built with [green]Textual[/green].",
-        )
         for theme in get_custom_themes():
             self.register_theme(theme)
         self.theme = state.config["interface"]["theme"]["default"]
-        print("Done?")
+        self.title = "Carto - " + getcwd().replace(path.sep, "/")
 
     @on(Button.Pressed, "#back")
     def go_back_in_history(self, event: Button.Pressed) -> None:
         """Go back in the session's history or go up the directory tree"""
         state.sessionHistoryIndex = state.sessionHistoryIndex - 1
+        #! reminder to add a check for path
         chdir(state.sessionDirectories[state.sessionHistoryIndex]["path"])
         update_file_list(
             self,
@@ -163,6 +156,7 @@ class Application(App):
     def go_forward_in_history(self, event: Button.Pressed) -> None:
         """Go forward in the session's history"""
         state.sessionHistoryIndex = state.sessionHistoryIndex + 1
+        #! reminder to add a check for path
         chdir(state.sessionDirectories[state.sessionHistoryIndex]["path"])
         update_file_list(
             self,
@@ -175,6 +169,7 @@ class Application(App):
     @on(Button.Pressed, "#up")
     def go_up_path(self, event: Button.Pressed) -> None:
         """Go up the current location's directory"""
+        #! on the off chance that parent's parent got nuked, might need to check if the parent exists
         chdir(path.sep.join(getcwd().split(path.sep)[:-1]))
         update_file_list(self, "#file_list", self.main_sort_by, self.main_sort_order)
 
@@ -183,6 +178,7 @@ class Application(App):
         """Use a custom path entered as the current workind directory"""
         if path.exists(event.value):
             chdir(event.value)
+        #! at least try to alert user
         update_file_list(self, "#file_list", self.main_sort_by, self.main_sort_order)
 
     @on(Button.Pressed, "#reload")
@@ -204,6 +200,7 @@ class Application(App):
     async def on_key(self, event: events.Key) -> None:
         if not self.focused.id:
             return
+        # make sure that keybinds dont break
         if self.focused.id == "path_switcher" and event.key in ["enter", "escape"]:
             self.query_one("#file_list").focus()
             await self.query_one("#path_switcher").action_submit()
@@ -216,13 +213,16 @@ class Application(App):
             self.focused.id == "path_switcher" or "search" in self.focused.id
         ) and event.key == "backspace":
             return
+        # focus toggle pinned sidebar
         elif event.key in state.config["keybinds"]["focus"]["pinned_sidebar"]:
             if self.focused.id == "pinned_sidebar":
                 self.query_one("#file_list").focus()
             else:
                 self.query_one("#pinned_sidebar").focus()
+        # focus file list from anywhere except input
         elif event.key in state.config["keybinds"]["focus"]["file_list"]:
             self.query_one("#file_list").focus()
+        # focus toggle preview sidebar
         elif event.key in state.config["keybinds"]["focus"]["preview_sidebar"]:
             if (
                 self.focused.id == "preview_sidebar"
@@ -231,8 +231,27 @@ class Application(App):
                 self.query_one("#file_list").focus()
             else:
                 self.query_one("#preview_sidebar *").focus()
+        # focus path switcher
         elif event.key in state.config["keybinds"]["focus"]["path_switcher"]:
             self.query_one("#path_switcher").focus()
+        # focus processes
+        elif event.key in state.config["keybinds"]["focus"]["processes"]:
+            if self.focused.id == "processes":
+                self.query_one("#file_list").focus()
+            else:
+                self.query_one("#processes").focus()
+        # focus metadata
+        elif event.key in state.config["keybinds"]["focus"]["metadata"]:
+            if self.focused.id == "metadata":
+                self.query_one("#file_list").focus()
+            else:
+                self.query_one("#metadata").focus()
+        # focus clipboard
+        elif event.key in state.config["keybinds"]["focus"]["clipboard"]:
+            if self.focused.id == "clipboard":
+                self.query_one("#file_list").focus()
+            else:
+                self.query_one("#clipboard").focus()
         # this is so scuffed
         elif event.key in state.config["keybinds"]["navigation"]["previous"]:
             if self.query_one("#back").disabled:
@@ -249,10 +268,12 @@ class Application(App):
         elif event.key in state.config["keybinds"]["navigation"]["up"]:
             self.go_up_path(Button.Pressed(self.query_one("#up")))
         elif event.key in state.config["keybinds"]["navigation"]["reload"]:
-            self.go_back_in_history(Button.Pressed(self.query_one("#reload")))
+            self.reload_file_list(Button.Pressed(self.query_one("#reload")))
+        # toggle pin on current directory
         elif event.key in state.config["keybinds"]["toggle_pin"]:
             state.toggle_pin(path.basename(getcwd()), getcwd())
             await self.query_one("#pinned_sidebar").reload_pins()
+        # toggle hiding panels
         elif event.key in state.config["keybinds"]["hide"]["pinned_sidebar"]:
             if self.query_one("#pinned_sidebar_container").display:
                 self.query_one("#pinned_sidebar_container").add_class("hide")
@@ -263,6 +284,11 @@ class Application(App):
                 self.query_one("#preview_sidebar").add_class("hide")
             else:
                 self.query_one("#preview_sidebar").remove_class("hide")
+        elif event.key in state.config["keybinds"]["hide"]["footer"]:
+            if self.query_one("#footer").display:
+                self.query_one("#footer").add_class("hide")
+            else:
+                self.query_one("#footer").remove_class("hide")
 
 
 state.start_watcher()

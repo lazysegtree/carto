@@ -15,71 +15,72 @@ VAR_TO_DIR = {
 
 ICONS = {
     "general": {
-        "new": "\uf415",
-        "open": "\uf47c",
-        "save": "\uf0c7",
-        "search": "\uf002",
-        "refresh": "\uf021",
-        "settings": "\uf013",
-        "close": "\uf00d",
-        "up": "\uf062",
-        "down": "\uf063",
-        "left": "\uf060",
-        "right": "\uf061",
-        "home": "\uf015",
-        "check": "\uf00c",
+        "new": ["\uf415", "green"],
+        "open": ["\uf47c", "blue"],
+        "save": ["\uf0c7", "cyan"],
+        "search": ["\uf002", "orange"],
+        "refresh": ["\uf021", "teal"],
+        "settings": ["\uf013", "gray"],
+        "close": ["\uf00d", "red"],
+        "up": ["\uf062", "white"],
+        "down": ["\uf063", "white"],
+        "left": ["\uf060", "white"],
+        "right": ["\uf061", "white"],
+        "home": ["\uf015", "indigo"],
+        "check": ["\uf00c", "green"],
     },
     "folder": {
-        "default": "\uf07b",
-        "open": "\uf07c",
-        "empty": "\uf115",
-        "documents": "\uf02d",
-        "downloads": "\uf019",
-        "music": "\uf001",
-        "pictures": "\uf03e",
-        "videos": "\uf03d",
-        "git": "\ue5fb",
-        "github": "\uf09b",
-        "hidden": "\uf7c9",
-        "node_modules": "\ue5fa",
+        "default": ["\uf07b", "gold"],
+        "open": ["\uf07c", "orange"],
+        "empty": ["\uf115", "yellow"],
+        "documents": ["\uf02d", "coral"],
+        "downloads": ["\uf019", "lime"],
+        "music": ["\uf001", "magenta"],
+        "pictures": ["\uf03e", "purple"],
+        "videos": ["\uf03d", "violet"],
+        "git": ["\ue5fb", "red"],
+        "github": ["\uf09b", "black"],
+        "hidden": ["\uf7c9", "gray"],
+        "node_modules": ["\ue5fa", "green"],
+        "carto": ["\uf14e", "teal"],
     },
     "file": {
-        "default": "\uf15b",
-        "text": "\uf15c",
-        "image": "\uf1c5",
-        "audio": "\uf1c7",
-        "video": "\uf1c8",
-        "pdf": "\uf1c1",
-        "archive": "\uf1c6",
-        "python": "\ue73c",
-        "javascript": "\ue781",
-        "html": "\uf13b",
-        "haskell": "\ue777",
-        "json": "\ue60b",
-        "markdown": "\ue73e",
-        "go": "\uf7b7",
-        "rust": "\ue7a8",
-        "c": "\uf0c3",
-        "cs": "\ue648",
-        "cpp": "\uf0e3",
-        "css": "\ue749",
-        "yaml": "\ue8eb",
-        "yml": "\ue6a8",
-        "toml": "\ue6b2",
-        "swift": "\ue755",
-        "java": "\ue738",
-        "typescript": "\ue8ca",
-        "kotlin": "\ue81b",
-        "vue": "\ue6a0",
-        "php": "\ue73d",
-        "executable": "\uf085",
-        "config": "\uf085",
-        "binary": "\uf471",
-        "lock": "\uea75",
-        "git": "\uf1d3",
-        "diff": "\uf4d2",
-        "cert": "\ueb11",
-        "package": "\uf487",
+        "default": ["\uf15b", "sky_blue"],
+        "text": ["\uf15c", "white"],
+        "image": ["\uf1c5", "purple"],
+        "audio": ["\uf1c7", "pink"],
+        "video": ["\uf1c8", "violet"],
+        "pdf": ["\uf1c1", "red"],
+        "archive": ["\uf1c6", "brown"],
+        "python": ["\ue73c", "#3776AB"],
+        "javascript": ["\ue781", "#F7DF1E"],
+        "html": ["\uf13b", "#E34F26"],
+        "haskell": ["\ue777", "#5D4F85"],
+        "json": ["\ue60b", "gold"],
+        "markdown": ["\ue73e", "blue"],
+        "go": ["\uf7b7", "#00ADD8"],
+        "rust": ["\ue7a8", "#DEA584"],
+        "c": ["\uf0c3", "#A8B9CC"],
+        "cs": ["\ue648", "#239120"],
+        "cpp": ["\uf0e3", "#F34B7D"],
+        "css": ["\ue749", "#1572B6"],
+        "yaml": ["\ue8eb", "teal"],
+        "yml": ["\ue6a8", "teal"],
+        "toml": ["\ue6b2", "blue"],
+        "swift": ["\ue755", "#F05138"],
+        "java": ["\ue738", "#ED8B00"],
+        "typescript": ["\ue8ca", "#3178C6"],
+        "kotlin": ["\ue81b", "#7F52FF"],
+        "vue": ["\ue6a0", "#4FC08D"],
+        "php": ["\ue73d", "#777BB4"],
+        "executable": ["\uf085", "gray"],
+        "config": ["\uf085", "slate"],
+        "binary": ["\uf471", "dark_gray"],
+        "lock": ["\uea75", "red"],
+        "git": ["\uf1d3", "#F05032"],
+        "diff": ["\uf4d2", "green"],
+        "cert": ["\ueb11", "maroon"],
+        "package": ["\uf487", "tan"],
     },
 }
 
@@ -109,6 +110,7 @@ FOLDER_MAP = {
     ".github": "github",
     # other stuff
     "node_modules": "node_modules",
+    "carto": "carto",
 }
 
 FILES_MAP = {
@@ -270,14 +272,14 @@ PIL_EXTENSIONS = [
 ]
 
 
-def get_icon_for_file(location: str) -> str:
-    """Get the icon for a file based on its name or extension.
+def get_icon_for_file(location: str) -> list:
+    """Get the icon and color for a file based on its name or extension.
 
     Args:
         location (str): The name or path of the file.
 
     Returns:
-        str: The icon for the file.
+        list: The icon and color for the file.
     """
     file_name = location.lower()
     # Map extensions to icons
@@ -296,14 +298,14 @@ def get_icon_for_file(location: str) -> str:
         return ICONS["file"]["default"]
 
 
-def get_icon_for_folder(location: str) -> str:
-    """Get the icon for a folder based on its name.
+def get_icon_for_folder(location: str) -> list:
+    """Get the icon and color for a folder based on its name.
 
     Args:
         location (str): The name or path of the folder.
 
     Returns:
-        str: The icon for the folder.
+        list: The icon and color for the folder.
     """
     folder_name = location.lower()
     # Check for special folder types

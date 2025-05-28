@@ -32,7 +32,7 @@ This is a list of features that I plan to add before releasing the appropriate v
 - [ ] [zoxide](https://github.com/ajeetdsouza/zoxide) support (ranger)<br><sub>There is no command line for tfe, which means it will use keybinds to launch either a modified current folder bar or a panel</sub>
 - [x] Previewing image files using [textual-image](https://github.com/lnqs/textual-image) (superfile)<br><sub>Explorer does support image viewing, but this is a TUI, so inspiration is from superfile</sub>
 - [x] Previewing directories (superfile)
-- [ ] Pinned folder sidebar (superfile)<br><sub>explorer does support pinned sidebar, but it also includes the massive file tree, which I won't add.</sub>
+- [x] Pinned folder sidebar (superfile)<br><sub>explorer does support pinned sidebar, but it also includes the massive file tree, which I won't add.</sub>
 - [ ] Clipboard (superfile)
 - [ ] Active and Completed processes (superfile)
 - [ ] Actions (explorer)
