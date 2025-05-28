@@ -32,9 +32,6 @@ from WidgetsCore import (
     PreviewContainer,
     PinnedSidebar,
 )
-from rich.console import Console
-
-print = Console().log
 
 
 state.load_config()
@@ -243,11 +240,12 @@ class Application(App):
             else:
                 self.go_back_in_history(Button.Pressed(self.query_one("#back")))
         elif event.key in state.config["keybinds"]["navigation"]["next"]:
-            self.go_forward_in_history(
-                Button.Pressed(
-                    self.query_one("#forward"),
+            if not self.query_one("#forward").disabled:
+                self.go_forward_in_history(
+                    Button.Pressed(
+                        self.query_one("#forward"),
+                    )
                 )
-            )
         elif event.key in state.config["keybinds"]["navigation"]["up"]:
             self.go_up_path(Button.Pressed(self.query_one("#up")))
         elif event.key in state.config["keybinds"]["navigation"]["reload"]:

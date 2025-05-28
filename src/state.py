@@ -11,6 +11,8 @@ import ujson
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 from lzstring import LZString
+import psutil
+import platform
 
 lzstring = LZString()
 
@@ -20,6 +22,14 @@ sessionHistoryIndex = 0
 sessionLastHighlighted = {}
 config = {}
 pins = {}
+
+
+def compress(text: str) -> str:
+    return lzstring.compressToEncodedURIComponent(text)
+
+
+def decompress(text: str) -> str:
+    return lzstring.decompressFromEncodedURIComponent(text)
 
 
 def get_nested_value(dictionary, keys_list):
@@ -232,6 +242,39 @@ def toggle_pin(pin_name: str, pin_path: str) -> None:
         add_pin(pin_name, pin_path_normalized)
 
 
+def get_mounted_drives() -> list:
+    """
+    Get a list of mounted drives on the system.
+
+    Returns:
+        list: List of mounted drives.
+    """
+    drives = []
+    try:
+        # get all partitions
+        partitions = psutil.disk_partitions(all=False)
+
+        if platform.system() == "Windows":
+            # For Windows, return the drive letters
+            drives = [
+                p.mountpoint.replace("\\", "/")
+                for p in partitions
+                if p.device and ":" in p.device
+            ]
+        else:
+            # For Unix-like systems, return the mount points
+            drives = [
+                p.mountpoint
+                for p in partitions
+                if p.fstype not in ("autofs", "devfs", "devtmpfs", "tmpfs")
+            ]
+    except Exception as e:
+        print(f"Error getting mounted drives: {e}")
+        print("Using fallback method")
+        drives = [path.expanduser("~")]
+    return drives
+
+
 class FileEventHandler(FileSystemEventHandler):
     @staticmethod
     def on_modified(event):
@@ -257,14 +300,6 @@ def watch_config_file() -> None:
     except:
         observer.stop()
     observer.join()
-
-
-def compress(text: str) -> str:
-    return lzstring.compressToEncodedURIComponent(text)
-
-
-def decompress(text: str) -> str:
-    return lzstring.decompressFromEncodedURIComponent(text)
 
 
 def start_watcher():

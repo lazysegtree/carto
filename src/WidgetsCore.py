@@ -277,7 +277,7 @@ class FileList(OptionList):
         else:
             await self.app.query_one("#preview_sidebar").show_file(file_path)
 
-    def on_mount(self) -> None:
+    async def on_mount(self) -> None:
         try:
             self.query_one("Static").remove()
         except NoMatches:
@@ -390,10 +390,11 @@ class PinnedSidebar(OptionList):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.default = state.pins["default"]
+        print(self.default)
         self.pins = state.pins["pins"]
-        self.drives = [
-            f"{letter}:/" for letter in ascii_uppercase if path.exists(f"{letter}:/")
-        ]
+        print(self.pins)
+        self.drives = state.get_mounted_drives()
+        print(f"Detected drives: {self.drives}")
 
     def compose(self) -> ComposeResult:
         yield Static()
@@ -403,7 +404,9 @@ class PinnedSidebar(OptionList):
         state.load_pins()
         self.pins = state.pins["pins"]
         self.default = state.pins["default"]
+        print(f"Reloading pins: {self.pins}")
         await self.remove_children()
+        print(f"Reloading default folders: {self.default}")
         self.clear_options()
         for default_folder in self.default:
             if not path.isdir(default_folder["path"]):
@@ -445,6 +448,7 @@ class PinnedSidebar(OptionList):
                 )
             )
         self.add_option(Option("Drives", id="drives-header"))
+        self.drives = state.get_mounted_drives()
         for drive in self.drives:
             self.add_option(
                 Option(
