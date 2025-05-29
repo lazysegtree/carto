@@ -341,17 +341,3 @@ BORDER_BOTTOM = {
     "vkey": "▔",
     "wide": "▔",
 }
-
-
-def get_border_bottom(border_tuple: tuple) -> str:
-    """Get the border bottom character based on the provided border tuple.
-
-    Args:
-        border_tuple (tuple): A tuple containing the border type.
-
-    Returns:
-        str: The corresponding border bottom character.
-    """
-    if len(border_tuple) == 0:
-        return BORDER_BOTTOM["blank"]
-    return BORDER_BOTTOM.get(border_tuple[0], BORDER_BOTTOM["blank"])

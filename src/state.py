@@ -1,7 +1,7 @@
 """Module that holds variable states + other functions"""
 
 import toml
-from maps import VAR_TO_DIR
+from maps import VAR_TO_DIR, BORDER_BOTTOM
 from os import path
 from platformdirs import *  # leaving it here just in case we need it later
 import re
@@ -274,6 +274,20 @@ def get_mounted_drives() -> list:
         drives = [path.expanduser("~")]
     return drives
 
+def set_scuffed_subtitle(element, mode:str, frac:str, hover:bool) -> None:
+    """The most scuffed way to display a custom subtitle
+
+    Args:
+        element (Widget): The element containing style information.
+        mode (str): The mode of the subtitle.
+        frac (str): The fraction to display.
+        hover (bool): Whether the widget is in hover state.
+    """
+    border_bottom = BORDER_BOTTOM.get(
+        element.styles.border_bottom[0], BORDER_BOTTOM["blank"]
+    )
+    border_color = config["interface"]["border"]["color"] if hover else config["interface"]["border"]["inactive_color"]
+    element.border_subtitle = f"{mode} [{border_color} on $background]{border_bottom}[/] {frac}"
 
 class FileEventHandler(FileSystemEventHandler):
     @staticmethod

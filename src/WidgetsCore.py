@@ -4,8 +4,7 @@ from maps import (
     get_icon_for_folder,
     EXT_TO_LANG_MAP,
     PIL_EXTENSIONS,
-    TOGGLE_BUTTON_ICONS,
-    get_border_bottom,
+    TOGGLE_BUTTON_ICONS
 )
 from os import listdir, path, getcwd, chdir, scandir
 from pathlib import Path
@@ -14,7 +13,7 @@ from rich.segment import Segment
 from rich.style import Style
 import state
 import subprocess
-from textual import events
+from textual import events, work, on
 from textual.app import ComposeResult, App
 from textual.containers import Container
 from textual.content import Content
@@ -185,10 +184,10 @@ def update_file_list(
     folders, files = get_cwd_object(cwd, sort_order, sort_by)
     if folders == [PermissionError] or files == [PermissionError]:
         file_list.add_option(
-            Option(
+            Selection(
                 Content("Permission Error: Unable to access this directory."),
-                id="HTI",
-            )
+                value="HTI"
+            ),
         )
         file_list_options = [".."]
     else:
@@ -197,12 +196,12 @@ def update_file_list(
         )
         for item in file_list_options:
             file_list.add_option(
-                Option(
+                Selection(
                     Content.from_markup(
                         f" [{item['icon'][1]}]{item['icon'][0]}[/{item['icon'][1]}] $name",
                         name=item["name"],
                     ),
-                    id=state.compress(item["name"]),
+                    value=state.compress(item["name"]),
                 )
             )
     # session handler
@@ -215,7 +214,7 @@ def update_file_list(
         state.sessionDirectories.append(
             {
                 "path": cwd,
-                "highlighted": appInstance.query_one("#file_list").options[0].id,
+                "highlighted": appInstance.query_one("#file_list").options[0].value,
             }
         )
         state.sessionHistoryIndex = len(state.sessionDirectories) - 1
@@ -264,7 +263,7 @@ def dummy_update_file_list(
     folders, files = get_cwd_object(cwd, sort_order, sort_by)
     if folders == [PermissionError] or files == [PermissionError]:
         file_list.add_option(
-            Option(
+            Selection(
                 Content("Permission Error: Unable to access this directory."),
                 id="HTI",
             )
@@ -275,102 +274,14 @@ def dummy_update_file_list(
     )
     for item in file_list_options:
         file_list.add_option(
-            Content.from_markup(
-                f" [{item['icon'][1]}]{item['icon'][0]}[/{item['icon'][1]}] $name",
-                name=item["name"],
-            ),
-        )
-
-
-class FileList(OptionList):
-    CSS_PATH = "style.tcss"
-
-    def __init__(
-        self,
-        sort_by: str,
-        sort_order: str,
-        dummy: bool = False,
-        enter_into: str = "",
-        **kwargs,
-    ):
-        super().__init__(**kwargs)
-        self.sort_by = sort_by
-        self.sort_order = sort_order
-        self.dummy = dummy
-        self.enter_into = enter_into
-
-    def compose(self) -> ComposeResult:
-        yield Static()
-
-    def on_option_list_option_selected(self, event: OptionList.OptionSelected) -> None:
-        if self.dummy:
-            return
-        cwd = getcwd()
-        # Get the selected option
-        selected_option = event.option
-        # Get the file name from the option id
-        file_name = state.decompress(selected_option.id)
-        # Check if it's a folder or a file
-        if path.isdir(path.join(cwd, file_name)):
-            # If it's a folder, navigate into it
-            chdir(path.join(cwd, file_name))
-            update_file_list(self.app, "#file_list", self.sort_by, self.sort_order)
-        else:
-            open_file(path.join(cwd, file_name))
-
-    async def on_option_list_option_highlighted(
-        self, event: OptionList.OptionHighlighted
-    ) -> None:
-        if self.dummy:
-            return
-        elif event.option.id == "HTI":
-            self.app.query_one("#preview_sidebar").remove_children()
-            return  # ignore folders that go to prev dir
-        # Get the highlighted option
-        highlighted_option = event.option
-        state.sessionDirectories[state.sessionHistoryIndex]["highlighted"] = (
-            event.option.id
-        )
-        # Get the file name from the option id
-        file_name = state.decompress(highlighted_option.id)
-        # total files as footer
-        self.parent.border_subtitle = f"NORMAL [{state.config['interface']['border']['inactive_color']} on $background]{get_border_bottom(self.parent.styles.border_bottom)}[/] {self.highlighted + 1}/{self.option_count}"
-
-        # Check if it's a folder or a file
-        file_path = path.join(getcwd(), file_name)
-        if path.isdir(file_path):
-            await self.app.query_one("#preview_sidebar").show_folder(file_path)
-        else:
-            await self.app.query_one("#preview_sidebar").show_file(file_path)
-
-    async def on_mount(self) -> None:
-        try:
-            self.query_one("Static").remove()
-        except NoMatches:
-            pass
-        if not self.dummy:
-            update_file_list(
-                self.app,
-                "#file_list",
-                sort_by=self.sort_by,
-                sort_order=self.sort_order,
+            Selection(
+                Content.from_markup(
+                    f" [{item['icon'][1]}]{item['icon'][0]}[/{item['icon'][1]}] $name",
+                    name=item["name"],
+                ),
+                value=state.compress(item["name"])
             )
-            self.focus()
-
-    # ignore single clicks
-    async def _on_click(self, event: events.Click) -> None:
-        """React to the mouse being clicked on an item.
-
-        Args:
-            event: The click event.
-        """
-        event.prevent_default()
-        clicked_option: int | None = event.style.meta.get("option")
-        if clicked_option is not None and not self._options[clicked_option].disabled:
-            if self.highlighted == clicked_option:
-                self.action_select()
-            else:
-                self.highlighted = clicked_option
+        )
 
 
 class PreviewContainer(Container):
@@ -564,7 +475,7 @@ class PinnedSidebar(OptionList):
         """Handle the selection of an option in the pinned sidebar."""
         selected_option = event.option
         # Get the file path from the option id
-        file_path = state.decompress(selected_option.id.split("-")[0])
+        file_path = state.decompress(selected_option.value.split("-")[0])
         if not path.isdir(file_path):
             if path.exists(file_path):
                 raise FolderNotFileError(
@@ -577,14 +488,51 @@ class PinnedSidebar(OptionList):
         self.app.query_one("#file_list").focus()
 
 
-class FileListVisual(SelectionList):
+class FileList(SelectionList):
     """
     OptionList but can multi-select files and folders.
     """
 
-    def __init__(self, options: list, *args, **kwargs):
+    def __init__(
+        self,
+        sort_by: str,
+        sort_order: str,
+        dummy: bool = False,
+        enter_into: str = "",
+        visual: bool = False,
+        *args,
+        **kwargs
+    ):
+        """
+        Initialize the FileList widget.
+        Args:
+            sort_by (str): The attribute to sort by ("name" or "size").
+            sort_order (str): The order to sort by ("ascending" or "descending").
+            dummy (bool): Whether this is a dummy file list.
+            enter_into (str): The path to enter into when a folder is selected.
+            visual (bool): Whether the selection is visual or normal.
+        """
         super().__init__(*args, **kwargs)
-        self.options_from_OptionList = options
+        self.sort_by = sort_by
+        self.sort_order = sort_order
+        self.dummy = dummy
+        self.enter_into = enter_into
+        self.visual = visual
+
+    # ignore single clicks
+    async def _on_click(self, event: events.Click) -> None:
+        """React to the mouse being clicked on an item.
+
+        Args:
+            event: The click event.
+        """
+        event.prevent_default()
+        clicked_option: int | None = event.style.meta.get("option")
+        if clicked_option is not None and not self._options[clicked_option].disabled:
+            if self.highlighted == clicked_option:
+                self.action_select()
+            else:
+                self.highlighted = clicked_option
 
     def compose(self) -> ComposeResult:
         yield Static()
@@ -595,28 +543,83 @@ class FileListVisual(SelectionList):
             self.query_one("Static").remove()
         except NoMatches:
             pass
-        # steal everything from the optionlist
-        for option_element in self.options_from_OptionList:
-            # handle options
-            self.add_option(
-                Selection(
-                    option_element.prompt,
-                    value=option_element.id,
-                    id=option_element.id,
-                )
+        if not self.dummy:
+            update_file_list(
+                self.app,
+                "#file_list",
+                sort_by=self.sort_by,
+                sort_order=self.sort_order,
             )
-        await self.on_selection_list_selected_changed(
-            SelectionList.SelectedChanged(self)
-        )
-        self.app.query_one("#preview_sidebar").remove_children()
+            self.focus()
 
     async def on_selection_list_selected_changed(
         self, event: SelectionList.SelectedChanged
     ) -> None:
-        """Handle the selection of an option in the file list."""
-        self.parent.border_subtitle = (
-            f"SELECT \u2588 {len(self.selected)}/{len(self.options)}"
+        if self.dummy:
+            return
+        if not self.visual:
+            event.prevent_default()
+            cwd = getcwd()
+            # Get the selected option
+            selected_option = self.highlighted #? trust me bro
+            # Get the file name from the option id
+            file_name = state.decompress(selected_option)
+            # Check if it's a folder or a file
+            if path.isdir(path.join(cwd, file_name)):
+                # If it's a folder, navigate into it
+                chdir(path.join(cwd, file_name))
+                update_file_list(self.app, "#file_list", self.sort_by, self.sort_order)
+            else:
+                open_file(path.join(cwd, file_name))
+            state.set_scuffed_subtitle(
+                self.parent,
+                "NORMAL",
+                f"{self.highlighted + 1}/{self.option_count}",
+                True
+            )
+        else:
+            state.set_scuffed_subtitle(
+                self.parent,
+                "SELECT",
+                f"{len(self.selected)}/{len(self.options)}",
+                True
+            )
+
+    async def on_option_list_option_highlighted(
+        self, event: OptionList.OptionHighlighted
+    ) -> None:
+        if self.dummy:
+            return
+        elif event.option.value == "HTI" or self.visual:
+            self.app.query_one("#preview_sidebar").remove_children()
+            if self.visual:
+                state.set_scuffed_subtitle(
+                    self.parent,
+                    "SELECT",
+                    f"{len(self.selected)}/{len(self.options)}",
+                    True
+                )
+            return  # ignore folders that go to prev dir
+        # Get the highlighted option
+        highlighted_option = event.option
+        state.sessionDirectories[state.sessionHistoryIndex]["highlighted"] = (
+            event.option.value
         )
+        # Get the file name from the option id
+        file_name = state.decompress(highlighted_option.value)
+        # total files as footer
+        state.set_scuffed_subtitle(
+            self.parent,
+            "NORMAL",
+            f"{self.highlighted + 1}/{self.option_count}",
+            True
+        )
+        # Check if it's a folder or a file
+        file_path = path.join(getcwd(), file_name)
+        if path.isdir(file_path):
+            await self.app.query_one("#preview_sidebar").show_folder(file_path)
+        else:
+            await self.app.query_one("#preview_sidebar").show_file(file_path)
 
     def _get_left_gutter_width(
         self,
@@ -628,12 +631,15 @@ class FileListVisual(SelectionList):
         Returns:
             The width of the left gutter.
         """
-        return len(
-            TOGGLE_BUTTON_ICONS["left"]
-            + TOGGLE_BUTTON_ICONS["inner"]
-            + TOGGLE_BUTTON_ICONS["right"]
-            + " "
-        )
+        if self.dummy or not self.visual:
+            return 0
+        else:
+            return len(
+                TOGGLE_BUTTON_ICONS["left"]
+                + TOGGLE_BUTTON_ICONS["inner"]
+                + TOGGLE_BUTTON_ICONS["right"]
+                + " "
+            )
 
     def render_line(
         self, y: int
@@ -646,12 +652,15 @@ class FileListVisual(SelectionList):
         Returns:
             A [`Strip`][textual.strip.Strip] that is the line to render.
         """
-
         # TODO: This is rather crufty and hard to fathom. Candidate for a rewrite.
 
         # First off, get the underlying prompt from OptionList.
         # lysm claude
         line = super(SelectionList, self).render_line(y)
+
+        # ignore if not visual or is dummy
+        if self.dummy or not self.visual:
+            return Strip([*line])
 
         # We know the prompt we're going to display, what we're going to do
         # is place a CheckBox-a-like button next to it. So to start with
@@ -705,3 +714,48 @@ class FileListVisual(SelectionList):
                 *line,
             ]
         )
+    
+    @work
+    async def toggle_mode(self) -> None:
+        """Toggle the selection mode between visual and normal."""
+        self.visual = not self.visual
+        highlighted = self.highlighted
+        await self.on_mount()
+        self.highlighted = highlighted
+    
+    @on(events.Focus)
+    @work
+    async def event_on_focus(self, event: events.Focus) -> None:
+        """Handle the focus event to update the border style."""
+        if self.visual:
+            state.set_scuffed_subtitle(
+                self.parent,
+                "SELECT",
+                f"{len(self.selected)}/{len(self.options)}",
+                True
+            )
+        else:
+            state.set_scuffed_subtitle(
+                self.parent,
+                "NORMAL",
+                f"{self.highlighted + 1}/{self.option_count}",
+                True
+            )
+    @on(events.Leave)
+    @work
+    async def event_on_leave(self, event: events.Leave) -> None:
+        """Handle the leave event to update the border style"""
+        if self.visual:
+            state.set_scuffed_subtitle(
+                self.parent,
+                "SELECT",
+                f"{len(self.selected)}/{len(self.options)}",
+                False
+            )
+        else:
+            state.set_scuffed_subtitle(
+                self.parent,
+                "NORMAL",
+                f"{self.highlighted + 1}/{self.option_count}",
+                False
+            )

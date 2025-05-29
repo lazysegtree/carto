@@ -26,11 +26,10 @@ from textual.widgets import (
 from themes import get_custom_themes
 from WidgetsCore import (
     PathAutoCompleteInput,
-    FileList,
     update_file_list,
     PreviewContainer,
     PinnedSidebar,
-    FileListVisual,
+    FileList,
 )
 
 
@@ -95,7 +94,7 @@ class Application(App):
                         name="File List",
                         classes="file-list",
                         sort_by=self.main_sort_by,
-                        sort_order=self.main_sort_order,
+                        sort_order=self.main_sort_order
                     ),
                     id="file_list_container",
                 ),
@@ -333,40 +332,7 @@ class Application(App):
             else:
                 self.query_one("#footer").remove_class("hide")
         elif event.key in state.config["keybinds"]["mode"]["visual"]:
-            container = self.query_one("#file_list_container")
-            if "visual" in self.query_one("#file_list_container").classes:
-                visual = self.query_one("#file_list_visual")
-                visual.can_focus = False
-                highlighted_index = visual.highlighted
-                visual.remove()
-                await container.mount(
-                    FileList(
-                        id="file_list",
-                        name="File List",
-                        classes="file-list",
-                        sort_by=self.main_sort_by,
-                        sort_order=self.main_sort_order,
-                    )
-                )
-                self.query_one("#file_list").highlighted = highlighted_index
-                self.query_one("#file_list").focus()
-                container.remove_class("visual")
-            else:
-                normal = self.query_one("#file_list")
-                normal.can_focus = False
-                highlighted_index = normal.highlighted
-                normal.remove()
-                await container.mount(
-                    FileListVisual(
-                        id="file_list_visual",
-                        name="File List",
-                        classes="file-list visual",
-                        options=normal.options,
-                    )
-                )
-                self.query_one("#file_list_visual").highlighted = highlighted_index
-                self.query_one("#file_list_visual").focus()
-                container.add_class("visual")
+            self.query_one("#file_list").toggle_mode()
 
 
 state.start_watcher()

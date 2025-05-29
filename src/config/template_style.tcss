@@ -204,7 +204,7 @@ RichLog {
 Content.selected {
   color: red;
 }
-FileListVisual {
+FileList {
   .selection-list--button {
     background: transparent;
     color: $primary;
