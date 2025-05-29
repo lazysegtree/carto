@@ -313,3 +313,45 @@ def get_icon_for_folder(location: str) -> list:
         return ICONS["folder"][FOLDER_MAP[folder_name]]
     else:
         return ICONS["folder"]["default"]
+
+
+TOGGLE_BUTTON_ICONS = {
+    "left": " ",
+    "right": "",
+    "inner": "\ue640",
+    "inner_filled": "\uf4a7",
+}
+
+BORDER_BOTTOM = {
+    "ascii": "-",
+    "blank": " ",
+    "dashed": "╍",
+    "double": "═",
+    "heavy": "━",
+    "hidden": " ",
+    "none": " ",
+    "hkey": "▁",
+    "inner": "▀",
+    "outer": "▄",
+    "panel": "▁",
+    "round": "─",
+    "solid": "─",
+    "tall": "▁",
+    "thick": "▄",
+    "vkey": "▔",
+    "wide": "▔",
+}
+
+
+def get_border_bottom(border_tuple: tuple) -> str:
+    """Get the border bottom character based on the provided border tuple.
+
+    Args:
+        border_tuple (tuple): A tuple containing the border type.
+
+    Returns:
+        str: The corresponding border bottom character.
+    """
+    if len(border_tuple) == 0:
+        return BORDER_BOTTOM["blank"]
+    return BORDER_BOTTOM.get(border_tuple[0], BORDER_BOTTOM["blank"])

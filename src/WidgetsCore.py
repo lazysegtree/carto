@@ -1,17 +1,28 @@
 from humanize import naturalsize
-from maps import get_icon_for_file, get_icon_for_folder, EXT_TO_LANG_MAP, PIL_EXTENSIONS
+from maps import (
+    get_icon_for_file,
+    get_icon_for_folder,
+    EXT_TO_LANG_MAP,
+    PIL_EXTENSIONS,
+    TOGGLE_BUTTON_ICONS,
+    get_border_bottom,
+)
 from os import listdir, path, getcwd, chdir, scandir
-import platform
-import subprocess
 from pathlib import Path
+import platform
+from rich.segment import Segment
+from rich.style import Style
 import state
+import subprocess
 from textual import events
 from textual.app import ComposeResult, App
 from textual.containers import Container
 from textual.content import Content
 from textual.css.query import NoMatches
-from textual.widgets import OptionList, Static, TextArea
+from textual.strip import Strip
+from textual.widgets import OptionList, Static, TextArea, SelectionList
 from textual.widgets.option_list import Option, OptionDoesNotExist
+from textual.widgets.selection_list import Selection
 from textual_autocomplete import PathAutoComplete, TargetState, DropdownItem
 
 
@@ -128,7 +139,8 @@ def get_cwd_object(cwd: str, sort_order: str, sort_by: str) -> list[dict]:
     folders, files = [], []
     try:
         listed_dir = listdir(cwd)
-    except (PermissionError, FileNotFoundError, OSError) as e:
+    except (PermissionError, FileNotFoundError, OSError):
+        print(f"PermissionError: Unable to access {cwd}")
         return [PermissionError], [PermissionError]
     for item in listed_dir:
         if path.isdir(path.join(cwd, item)):
@@ -140,9 +152,13 @@ def get_cwd_object(cwd: str, sort_order: str, sort_by: str) -> list[dict]:
             )
         else:
             files.append({"name": item, "icon": get_icon_for_file(item)})
+    if files == [] and folders == []:
+        print(f"No files or folders found in {cwd}")
+        return [{"name": "..", "icon": ["", "red"]}], []
     # Sort folders and files properly
     folders.sort(key=lambda x: x["name"].lower(), reverse=(sort_order == "descending"))
     files.sort(key=lambda x: x["name"].lower(), reverse=(sort_order == "descending"))
+    print(f"Found {len(folders)} folders and {len(files)} files in {cwd}")
     return folders, files
 
 
@@ -170,7 +186,7 @@ def update_file_list(
     if folders == [PermissionError] or files == [PermissionError]:
         file_list.add_option(
             Option(
-                "Permission Error: Unable to access this directory.",
+                Content("Permission Error: Unable to access this directory."),
                 id="HTI",
             )
         )
@@ -249,7 +265,7 @@ def dummy_update_file_list(
     if folders == [PermissionError] or files == [PermissionError]:
         file_list.add_option(
             Option(
-                "Permission Error: Unable to access this directory.",
+                Content("Permission Error: Unable to access this directory."),
                 id="HTI",
             )
         )
@@ -307,6 +323,9 @@ class FileList(OptionList):
     ) -> None:
         if self.dummy:
             return
+        elif event.option.id == "HTI":
+            self.app.query_one("#preview_sidebar").remove_children()
+            return  # ignore folders that go to prev dir
         # Get the highlighted option
         highlighted_option = event.option
         state.sessionDirectories[state.sessionHistoryIndex]["highlighted"] = (
@@ -315,7 +334,7 @@ class FileList(OptionList):
         # Get the file name from the option id
         file_name = state.decompress(highlighted_option.id)
         # total files as footer
-        self.parent.border_subtitle = f"{self.highlighted + 1}/{self.option_count}"
+        self.parent.border_subtitle = f"NORMAL [{state.config['interface']['border']['inactive_color']} on $background]{get_border_bottom(self.parent.styles.border_bottom)}[/] {self.highlighted + 1}/{self.option_count}"
 
         # Check if it's a folder or a file
         file_path = path.join(getcwd(), file_name)
@@ -472,9 +491,12 @@ class PinnedSidebar(OptionList):
         self.clear_options()
         for default_folder in self.default:
             if not path.isdir(default_folder["path"]):
-                raise FolderNotFileError(
-                    f"Expected a folder but got a file: {default_folder['path']}"
-                )
+                if path.exists(default_folder["path"]):
+                    raise FolderNotFileError(
+                        f"Expected a folder but got a file: {default_folder['path']}"
+                    )
+                else:
+                    pass
             if "icon" in default_folder:
                 icon = default_folder["icon"]
             elif path.isdir(default_folder["path"]):
@@ -497,9 +519,12 @@ class PinnedSidebar(OptionList):
             except KeyError:
                 break
             if not path.isdir(pin["path"]):
-                raise FolderNotFileError(
-                    f"Expected a folder but got a file: {pin['path']}"
-                )
+                if path.exists(pin["path"]):
+                    raise FolderNotFileError(
+                        f"Expected a folder but got a file: {pin['path']}"
+                    )
+                else:
+                    pass
             if "icon" in pin:
                 icon = pin["icon"]
             elif path.isdir(pin["path"]):
@@ -541,7 +566,142 @@ class PinnedSidebar(OptionList):
         # Get the file path from the option id
         file_path = state.decompress(selected_option.id.split("-")[0])
         if not path.isdir(file_path):
-            raise FolderNotFileError(f"Expected a folder but got a file: {file_path}")
+            if path.exists(file_path):
+                raise FolderNotFileError(
+                    f"Expected a folder but got a file: {file_path}"
+                )
+            else:
+                return
         chdir(file_path)
         update_file_list(self.app, "#file_list", "name", "ascending")
         self.app.query_one("#file_list").focus()
+
+
+class FileListVisual(SelectionList):
+    """
+    OptionList but can multi-select files and folders.
+    """
+
+    def __init__(self, options: list, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.options_from_OptionList = options
+
+    def compose(self) -> ComposeResult:
+        yield Static()
+
+    async def on_mount(self) -> None:
+        """Initialize the file list."""
+        try:
+            self.query_one("Static").remove()
+        except NoMatches:
+            pass
+        # steal everything from the optionlist
+        for option_element in self.options_from_OptionList:
+            # handle options
+            self.add_option(
+                Selection(
+                    option_element.prompt,
+                    value=option_element.id,
+                    id=option_element.id,
+                )
+            )
+        await self.on_selection_list_selected_changed(
+            SelectionList.SelectedChanged(self)
+        )
+        self.app.query_one("#preview_sidebar").remove_children()
+
+    async def on_selection_list_selected_changed(
+        self, event: SelectionList.SelectedChanged
+    ) -> None:
+        """Handle the selection of an option in the file list."""
+        self.parent.border_subtitle = (
+            f"SELECT \u2588 {len(self.selected)}/{len(self.options)}"
+        )
+
+    def _get_left_gutter_width(
+        self,
+    ) -> (
+        int
+    ):  # to be fair, we couldve just left it alone because monospace, but screw that
+        """Returns the size of any left gutter that should be taken into account.
+
+        Returns:
+            The width of the left gutter.
+        """
+        return len(
+            TOGGLE_BUTTON_ICONS["left"]
+            + TOGGLE_BUTTON_ICONS["inner"]
+            + TOGGLE_BUTTON_ICONS["right"]
+            + " "
+        )
+
+    def render_line(
+        self, y: int
+    ) -> Strip:  # reminder that this is taken from textual's repository and modified
+        """Render a line in the display.
+
+        Args:
+            y: The line to render.
+
+        Returns:
+            A [`Strip`][textual.strip.Strip] that is the line to render.
+        """
+
+        # TODO: This is rather crufty and hard to fathom. Candidate for a rewrite.
+
+        # First off, get the underlying prompt from OptionList.
+        # lysm claude
+        line = super(SelectionList, self).render_line(y)
+
+        # We know the prompt we're going to display, what we're going to do
+        # is place a CheckBox-a-like button next to it. So to start with
+        # let's pull out the actual Selection we're looking at right now.
+        _, scroll_y = self.scroll_offset
+        selection_index = scroll_y + y
+        try:
+            selection = self.get_option_at_index(selection_index)
+        except OptionDoesNotExist:
+            return line
+
+        # Figure out which component style is relevant for a checkbox on
+        # this particular line.
+        component_style = "selection-list--button"
+        if selection.value in self._selected:
+            component_style += "-selected"
+        if self.highlighted == selection_index:
+            component_style += "-highlighted"
+
+        # # # Get the underlying style used for the prompt.
+        # TODO: This is not a reliable way of getting the base style
+        underlying_style = next(iter(line)).style or self.rich_style
+        assert underlying_style is not None
+
+        # Get the style for the button.
+        button_style = self.get_component_rich_style(component_style)
+
+        # Build the style for the side characters. Note that this is
+        # sensitive to the type of character used, so pay attention to
+        # BUTTON_LEFT and BUTTON_RIGHT.
+        side_style = Style.from_color(button_style.bgcolor, underlying_style.bgcolor)
+
+        # Add the option index to the style. This is used to determine which
+        # option to select when the button is clicked or hovered.
+        side_style += Style(meta={"option": selection_index})
+        button_style += Style(meta={"option": selection_index})
+
+        # At this point we should have everything we need to place a
+        # "button" before the option.
+        return Strip(
+            [
+                Segment(TOGGLE_BUTTON_ICONS["left"], style=side_style),
+                Segment(
+                    TOGGLE_BUTTON_ICONS["inner_filled"]
+                    if selection.value in self._selected
+                    else TOGGLE_BUTTON_ICONS["inner"],
+                    style=button_style,
+                ),
+                Segment(TOGGLE_BUTTON_ICONS["right"], style=side_style),
+                Segment(" ", style=underlying_style),
+                *line,
+            ]
+        )
