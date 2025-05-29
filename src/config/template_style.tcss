@@ -109,6 +109,11 @@ Footer {
   margin: 0;
 }
 
+#pinned_sidebar,
+#file_list {
+  height: 1fr;
+}
+
 #menu,
 #below_menu,
 #pinned_sidebar_container,
@@ -124,7 +129,7 @@ Footer {
 #below_menu:focus-within,
 #pinned_sidebar_container:focus-within,
 #file_list_container:focus-within,
-#preview_sidebar:focus-within,
+#preview_sidebar:focus-within, /* only while using textual-image */
 #preview_sidebar:focus,
 Input:focus-within {
   border: $-interface-border-style-$ $-interface-border-color-$ !important;

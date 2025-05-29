@@ -213,7 +213,7 @@ class Application(App):
             return
         # focus toggle pinned sidebar
         elif event.key in state.config["keybinds"]["focus"]["pinned_sidebar"]:
-            if self.focused.id == "pinned_sidebar":
+            if self.focused.id == "pinned_sidebar" or "hide" in self.query_one("#pinned_sidebar_container").classes:
                 self.query_one("#file_list").focus()
             else:
                 self.query_one("#pinned_sidebar").focus()
@@ -225,6 +225,7 @@ class Application(App):
             if (
                 self.focused.id == "preview_sidebar"
                 or self.focused.parent.id == "preview_sidebar"
+                or "hide" in self.query_one("#preview_sidebar").classes
             ):
                 self.query_one("#file_list").focus()
             else:
@@ -234,7 +235,7 @@ class Application(App):
             self.query_one("#path_switcher").focus()
         # focus processes
         elif event.key in state.config["keybinds"]["focus"]["processes"]:
-            if self.focused.id == "processes":
+            if self.focused.id == "processes" or "hide" in self.query_one("#processes").classes:
                 self.query_one("#file_list").focus()
             else:
                 self.query_one("#processes").focus()
@@ -273,16 +274,19 @@ class Application(App):
             await self.query_one("#pinned_sidebar").reload_pins()
         # toggle hiding panels
         elif event.key in state.config["keybinds"]["hide"]["pinned_sidebar"]:
+            self.query_one("#file_list").focus()
             if self.query_one("#pinned_sidebar_container").display:
                 self.query_one("#pinned_sidebar_container").add_class("hide")
             else:
                 self.query_one("#pinned_sidebar_container").remove_class("hide")
         elif event.key in state.config["keybinds"]["hide"]["preview_sidebar"]:
+            self.query_one("#file_list").focus()
             if self.query_one("#preview_sidebar").display:
                 self.query_one("#preview_sidebar").add_class("hide")
             else:
                 self.query_one("#preview_sidebar").remove_class("hide")
         elif event.key in state.config["keybinds"]["hide"]["footer"]:
+            self.query_one("#file_list").focus()
             if self.query_one("#footer").display:
                 self.query_one("#footer").add_class("hide")
             else:
