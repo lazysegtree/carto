@@ -19,7 +19,6 @@ from textual.widgets import (
     Button,
     # Static,
     Header,
-    Footer,
     Input,
     RichLog,
     SelectionList,
@@ -123,7 +122,6 @@ class Application(App):
             ),
             id="root",
         )
-        yield Footer()
 
     def on_mount(self):
         self.query_one("#menu").border_title = "Options"
