@@ -4,7 +4,7 @@ from maps import (
     get_icon_for_folder,
     EXT_TO_LANG_MAP,
     PIL_EXTENSIONS,
-    TOGGLE_BUTTON_ICONS
+    TOGGLE_BUTTON_ICONS,
 )
 from os import listdir, path, getcwd, chdir, scandir
 from pathlib import Path
@@ -186,7 +186,7 @@ def update_file_list(
         file_list.add_option(
             Selection(
                 Content("Permission Error: Unable to access this directory."),
-                value="HTI"
+                value="HTI",
             ),
         )
         file_list_options = [".."]
@@ -279,7 +279,7 @@ def dummy_update_file_list(
                     f" [{item['icon'][1]}]{item['icon'][0]}[/{item['icon'][1]}] $name",
                     name=item["name"],
                 ),
-                value=state.compress(item["name"])
+                value=state.compress(item["name"]),
             )
         )
 
@@ -501,7 +501,7 @@ class FileList(SelectionList):
         enter_into: str = "",
         visual: bool = False,
         *args,
-        **kwargs
+        **kwargs,
     ):
         """
         Initialize the FileList widget.
@@ -561,7 +561,7 @@ class FileList(SelectionList):
             event.prevent_default()
             cwd = getcwd()
             # Get the selected option
-            selected_option = self.highlighted #? trust me bro
+            selected_option = self.highlighted  # ? trust me bro
             # Get the file name from the option id
             file_name = state.decompress(selected_option)
             # Check if it's a folder or a file
@@ -575,14 +575,11 @@ class FileList(SelectionList):
                 self.parent,
                 "NORMAL",
                 f"{self.highlighted + 1}/{self.option_count}",
-                True
+                True,
             )
         else:
             state.set_scuffed_subtitle(
-                self.parent,
-                "SELECT",
-                f"{len(self.selected)}/{len(self.options)}",
-                True
+                self.parent, "SELECT", f"{len(self.selected)}/{len(self.options)}", True
             )
 
     async def on_option_list_option_highlighted(
@@ -597,7 +594,7 @@ class FileList(SelectionList):
                     self.parent,
                     "SELECT",
                     f"{len(self.selected)}/{len(self.options)}",
-                    True
+                    True,
                 )
             return  # ignore folders that go to prev dir
         # Get the highlighted option
@@ -609,10 +606,7 @@ class FileList(SelectionList):
         file_name = state.decompress(highlighted_option.value)
         # total files as footer
         state.set_scuffed_subtitle(
-            self.parent,
-            "NORMAL",
-            f"{self.highlighted + 1}/{self.option_count}",
-            True
+            self.parent, "NORMAL", f"{self.highlighted + 1}/{self.option_count}", True
         )
         # Check if it's a folder or a file
         file_path = path.join(getcwd(), file_name)
@@ -714,7 +708,7 @@ class FileList(SelectionList):
                 *line,
             ]
         )
-    
+
     @work
     async def toggle_mode(self) -> None:
         """Toggle the selection mode between visual and normal."""
@@ -722,25 +716,23 @@ class FileList(SelectionList):
         highlighted = self.highlighted
         await self.on_mount()
         self.highlighted = highlighted
-    
+
     @on(events.Focus)
     @work
     async def event_on_focus(self, event: events.Focus) -> None:
         """Handle the focus event to update the border style."""
         if self.visual:
             state.set_scuffed_subtitle(
-                self.parent,
-                "SELECT",
-                f"{len(self.selected)}/{len(self.options)}",
-                True
+                self.parent, "SELECT", f"{len(self.selected)}/{len(self.options)}", True
             )
         else:
             state.set_scuffed_subtitle(
                 self.parent,
                 "NORMAL",
                 f"{self.highlighted + 1}/{self.option_count}",
-                True
+                True,
             )
+
     @on(events.Leave)
     @work
     async def event_on_leave(self, event: events.Leave) -> None:
@@ -750,12 +742,12 @@ class FileList(SelectionList):
                 self.parent,
                 "SELECT",
                 f"{len(self.selected)}/{len(self.options)}",
-                False
+                False,
             )
         else:
             state.set_scuffed_subtitle(
                 self.parent,
                 "NORMAL",
                 f"{self.highlighted + 1}/{self.option_count}",
-                False
+                False,
             )

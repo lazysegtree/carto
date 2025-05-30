@@ -274,7 +274,8 @@ def get_mounted_drives() -> list:
         drives = [path.expanduser("~")]
     return drives
 
-def set_scuffed_subtitle(element, mode:str, frac:str, hover:bool) -> None:
+
+def set_scuffed_subtitle(element, mode: str, frac: str, hover: bool) -> None:
     """The most scuffed way to display a custom subtitle
 
     Args:
@@ -286,8 +287,15 @@ def set_scuffed_subtitle(element, mode:str, frac:str, hover:bool) -> None:
     border_bottom = BORDER_BOTTOM.get(
         element.styles.border_bottom[0], BORDER_BOTTOM["blank"]
     )
-    border_color = config["interface"]["border"]["color"] if hover else config["interface"]["border"]["inactive_color"]
-    element.border_subtitle = f"{mode} [{border_color} on $background]{border_bottom}[/] {frac}"
+    border_color = (
+        config["interface"]["border"]["color"]
+        if hover
+        else config["interface"]["border"]["inactive_color"]
+    )
+    element.border_subtitle = (
+        f"{mode} [{border_color} on $background]{border_bottom}[/] {frac}"
+    )
+
 
 class FileEventHandler(FileSystemEventHandler):
     @staticmethod

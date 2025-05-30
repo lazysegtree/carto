@@ -94,7 +94,7 @@ class Application(App):
                         name="File List",
                         classes="file-list",
                         sort_by=self.main_sort_by,
-                        sort_order=self.main_sort_order
+                        sort_order=self.main_sort_order,
                     ),
                     id="file_list_container",
                 ),
