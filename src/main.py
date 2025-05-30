@@ -9,7 +9,6 @@ from textual.containers import (
     Vertical,
     VerticalGroup,
 )
-from textual.widgets.selection_list import Selection
 from textual.validation import Function
 from textual.widgets import (
     # OptionList,
@@ -21,7 +20,6 @@ from textual.widgets import (
     Header,
     Input,
     RichLog,
-    SelectionList,
 )
 from themes import get_custom_themes
 from WidgetsCore import (
@@ -30,6 +28,7 @@ from WidgetsCore import (
     PreviewContainer,
     PinnedSidebar,
     FileList,
+    Clipboard,
 )
 
 
@@ -107,17 +106,7 @@ class Application(App):
                 # ? should we switch to a vertical scroll?
                 RichLog(id="processes", highlight=True, markup=True, wrap=True),
                 VerticalGroup(id="metadata"),
-                SelectionList[str](
-                    Selection(
-                        path.join(path.dirname(__file__), "log.txt"),
-                        path.join(path.dirname(__file__), "log.txt"),
-                    ),
-                    Selection(
-                        path.join(path.dirname(__file__), "error.txt"),
-                        path.join(path.dirname(__file__), "error.txt"),
-                    ),
-                    id="clipboard",
-                ),
+                Clipboard(id="clipboard"),
                 id="footer",
             ),
             id="root",
@@ -197,45 +186,36 @@ class Application(App):
 
     @work
     async def on_key(self, event: events.Key) -> None:
-        if not self.focused.id:
+        if self.focused is None or not self.focused.id:
             return
         # make sure that keybinds dont break
         if self.focused.id == "path_switcher" and event.key in ["enter", "escape"]:
-            if "visual" in self.query_one("#file_list_container").classes:
-                self.query_one("#file_list_visual").focus()
-            else:
-                self.query_one("#file_list").focus()
+            self.query_one("#file_list").focus()
             await self.query_one("#path_switcher").action_submit()
+            return
         elif "search" in self.focused.id and event.key == "escape":
             if self.focused.id == "search_file_list":
-                if "visual" in self.query_one("#file_list_container").classes:
-                    self.query_one("#file_list_visual").focus()
-                else:
-                    self.query_one("#file_list").focus()
+                self.query_one("#file_list").focus()
             elif self.focused.id == "search_pinned_sidebar":
                 self.query_one("#pinned_sidebar").focus()
+                return
         elif (
             self.focused.id == "path_switcher" or "search" in self.focused.id
         ) and event.key == "backspace":
             return
         # focus toggle pinned sidebar
-        elif event.key in state.config["keybinds"]["focus"]["pinned_sidebar"]:
+        event.prevent_default()
+        if event.key in state.config["keybinds"]["focus"]["pinned_sidebar"]:
             if (
                 self.focused.id == "pinned_sidebar"
                 or "hide" in self.query_one("#pinned_sidebar_container").classes
             ):
-                if "visual" in self.query_one("#file_list_container").classes:
-                    self.query_one("#file_list_visual").focus()
-                else:
-                    self.query_one("#file_list").focus()
+                self.query_one("#file_list").focus()
             else:
                 self.query_one("#pinned_sidebar").focus()
         # focus file list from anywhere except input
         elif event.key in state.config["keybinds"]["focus"]["file_list"]:
-            if "visual" in self.query_one("#file_list_container").classes:
-                self.query_one("#file_list_visual").focus()
-            else:
-                self.query_one("#file_list").focus()
+            self.query_one("#file_list").focus()
         # focus toggle preview sidebar
         elif event.key in state.config["keybinds"]["focus"]["preview_sidebar"]:
             if (
@@ -243,10 +223,7 @@ class Application(App):
                 or self.focused.parent.id == "preview_sidebar"
                 or "hide" in self.query_one("#preview_sidebar").classes
             ):
-                if "visual" in self.query_one("#file_list_container").classes:
-                    self.query_one("#file_list_visual").focus()
-                else:
-                    self.query_one("#file_list").focus()
+                self.query_one("#file_list").focus()
             else:
                 self.query_one("#preview_sidebar *").focus()
         # focus path switcher
@@ -258,44 +235,35 @@ class Application(App):
                 self.focused.id == "processes"
                 or "hide" in self.query_one("#processes").classes
             ):
-                if "visual" in self.query_one("#file_list_container").classes:
-                    self.query_one("#file_list_visual").focus()
-                else:
-                    self.query_one("#file_list").focus()
+                self.query_one("#file_list").focus()
             else:
                 self.query_one("#processes").focus()
         # focus metadata
         elif event.key in state.config["keybinds"]["focus"]["metadata"]:
             if self.focused.id == "metadata":
-                if "visual" in self.query_one("#file_list_container").classes:
-                    self.query_one("#file_list_visual").focus()
-                else:
-                    self.query_one("#file_list").focus()
+                self.query_one("#file_list").focus()
             else:
                 self.query_one("#metadata").focus()
         # focus clipboard
         elif event.key in state.config["keybinds"]["focus"]["clipboard"]:
             if self.focused.id == "clipboard":
-                if "visual" in self.query_one("#file_list_container").classes:
-                    self.query_one("#file_list_visual").focus()
-                else:
-                    self.query_one("#file_list").focus()
+                self.query_one("#file_list").focus()
             else:
                 self.query_one("#clipboard").focus()
         # this is so scuffed
-        elif event.key in state.config["keybinds"]["navigation"]["previous"]:
+        elif event.key in state.config["keybinds"]["navigation"]["hist_previous"]:
             if self.query_one("#back").disabled:
                 self.go_up_path(Button.Pressed(self.query_one("#up")))
             else:
                 self.go_back_in_history(Button.Pressed(self.query_one("#back")))
-        elif event.key in state.config["keybinds"]["navigation"]["next"]:
+        elif event.key in state.config["keybinds"]["navigation"]["hist_next"]:
             if not self.query_one("#forward").disabled:
                 self.go_forward_in_history(
                     Button.Pressed(
                         self.query_one("#forward"),
                     )
                 )
-        elif event.key in state.config["keybinds"]["navigation"]["up"]:
+        elif event.key in state.config["keybinds"]["navigation"]["up_tree"]:
             self.go_up_path(Button.Pressed(self.query_one("#up")))
         elif event.key in state.config["keybinds"]["navigation"]["reload"]:
             self.reload_file_list(Button.Pressed(self.query_one("#reload")))
@@ -305,33 +273,24 @@ class Application(App):
             await self.query_one("#pinned_sidebar").reload_pins()
         # toggle hiding panels
         elif event.key in state.config["keybinds"]["hide"]["pinned_sidebar"]:
-            if "visual" in self.query_one("#file_list_container").classes:
-                self.query_one("#file_list_visual").focus()
-            else:
-                self.query_one("#file_list").focus()
+            self.query_one("#file_list").focus()
             if self.query_one("#pinned_sidebar_container").display:
                 self.query_one("#pinned_sidebar_container").add_class("hide")
             else:
                 self.query_one("#pinned_sidebar_container").remove_class("hide")
         elif event.key in state.config["keybinds"]["hide"]["preview_sidebar"]:
-            if "visual" in self.query_one("#file_list_container").classes:
-                self.query_one("#file_list_visual").focus()
-            else:
-                self.query_one("#file_list").focus()
+            self.query_one("#file_list").focus()
             if self.query_one("#preview_sidebar").display:
                 self.query_one("#preview_sidebar").add_class("hide")
             else:
                 self.query_one("#preview_sidebar").remove_class("hide")
         elif event.key in state.config["keybinds"]["hide"]["footer"]:
-            if "visual" in self.query_one("#file_list_container").classes:
-                self.query_one("#file_list_visual").focus()
-            else:
-                self.query_one("#file_list").focus()
+            self.query_one("#file_list").focus()
             if self.query_one("#footer").display:
                 self.query_one("#footer").add_class("hide")
             else:
                 self.query_one("#footer").remove_class("hide")
-        elif event.key in state.config["keybinds"]["mode"]["visual"]:
+        elif event.key in state.config["keybinds"]["mode"]["select"]:
             self.query_one("#file_list").toggle_mode()
 
 

@@ -24,7 +24,7 @@ This is a list of features that I plan to add before releasing the appropriate v
 - [ ] Keyboard Navigation
   - [x] Directory Navigation (explorer)
   - [ ] Others (superfile)
-- [ ] Double Click to enter into directories (explorer)
+- [x] Double Click to enter into directories (explorer)
 - Configuration (superfile)
   - [x] Base
   - [ ] Schema
@@ -34,6 +34,15 @@ This is a list of features that I plan to add before releasing the appropriate v
 - [x] Previewing directories (superfile)
 - [x] Pinned folder sidebar (superfile)<br><sub>explorer does support pinned sidebar, but it also includes the massive file tree, which I won't add.</sub>
 - [ ] Clipboard (superfile)
+  - [x] Copy files and folders
+  - [ ] Cut files and folders
+  - [ ] Paste files and folders
+    - [ ] Warn when overwriting same named files
+- [ ] Multiple File Lists
+  - [ ] Tabs
+  - [ ] VSplit and HSplit
+- [ ] Recycle Bin of 1 day when files get overwritten
+- [ ] Cross process clipboard sync (two carto instances should have synced clipboards)
 - [ ] Active and Completed processes (superfile)
 - [ ] Actions (explorer)
 

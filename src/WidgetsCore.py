@@ -15,14 +15,19 @@ import state
 import subprocess
 from textual import events, work, on
 from textual.app import ComposeResult, App
+from textual.binding import Binding, BindingType
 from textual.containers import Container
 from textual.content import Content
 from textual.css.query import NoMatches
 from textual.strip import Strip
+from textual.types import DuplicateID
 from textual.widgets import OptionList, Static, TextArea, SelectionList
 from textual.widgets.option_list import Option, OptionDoesNotExist
 from textual.widgets.selection_list import Selection
 from textual_autocomplete import PathAutoComplete, TargetState, DropdownItem
+from typing import ClassVar
+
+state.load_config()
 
 
 def open_file(filepath: str) -> None:
@@ -285,6 +290,9 @@ def dummy_update_file_list(
 
 
 class PreviewContainer(Container):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
     def compose(self) -> ComposeResult:
         yield TextArea(
             id="text_preview",
@@ -378,7 +386,38 @@ class FolderNotFileError(Exception):
         self.message = message
 
 
-class PinnedSidebar(OptionList):
+class PinnedSidebar(OptionList, inherit_bindings=False):
+    BINDINGS: ClassVar[list[BindingType]] = (
+        [
+            Binding(bind, "cursor_down", "Down", show=False)
+            for bind in state.config["keybinds"]["navigation"]["down"]
+        ]
+        + [
+            Binding(bind, "last", "Last", show=False)
+            for bind in state.config["keybinds"]["navigation"]["end"]
+        ]
+        + [
+            Binding(bind, "select", "Select", show=False)
+            for bind in state.config["keybinds"]["navigation"]["down_tree"]
+        ]
+        + [
+            Binding(bind, "first", "First", show=False)
+            for bind in state.config["keybinds"]["navigation"]["home"]
+        ]
+        + [
+            Binding(bind, "page_down", "Page Down", show=False)
+            for bind in state.config["keybinds"]["navigation"]["page_down"]
+        ]
+        + [
+            Binding(bind, "page_up", "Page Up", show=False)
+            for bind in state.config["keybinds"]["navigation"]["page_up"]
+        ]
+        + [
+            Binding(bind, "cursor_up", "Up", show=False)
+            for bind in state.config["keybinds"]["navigation"]["up"]
+        ]
+    )
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.default = state.pins["default"]
@@ -475,7 +514,7 @@ class PinnedSidebar(OptionList):
         """Handle the selection of an option in the pinned sidebar."""
         selected_option = event.option
         # Get the file path from the option id
-        file_path = state.decompress(selected_option.value.split("-")[0])
+        file_path = state.decompress(selected_option.id.split("-")[0])
         if not path.isdir(file_path):
             if path.exists(file_path):
                 raise FolderNotFileError(
@@ -488,10 +527,41 @@ class PinnedSidebar(OptionList):
         self.app.query_one("#file_list").focus()
 
 
-class FileList(SelectionList):
+class FileList(SelectionList, inherit_bindings=False):
     """
     OptionList but can multi-select files and folders.
     """
+
+    BINDINGS: ClassVar[list[BindingType]] = (
+        [
+            Binding(bind, "cursor_down", "Down", show=False)
+            for bind in state.config["keybinds"]["navigation"]["down"]
+        ]
+        + [
+            Binding(bind, "last", "Last", show=False)
+            for bind in state.config["keybinds"]["navigation"]["end"]
+        ]
+        + [
+            Binding(bind, "select", "Select", show=False)
+            for bind in state.config["keybinds"]["navigation"]["down_tree"]
+        ]
+        + [
+            Binding(bind, "first", "First", show=False)
+            for bind in state.config["keybinds"]["navigation"]["home"]
+        ]
+        + [
+            Binding(bind, "page_down", "Page Down", show=False)
+            for bind in state.config["keybinds"]["navigation"]["page_down"]
+        ]
+        + [
+            Binding(bind, "page_up", "Page Up", show=False)
+            for bind in state.config["keybinds"]["navigation"]["page_up"]
+        ]
+        + [
+            Binding(bind, "cursor_up", "Up", show=False)
+            for bind in state.config["keybinds"]["navigation"]["up"]
+        ]
+    )
 
     def __init__(
         self,
@@ -499,7 +569,7 @@ class FileList(SelectionList):
         sort_order: str,
         dummy: bool = False,
         enter_into: str = "",
-        visual: bool = False,
+        select: bool = False,
         *args,
         **kwargs,
     ):
@@ -510,14 +580,14 @@ class FileList(SelectionList):
             sort_order (str): The order to sort by ("ascending" or "descending").
             dummy (bool): Whether this is a dummy file list.
             enter_into (str): The path to enter into when a folder is selected.
-            visual (bool): Whether the selection is visual or normal.
+            select (bool): Whether the selection is select or normal.
         """
         super().__init__(*args, **kwargs)
         self.sort_by = sort_by
         self.sort_order = sort_order
         self.dummy = dummy
         self.enter_into = enter_into
-        self.visual = visual
+        self.select = select
 
     # ignore single clicks
     async def _on_click(self, event: events.Click) -> None:
@@ -557,13 +627,15 @@ class FileList(SelectionList):
     ) -> None:
         if self.dummy:
             return
-        if not self.visual:
+        if not self.select:
             event.prevent_default()
             cwd = getcwd()
             # Get the selected option
-            selected_option = self.highlighted  # ? trust me bro
+            selected_option = self.get_option_at_index(
+                self.highlighted
+            )  # ? trust me bro
             # Get the file name from the option id
-            file_name = state.decompress(selected_option)
+            file_name = state.decompress(selected_option.value)
             # Check if it's a folder or a file
             if path.isdir(path.join(cwd, file_name)):
                 # If it's a folder, navigate into it
@@ -571,6 +643,8 @@ class FileList(SelectionList):
                 update_file_list(self.app, "#file_list", self.sort_by, self.sort_order)
             else:
                 open_file(path.join(cwd, file_name))
+            if self.highlighted is None:
+                self.highlighted = 0
             state.set_scuffed_subtitle(
                 self.parent,
                 "NORMAL",
@@ -582,21 +656,23 @@ class FileList(SelectionList):
                 self.parent, "SELECT", f"{len(self.selected)}/{len(self.options)}", True
             )
 
+    # no clue why im using optionlist in a selectionlist, but it works
     async def on_option_list_option_highlighted(
         self, event: OptionList.OptionHighlighted
     ) -> None:
         if self.dummy:
             return
-        elif event.option.value == "HTI" or self.visual:
+        elif event.option.value == "HTI":
             self.app.query_one("#preview_sidebar").remove_children()
-            if self.visual:
-                state.set_scuffed_subtitle(
-                    self.parent,
-                    "SELECT",
-                    f"{len(self.selected)}/{len(self.options)}",
-                    True,
-                )
             return  # ignore folders that go to prev dir
+        if self.select:
+            state.set_scuffed_subtitle(
+                self.parent,
+                "SELECT",
+                f"{len(self.selected)}/{len(self.options)}",
+                True,
+            )
+            return
         # Get the highlighted option
         highlighted_option = event.option
         state.sessionDirectories[state.sessionHistoryIndex]["highlighted"] = (
@@ -615,17 +691,17 @@ class FileList(SelectionList):
         else:
             await self.app.query_one("#preview_sidebar").show_file(file_path)
 
+    # Use better versions of the checkbox icons
+
     def _get_left_gutter_width(
         self,
-    ) -> (
-        int
-    ):  # to be fair, we couldve just left it alone because monospace, but screw that
+    ) -> int:
         """Returns the size of any left gutter that should be taken into account.
 
         Returns:
             The width of the left gutter.
         """
-        if self.dummy or not self.visual:
+        if self.dummy or not self.select:
             return 0
         else:
             return len(
@@ -635,9 +711,7 @@ class FileList(SelectionList):
                 + " "
             )
 
-    def render_line(
-        self, y: int
-    ) -> Strip:  # reminder that this is taken from textual's repository and modified
+    def render_line(self, y: int) -> Strip:
         """Render a line in the display.
 
         Args:
@@ -646,19 +720,11 @@ class FileList(SelectionList):
         Returns:
             A [`Strip`][textual.strip.Strip] that is the line to render.
         """
-        # TODO: This is rather crufty and hard to fathom. Candidate for a rewrite.
-
-        # First off, get the underlying prompt from OptionList.
-        # lysm claude
         line = super(SelectionList, self).render_line(y)
 
-        # ignore if not visual or is dummy
-        if self.dummy or not self.visual:
+        if self.dummy or not self.select:
             return Strip([*line])
 
-        # We know the prompt we're going to display, what we're going to do
-        # is place a CheckBox-a-like button next to it. So to start with
-        # let's pull out the actual Selection we're looking at right now.
         _, scroll_y = self.scroll_offset
         selection_index = scroll_y + y
         try:
@@ -666,34 +732,22 @@ class FileList(SelectionList):
         except OptionDoesNotExist:
             return line
 
-        # Figure out which component style is relevant for a checkbox on
-        # this particular line.
         component_style = "selection-list--button"
         if selection.value in self._selected:
             component_style += "-selected"
         if self.highlighted == selection_index:
             component_style += "-highlighted"
 
-        # # # Get the underlying style used for the prompt.
-        # TODO: This is not a reliable way of getting the base style
         underlying_style = next(iter(line)).style or self.rich_style
         assert underlying_style is not None
 
-        # Get the style for the button.
         button_style = self.get_component_rich_style(component_style)
 
-        # Build the style for the side characters. Note that this is
-        # sensitive to the type of character used, so pay attention to
-        # BUTTON_LEFT and BUTTON_RIGHT.
         side_style = Style.from_color(button_style.bgcolor, underlying_style.bgcolor)
 
-        # Add the option index to the style. This is used to determine which
-        # option to select when the button is clicked or hovered.
         side_style += Style(meta={"option": selection_index})
         button_style += Style(meta={"option": selection_index})
 
-        # At this point we should have everything we need to place a
-        # "button" before the option.
         return Strip(
             [
                 Segment(TOGGLE_BUTTON_ICONS["left"], style=side_style),
@@ -711,8 +765,8 @@ class FileList(SelectionList):
 
     @work
     async def toggle_mode(self) -> None:
-        """Toggle the selection mode between visual and normal."""
-        self.visual = not self.visual
+        """Toggle the selection mode between select and normal."""
+        self.select = not self.select
         highlighted = self.highlighted
         await self.on_mount()
         self.highlighted = highlighted
@@ -721,7 +775,9 @@ class FileList(SelectionList):
     @work
     async def event_on_focus(self, event: events.Focus) -> None:
         """Handle the focus event to update the border style."""
-        if self.visual:
+        if self.dummy:
+            return
+        elif self.select:
             state.set_scuffed_subtitle(
                 self.parent, "SELECT", f"{len(self.selected)}/{len(self.options)}", True
             )
@@ -737,7 +793,7 @@ class FileList(SelectionList):
     @work
     async def event_on_leave(self, event: events.Leave) -> None:
         """Handle the leave event to update the border style"""
-        if self.visual:
+        if self.select:
             state.set_scuffed_subtitle(
                 self.parent,
                 "SELECT",
@@ -751,3 +807,211 @@ class FileList(SelectionList):
                 f"{self.highlighted + 1}/{self.option_count}",
                 False,
             )
+
+    async def get_selected_objects(self) -> list[str]:
+        """Get the selected objects in the file list."""
+        cwd = getcwd()
+        if not self.select:
+            return [
+                path.join(
+                    cwd,
+                    state.decompress(self.get_option_at_index(self.highlighted).value),
+                )
+            ]
+        else:
+            return [
+                path.join(cwd, state.decompress(option)) for option in self.selected
+            ]
+
+    async def on_key(self, event: events.Key) -> None:
+        """Handle key events for the file list."""
+        if event.key in state.config["keybinds"]["manipulation"]["copy"]:
+            """Copy the selected files to the clipboard."""
+            selected_files = await self.get_selected_objects()
+            if selected_files:
+                await self.app.query_one(Clipboard).add_to_clipboard(selected_files)
+            else:
+                self.app.notify("No files selected to copy.", severity="warning")
+
+
+class Clipboard(SelectionList, inherit_bindings=False):
+    """A selection list that displays the clipboard contents."""
+    BINDINGS: ClassVar[list[BindingType]] = (
+        [
+            Binding(bind, "cursor_down", "Down", show=False)
+            for bind in state.config["keybinds"]["navigation"]["down"]
+        ]
+        + [
+            Binding(bind, "last", "Last", show=False)
+            for bind in state.config["keybinds"]["navigation"]["end"]
+        ]
+        + [
+            Binding(bind, "select", "Select", show=False)
+            for bind in state.config["keybinds"]["navigation"]["down_tree"]
+        ]
+        + [
+            Binding(bind, "first", "First", show=False)
+            for bind in state.config["keybinds"]["navigation"]["home"]
+        ]
+        + [
+            Binding(bind, "page_down", "Page Down", show=False)
+            for bind in state.config["keybinds"]["navigation"]["page_down"]
+        ]
+        + [
+            Binding(bind, "page_up", "Page Up", show=False)
+            for bind in state.config["keybinds"]["navigation"]["page_up"]
+        ]
+        + [
+            Binding(bind, "cursor_up", "Up", show=False)
+            for bind in state.config["keybinds"]["navigation"]["up"]
+        ]
+    )
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.clipboard_contents = []
+
+    def compose(self) -> ComposeResult:
+        yield Static()
+
+    async def on_mount(self) -> None:
+        """Initialize the clipboard contents."""
+        await self.remove_children()
+        for item in self.clipboard_contents:
+            self.add_option(Selection(Content(item), value=state.compress(item)))
+
+    async def add_to_clipboard(self, items: list) -> None:
+        """Add items to the clipboard and update the selection list."""
+        for item in items[::-1]:
+            self.insert_selection_at_beginning(item)
+        self.deselect_all()
+        for item_number in range(len(items)):
+            self.select(self.get_option_at_index(item_number))
+
+    # Use better versions of the checkbox icons
+
+    def _get_left_gutter_width(
+        self,
+    ) -> int:
+        """Returns the size of any left gutter that should be taken into account.
+
+        Returns:
+            The width of the left gutter.
+        """
+        return len(
+            TOGGLE_BUTTON_ICONS["left"]
+            + TOGGLE_BUTTON_ICONS["inner"]
+            + TOGGLE_BUTTON_ICONS["right"]
+            + " "
+        )
+
+    def render_line(self, y: int) -> Strip:
+        """Render a line in the display.
+
+        Args:
+            y: The line to render.
+
+        Returns:
+            A [`Strip`][textual.strip.Strip] that is the line to render.
+        """
+        line = super(SelectionList, self).render_line(y)
+
+        _, scroll_y = self.scroll_offset
+        selection_index = scroll_y + y
+        try:
+            selection = self.get_option_at_index(selection_index)
+        except OptionDoesNotExist:
+            return line
+
+        component_style = "selection-list--button"
+        if selection.value in self._selected:
+            component_style += "-selected"
+        if self.highlighted == selection_index:
+            component_style += "-highlighted"
+
+        underlying_style = next(iter(line)).style or self.rich_style
+        assert underlying_style is not None
+
+        button_style = self.get_component_rich_style(component_style)
+
+        side_style = Style.from_color(button_style.bgcolor, underlying_style.bgcolor)
+
+        side_style += Style(meta={"option": selection_index})
+        button_style += Style(meta={"option": selection_index})
+
+        return Strip(
+            [
+                Segment(TOGGLE_BUTTON_ICONS["left"], style=side_style),
+                Segment(
+                    TOGGLE_BUTTON_ICONS["inner_filled"]
+                    if selection.value in self._selected
+                    else TOGGLE_BUTTON_ICONS["inner"],
+                    style=button_style,
+                ),
+                Segment(TOGGLE_BUTTON_ICONS["right"], style=side_style),
+                Segment(" ", style=underlying_style),
+                *line,
+            ]
+        )
+
+    # Why isnt this already a thing
+    def insert_selection_at_beginning(self, content: str | Selection) -> None:
+        """Insert a new selection at the beginning of the clipboard list.
+
+        Args:
+            content: Either a string to use as content or a pre-created Selection object
+        """
+        # create instance if content is a string
+        if isinstance(content, str):
+            selection = Selection(
+                Content(content), value=state.compress(content)
+            )  # i swear lzstring follows me everywhere even if i try to not use it
+        else:
+            selection = content
+
+        # Check for duplicate ID
+        if selection.id is not None and selection.id in self._id_to_option:
+            raise DuplicateID(
+                f"Unable to add selection with duplicate ID: {selection.id}"
+            )
+
+        # custom checker: ignore similar values
+        if any(
+            selection.value == existing_selection.value
+            for existing_selection in self.options
+        ):
+            self.app.notify(
+                "Cannot recopy a copied item!",
+                severity="error",
+                timeout=1.5,
+            )
+            return
+
+        # insert
+        self._options.insert(0, selection)
+
+        # update self._values
+        values = {selection.value: 0}
+
+        # update mapping
+        for option, index in list(self._option_to_index.items()):
+            self._option_to_index[option] = index + 1
+        for key, value in self._values.items():
+            values[key] = value + 1
+        self._values = values
+        print(self._values)
+        self._option_to_index[selection] = 0
+
+        # update id mapping
+        if selection.id is not None:
+            self._id_to_option[selection.id] = selection
+
+        # force redraw
+        self._clear_caches()
+
+        # since you insert at beginning, highlighted should go down
+        if self.highlighted is not None:
+            self.highlighted += 1
+
+        # // serve refreshments
+        # redraw
+        self.refresh(layout=True)

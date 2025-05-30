@@ -204,7 +204,7 @@ RichLog {
 Content.selected {
   color: red;
 }
-FileList {
+FileList, Clipboard {
   .selection-list--button {
     background: transparent;
     color: $primary;
@@ -220,6 +220,14 @@ FileList {
   .selection-list--button-selected-highlighted {
     background: $primary;
     color: $background;
+  }
+  &:blur {
+    .selection-list--button-highlighted {
+      background: $primary-muted;
+    }
+    .selection-list--button-selected-highlighted {
+      background: $primary-muted;
+    }
   }
 }
 
