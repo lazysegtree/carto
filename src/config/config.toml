@@ -82,5 +82,7 @@ reload = ["ctrl+r"]
 [keybinds.mode]
 select = ["v"]
 
-[search]
-threshold = 50
+[plugins]
+[plugins.zoxide]
+enabled = true
+keybinds = ["z"]

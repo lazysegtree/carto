@@ -691,6 +691,8 @@ class FileList(SelectionList, inherit_bindings=False):
         # Get the file name from the option id
         file_name = state.decompress(highlighted_option.value)
         # total files as footer
+        if self.highlighted is None:
+            self.highlighted = 0
         state.set_scuffed_subtitle(
             self.parent, "NORMAL", f"{self.highlighted + 1}/{self.option_count}", True
         )
@@ -792,6 +794,8 @@ class FileList(SelectionList, inherit_bindings=False):
                 self.parent, "SELECT", f"{len(self.selected)}/{len(self.options)}", True
             )
         else:
+            if self.highlighted is None:
+                self.highlighted = 0
             state.set_scuffed_subtitle(
                 self.parent,
                 "NORMAL",
@@ -799,9 +803,9 @@ class FileList(SelectionList, inherit_bindings=False):
                 True,
             )
 
-    @on(events.Leave)
+    @on(events.Blur)
     @work
-    async def event_on_leave(self, event: events.Leave) -> None:
+    async def event_on_blur(self, event: events.Blur) -> None:
         """Handle the leave event to update the border style"""
         if self.select:
             state.set_scuffed_subtitle(
@@ -811,6 +815,8 @@ class FileList(SelectionList, inherit_bindings=False):
                 False,
             )
         else:
+            if self.highlighted is None:
+                self.highlighted = 0
             state.set_scuffed_subtitle(
                 self.parent,
                 "NORMAL",

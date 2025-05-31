@@ -1,5 +1,7 @@
 from maps import ICONS
+from types import SimpleNamespace as Namespace
 from os import getcwd, path, chdir
+from ScreensCore import ZToDirectory
 import state
 from textual import work, on, events
 from textual.app import App, ComposeResult
@@ -200,7 +202,7 @@ class Application(App):
                 self.query_one("#pinned_sidebar").focus()
                 return
         elif (
-            self.focused.id == "path_switcher" or "search" in self.focused.id
+            type(self.focused) is Input or "search" in self.focused.id
         ) and event.key == "backspace":
             return
         # focus toggle pinned sidebar
@@ -292,7 +294,12 @@ class Application(App):
                 self.query_one("#footer").remove_class("hide")
         elif event.key in state.config["keybinds"]["mode"]["select"]:
             self.query_one("#file_list").toggle_mode()
-
+        elif event.key in state.config["plugins"]["zoxide"]["keybinds"] and state.config["plugins"]["zoxide"]["enabled"]:
+            def on_response(response: str) -> None:
+                """Handle the response from the ZToDirectory dialog."""
+                if response:
+                    self.switch_to_path(Namespace(value=state.decompress(response)))
+            self.push_screen(ZToDirectory(), on_response)
 
 state.start_watcher()
 app = Application(watch_css=True)
