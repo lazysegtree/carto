@@ -1,18 +1,18 @@
 """Module that holds variable states + other functions"""
 
-import toml
+from lzstring import LZString
 from maps import VAR_TO_DIR, BORDER_BOTTOM
 from os import path
+import platform
 from platformdirs import *  # leaving it here just in case we need it later
+import psutil
 import re
-from time import sleep
 from threading import Thread
+from time import sleep, time
+import toml
 import ujson
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
-from lzstring import LZString
-import psutil
-import platform
 
 lzstring = LZString()
 

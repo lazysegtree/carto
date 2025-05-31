@@ -292,6 +292,7 @@ def dummy_update_file_list(
 class PreviewContainer(Container):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self._update_lock = False
 
     def compose(self) -> ComposeResult:
         yield TextArea(
@@ -306,6 +307,10 @@ class PreviewContainer(Container):
 
     async def show_file(self, file_path: str) -> None:
         """Show the file in the preview container."""
+        # prevent concurrent mounts
+        if self._update_lock:
+            return
+        self._update_lock = True
         await self.remove_children()
         if any(file_path.endswith(ext) for ext in PIL_EXTENSIONS):
             await self.mount(AutoImage(file_path, id="image_preview"))
@@ -353,9 +358,13 @@ class PreviewContainer(Container):
                 )
             finally:
                 self.border_title = "File Preview"
+        self._update_lock = False
 
     async def show_folder(self, folder_path: str) -> None:
         """Show the folder in the preview container."""
+        if self._update_lock:
+            return
+        self._update_lock = True
         await self.remove_children()
         await self.mount(
             FileList(
@@ -376,6 +385,7 @@ class PreviewContainer(Container):
             cwd=folder_path,
         )
         self.border_title = "Folder Preview"
+        self._update_lock = False
 
 
 class FolderNotFileError(Exception):
