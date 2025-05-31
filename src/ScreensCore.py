@@ -115,10 +115,11 @@ class CopyOverwrite(ModalScreen):
 
 class ZToDirectory(ModalScreen):
     """Screen with a dialog to z to a directory, using zoxide, or other directory management tools."""
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._search_task = None  # To hold the current search task
-    
+
     def compose(self) -> ComposeResult:
         with VerticalGroup(id="zoxide_group", classes="zoxide_group"):
             yield Input(
@@ -126,9 +127,9 @@ class ZToDirectory(ModalScreen):
                 placeholder="Enter directory name or pattern",
             )
             yield OptionList(
-                Option(" No input provided", disabled=True),
-                id="zoxide_options"
+                Option(" No input provided", disabled=True), id="zoxide_options"
             )
+
     def on_mount(self) -> None:
         zoxide_input = self.query_one("#zoxide_input")
         zoxide_input.border_title = "zoxide"
@@ -136,7 +137,7 @@ class ZToDirectory(ModalScreen):
         zoxide_options = self.query_one("#zoxide_options")
         zoxide_options.border_title = "Folders"
         self.on_input_changed(Input.Changed(zoxide_input, value=""))
-    
+
     @work(exclusive=True)
     async def on_input_changed(self, event: Input.Changed) -> None:
         """Handle input changes to update the option list."""
@@ -158,10 +159,12 @@ class ZToDirectory(ModalScreen):
         zoxide_options.clear_options()
         if zoxide_output.stdout:
             for line in zoxide_output.stdout.splitlines():
-                zoxide_options.add_option(Option(Content(" " + line), id=state.compress(line)))
+                zoxide_options.add_option(
+                    Option(Content(" " + line), id=state.compress(line))
+                )
         else:
             zoxide_options.add_option(Option(" No matches found", disabled=True))
-    
+
     def on_input_submitted(self, event: Input.Submitted) -> None:
         if event.input.value.strip() == "":
             pass
@@ -169,9 +172,11 @@ class ZToDirectory(ModalScreen):
             zoxide_options = self.query_one("#zoxide_options")
             zoxide_options.focus()
             zoxide_options.action_first()
-    
+
     @work(exclusive=True)
-    async def on_option_list_option_selected(self, event: OptionList.OptionSelected) -> None:
+    async def on_option_list_option_selected(
+        self, event: OptionList.OptionSelected
+    ) -> None:
         """Handle option selection."""
         selected_value = event.option.id
         run(
@@ -183,7 +188,7 @@ class ZToDirectory(ModalScreen):
             self.dismiss(selected_value)
         else:
             self.dismiss(None)
-    
+
     def on_key(self, event: events.Key) -> None:
         """Handle key presses."""
         if event.key in ["escape"]:
@@ -232,13 +237,16 @@ class ModalInput(ModalScreen):
 
 if __name__ == "__main__":
     state.load_config()
+
     class TestApp(App):
         def compose(self) -> ComposeResult:
             yield VerticalGroup(
                 Button("Open Yes/No Dialog", id="open_dialog"),
                 Button("Open Input Dialog", id="open_input_dialog"),
                 Button("Open Copy/Overwrite Dialog", id="open_copy_overwrite_dialog"),
-                Button("Open ZToDirectory Dialog", id="open_zoxide_to_directory_dialog"),
+                Button(
+                    "Open ZToDirectory Dialog", id="open_zoxide_to_directory_dialog"
+                ),
             )
 
         @on(Button.Pressed, "#open_dialog")
@@ -273,15 +281,17 @@ if __name__ == "__main__":
                 CopyOverwrite("File already exists. What do you want to do?"),
                 on_response,
             )
-        
+
         @on(Button.Pressed, "#open_zoxide_to_directory_dialog")
         def open_zoxide_to_directory_dialog(self, event: Button.Pressed) -> None:
             """Open the ZToDirectory dialog."""
+
             def on_response(response: str) -> None:
                 if response:
                     self.mount(Label(f"User selected: {state.decompress(response)}"))
                 else:
                     self.mount(Label("No directory selected."))
+
             self.push_screen(ZToDirectory(), on_response)
 
     TestApp().run()

@@ -294,12 +294,18 @@ class Application(App):
                 self.query_one("#footer").remove_class("hide")
         elif event.key in state.config["keybinds"]["mode"]["select"]:
             self.query_one("#file_list").toggle_mode()
-        elif event.key in state.config["plugins"]["zoxide"]["keybinds"] and state.config["plugins"]["zoxide"]["enabled"]:
+        elif (
+            event.key in state.config["plugins"]["zoxide"]["keybinds"]
+            and state.config["plugins"]["zoxide"]["enabled"]
+        ):
+
             def on_response(response: str) -> None:
                 """Handle the response from the ZToDirectory dialog."""
                 if response:
                     self.switch_to_path(Namespace(value=state.decompress(response)))
+
             self.push_screen(ZToDirectory(), on_response)
+
 
 state.start_watcher()
 app = Application(watch_css=True)

@@ -292,7 +292,7 @@ def dummy_update_file_list(
 class PreviewContainer(Container):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._update_lock = False
+        self._update_task = False
 
     def compose(self) -> ComposeResult:
         yield TextArea(
@@ -305,13 +305,22 @@ class PreviewContainer(Container):
             compact=True,
         )
 
+    @work(exclusive=True)
+    async def show_preview(self, file_path: str) -> None:
+        """Show the preview of the file or folder in the preview container."""
+        if self._update_task and self._update_task._active:
+            self._update_task.stop()
+        if path.isdir(file_path):
+            self._update_task = self.set_timer(
+                0.25, lambda: self.show_folder(file_path)
+            )
+        else:
+            self._update_task = self.set_timer(0.25, lambda: self.show_file(file_path))
+
     async def show_file(self, file_path: str) -> None:
         """Show the file in the preview container."""
-        # prevent concurrent mounts
-        if self._update_lock:
-            return
-        self._update_lock = True
-        await self.remove_children()
+        if len(self.children) != 0:
+            await self.remove_children()
         if any(file_path.endswith(ext) for ext in PIL_EXTENSIONS):
             await self.mount(AutoImage(file_path, id="image_preview"))
             self.border_title = "Image Preview"
@@ -358,14 +367,11 @@ class PreviewContainer(Container):
                 )
             finally:
                 self.border_title = "File Preview"
-        self._update_lock = False
 
     async def show_folder(self, folder_path: str) -> None:
         """Show the folder in the preview container."""
-        if self._update_lock:
-            return
-        self._update_lock = True
-        await self.remove_children()
+        if len(self.children) != 0:
+            await self.remove_children()
         await self.mount(
             FileList(
                 id="folder_preview",
@@ -385,7 +391,6 @@ class PreviewContainer(Container):
             cwd=folder_path,
         )
         self.border_title = "Folder Preview"
-        self._update_lock = False
 
 
 class FolderNotFileError(Exception):
@@ -696,12 +701,10 @@ class FileList(SelectionList, inherit_bindings=False):
         state.set_scuffed_subtitle(
             self.parent, "NORMAL", f"{self.highlighted + 1}/{self.option_count}", True
         )
-        # Check if it's a folder or a file
-        file_path = path.join(getcwd(), file_name)
-        if path.isdir(file_path):
-            await self.app.query_one("#preview_sidebar").show_folder(file_path)
-        else:
-            await self.app.query_one("#preview_sidebar").show_file(file_path)
+        # preview
+        self.app.query_one("#preview_sidebar").show_preview(
+            path.join(getcwd(), file_name)
+        )
 
     # Use better versions of the checkbox icons
 
@@ -852,6 +855,7 @@ class FileList(SelectionList, inherit_bindings=False):
 
 class Clipboard(SelectionList, inherit_bindings=False):
     """A selection list that displays the clipboard contents."""
+
     BINDINGS: ClassVar[list[BindingType]] = (
         [
             Binding(bind, "cursor_down", "Down", show=False)
@@ -882,6 +886,7 @@ class Clipboard(SelectionList, inherit_bindings=False):
             for bind in state.config["keybinds"]["navigation"]["up"]
         ]
     )
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.clipboard_contents = []
