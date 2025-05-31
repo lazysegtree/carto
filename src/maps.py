@@ -28,6 +28,11 @@ ICONS = {
         "right": ["\uf061", "white"],
         "home": ["\uf015", "indigo"],
         "check": ["\uf00c", "green"],
+        "copy": ["\uebcc", "white"],
+        "paste": ["\uf429", "white"],
+        "cut": ["\uf0c4", "white"],
+        "rename": ["\uf246", "white"],
+        "delete": ["\uf48e", "red"],
     },
     "folder": {
         "default": ["\uf07b", "gold"],

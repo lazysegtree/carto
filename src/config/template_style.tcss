@@ -101,7 +101,7 @@ Footer {
   max-width: 3;
   width: 3;
   padding: 0;
-  margin: 0;
+  margin: 0 1 0 0;
 }
 
 #pinned_sidebar,
@@ -250,4 +250,8 @@ ZToDirectory {
 #zoxide_group {
     max-width: 50vw;
     max-height: 50vh;
+}
+
+Tooltip {
+  background: $background-lighten-1;
 }

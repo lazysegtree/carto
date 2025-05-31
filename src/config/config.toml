@@ -1,16 +1,17 @@
 [sidebar]
 wrap = true
 
+[sidebar.text]
+error = "Hmm, I think this file got corrupted (or maybe not?)"
+binary = "This file is not UTF-8 encoded, so I decline to read it."
+start = "print(\"Hello, world!\")"
+
 [filelist]
 sort_by = "name"
 sort_order = "ascending"
 
-[sidebar.text]
-error = "Hmm, I think this file got corrupted (or maybe not?)"
-binary = "010101 0101\nJust kidding, this is a binary file"
-folder = "Nesting? What's that?"
-start = "print(\"Hello, world!\")"
-
+[interface]
+tooltips = true
 [interface.border]
 style = "solid"
 inactive_color = "$primary-darken-3"
@@ -86,3 +87,6 @@ select = ["v"]
 [plugins.zoxide]
 enabled = true
 keybinds = ["z"]
+[plugins.bat]
+enabled = true
+executable = "bat"

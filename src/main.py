@@ -63,6 +63,31 @@ class Application(App):
                     classes="option",
                     id="sort_order",
                 ),
+                Button(ICONS["general"]["copy"][0], classes="option", id="copy"),
+                Button(
+                    ICONS["general"]["cut"][0],
+                    classes="option",
+                    id="cut",
+                    disabled=True,
+                ),
+                Button(
+                    ICONS["general"]["paste"][0],
+                    classes="option",
+                    id="paste",
+                    disabled=True,
+                ),
+                Button(
+                    ICONS["general"]["delete"][0],
+                    classes="option",
+                    id="delete",
+                    disabled=True,
+                ),
+                Button(
+                    ICONS["general"]["rename"][0],
+                    classes="option",
+                    id="rename",
+                    disabled=True,
+                ),
                 id="menu",
             ),
             VerticalGroup(
@@ -115,6 +140,7 @@ class Application(App):
         )
 
     def on_mount(self):
+        # border titles
         self.query_one("#menu").border_title = "Options"
         self.query_one("#below_menu").border_title = "Directory Actions"
         self.query_one("#pinned_sidebar_container").border_title = "Sidebar"
@@ -122,10 +148,23 @@ class Application(App):
         self.query_one("#processes").border_title = "Processes"
         self.query_one("#metadata").border_title = "Metadata"
         self.query_one("#clipboard").border_title = "Clipboard"
+        self.title = "Carto - " + getcwd().replace(path.sep, "/")
+        # themes
         for theme in get_custom_themes():
             self.register_theme(theme)
         self.theme = state.config["interface"]["theme"]["default"]
-        self.title = "Carto - " + getcwd().replace(path.sep, "/")
+        # tooltips
+        if state.config["interface"]["tooltips"]:
+            self.query_one("#sort_order").tooltip = "Lists are in ascending order"
+            self.query_one("#copy").tooltip = "Copy selected files"
+            self.query_one("#cut").tooltip = "Cut selected files"
+            self.query_one("#paste").tooltip = "Paste files from clipboard"
+            self.query_one("#delete").tooltip = "Delete selected files"
+            self.query_one("#rename").tooltip = "Rename selected file"
+            self.query_one("#back").tooltip = "Go back in history"
+            self.query_one("#forward").tooltip = "Go forward in history"
+            self.query_one("#up").tooltip = "Go up the directory tree"
+            self.query_one("#reload").tooltip = "Reload the file list"
 
     @on(Button.Pressed, "#back")
     def go_back_in_history(self, event: Button.Pressed) -> None:
