@@ -68,7 +68,6 @@ class Application(App):
                     ICONS["general"]["cut"][0],
                     classes="option",
                     id="cut",
-                    disabled=True,
                 ),
                 Button(
                     ICONS["general"]["paste"][0],
@@ -230,6 +229,18 @@ class Application(App):
         else:
             self.app.notify(
                 "No files selected to copy.", title="Clipboard", severity="warning"
+            )
+
+    @on(Button.Pressed, "#cut")
+    async def cut_files(self, event: Button.Pressed) -> None:
+        """Cut selected files to the clipboard"""
+        file_list = self.query_one("#file_list")
+        selected_files = await file_list.get_selected_objects()
+        if selected_files:
+            await self.query_one("#clipboard").cut_to_clipboard(selected_files)
+        else:
+            self.app.notify(
+                "No files selected to cut.", title="Clipboard", severity="warning"
             )
 
     @work

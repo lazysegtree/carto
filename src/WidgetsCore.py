@@ -918,6 +918,17 @@ class FileList(SelectionList, inherit_bindings=False):
                         title="Clipboard",
                         severity="warning",
                     )
+            elif event.key in state.config["keybinds"]["manipulation"]["cut"]:
+                """Cut the selected files to the clipboard."""
+                selected_files = await self.get_selected_objects()
+                if selected_files:
+                    await self.app.query_one(Clipboard).cut_to_clipboard(selected_files)
+                else:
+                    self.app.notify(
+                        "No files selected to cut.",
+                        title="Clipboard",
+                        severity="warning",
+                    )
             elif event.key in state.config["keybinds"]["manipulation"]["toggle_all"]:
                 if not self.select_mode_enabled:
                     await self.toggle_mode()
@@ -976,20 +987,21 @@ class Clipboard(SelectionList, inherit_bindings=False):
         for item in self.clipboard_contents:
             self.add_option(Selection(Content(item), value=state.compress(item)))
 
-    async def add_to_clipboard(self, items: list) -> None:
+    async def add_to_clipboard(self, items: list[str]) -> None:
         """Add items to the clipboard and update the selection list."""
         for item in items[::-1]:
             self.insert_selection_at_beginning(
                 Selection(
                     Content(f"{ICONS['general']['copy'][0]} {item}"),
                     value=state.compress(f"{item}-copy"),
+                    id=state.compress(item),
                 )
             )
         self.deselect_all()
         for item_number in range(len(items)):
             self.select(self.get_option_at_index(item_number))
 
-    async def cut_to_clipboard(self, items: list) -> None:
+    async def cut_to_clipboard(self, items: list[str]) -> None:
         """Cut the selected files to the clipboard."""
         for item in items[::-1]:
             if isinstance(item, str):
@@ -997,8 +1009,12 @@ class Clipboard(SelectionList, inherit_bindings=False):
                     Selection(
                         Content(f"{ICONS['general']['cut'][0]} {item}"),
                         value=state.compress(f"{item}-cut"),
+                        id=state.compress(item),
                     )
                 )
+        self.deselect_all()
+        for item_number in range(len(items)):
+            self.select(self.get_option_at_index(item_number))
 
     # Use better versions of the checkbox icons
 
@@ -1075,19 +1091,8 @@ class Clipboard(SelectionList, inherit_bindings=False):
         """
         # Check for duplicate ID
         if content.id is not None and content.id in self._id_to_option:
-            raise DuplicateID(f"Unable to add content with duplicate ID: {content.id}")
-
-        # custom checker: ignore similar values
-        if any(
-            content.value == existing_content.value for existing_content in self.options
-        ):
-            self.app.notify(
-                "Cannot recopy a copied item!",
-                title="Clipboard",
-                severity="error",
-                timeout=1.5,
-            )
-            return
+            self.remove_option(content.id)
+            # raise DuplicateID(f"An option with ID {content.id} already exists.")
 
         # insert
         self._options.insert(0, content)
