@@ -131,7 +131,7 @@ Input,
 #preview_sidebar:focus,
 Input:focus-within,
 #zoxide_options:focus, {
-  border: $-interface-border-style-$ $-interface-border-color-$ !important;
+  border: $-interface-border-style-$ $-interface-border-color-$;
   border-subtitle-background: $-interface-border-color-$;
 }
 #preview_sidebar > * {
@@ -254,4 +254,8 @@ ZToDirectory {
 
 Tooltip {
   background: $background-lighten-1;
+}
+
+CommandInput {
+  border: blank !important
 }

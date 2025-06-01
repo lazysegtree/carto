@@ -127,7 +127,9 @@ class ZToDirectory(ModalScreen):
                 placeholder="Enter directory name or pattern",
             )
             yield OptionList(
-                Option(" No input provided", disabled=True), id="zoxide_options"
+                Option(" No input provided", disabled=True),
+                id="zoxide_options",
+                classes="empty",
             )
 
     def on_mount(self) -> None:
@@ -157,21 +159,25 @@ class ZToDirectory(ModalScreen):
         )
         zoxide_options = self.query_one("#zoxide_options")
         zoxide_options.clear_options()
+        zoxide_options.add_class("empty")
         if zoxide_output.stdout:
             for line in zoxide_output.stdout.splitlines():
                 zoxide_options.add_option(
                     Option(Content(" " + line), id=state.compress(line))
                 )
+            zoxide_options.remove_class("empty")
+            zoxide_options.highlighted = 0
         else:
             zoxide_options.add_option(Option(" No matches found", disabled=True))
 
     def on_input_submitted(self, event: Input.Submitted) -> None:
-        if event.input.value.strip() == "":
+        if event.input.value.strip() == "" or "empty" in event.input.classes:
             pass
         else:
             zoxide_options = self.query_one("#zoxide_options")
-            zoxide_options.focus()
-            zoxide_options.action_first()
+            if zoxide_options.highlighted is None:
+                zoxide_options.highlighted = 0
+            zoxide_options.action_select()
 
     @work(exclusive=True)
     async def on_option_list_option_selected(
@@ -193,6 +199,16 @@ class ZToDirectory(ModalScreen):
         """Handle key presses."""
         if event.key in ["escape"]:
             self.dismiss(None)
+        elif event.key == "down":
+            event.prevent_default()
+            zoxide_options = self.query_one("#zoxide_options")
+            if zoxide_options.options:
+                zoxide_options.action_cursor_down()
+        elif event.key == "up":
+            event.prevent_default()
+            zoxide_options = self.query_one("#zoxide_options")
+            if zoxide_options.options:
+                zoxide_options.action_cursor_up()
 
 
 class ModalInput(ModalScreen):
