@@ -220,6 +220,18 @@ class Application(App):
             add_to_session=False,
         )
 
+    @on(Button.Pressed, "#copy")
+    async def copy_files(self, event: Button.Pressed) -> None:
+        """Copy selected files to the clipboard"""
+        file_list = self.query_one("#file_list")
+        selected_files = await file_list.get_selected_objects()
+        if selected_files:
+            await self.query_one("#clipboard").add_to_clipboard(selected_files)
+        else:
+            self.app.notify(
+                "No files selected to copy.", title="Clipboard", severity="warning"
+            )
+
     @work
     async def update_session_dicts(self, sessionDirs, sessionHisIndex):
         """Update the session directories and history index"""
@@ -331,8 +343,8 @@ class Application(App):
                 self.query_one("#footer").add_class("hide")
             else:
                 self.query_one("#footer").remove_class("hide")
-        elif event.key in state.config["keybinds"]["mode"]["select"]:
-            self.query_one("#file_list").toggle_mode()
+        elif event.key in state.config["mode"]["visual"]["toggle"]:
+            await self.query_one("#file_list").toggle_mode()
         elif (
             event.key in state.config["plugins"]["zoxide"]["keybinds"]
             and state.config["plugins"]["zoxide"]["enabled"]

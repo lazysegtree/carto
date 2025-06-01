@@ -5,6 +5,7 @@ from maps import (
     EXT_TO_LANG_MAP,
     PIL_EXTENSIONS,
     TOGGLE_BUTTON_ICONS,
+    ICONS,
 )
 from os import listdir, path, getcwd, chdir, scandir
 from pathlib import Path
@@ -602,7 +603,7 @@ class FileList(SelectionList, inherit_bindings=False):
         self.sort_order = sort_order
         self.dummy = dummy
         self.enter_into = enter_into
-        self.select = select
+        self.select_mode_enabled = select
 
     # ignore single clicks
     async def _on_click(self, event: events.Click) -> None:
@@ -622,7 +623,7 @@ class FileList(SelectionList, inherit_bindings=False):
     def compose(self) -> ComposeResult:
         yield Static()
 
-    async def on_mount(self) -> None:
+    async def on_mount(self, add_to_history: bool = True) -> None:
         """Initialize the file list."""
         try:
             self.query_one("Static").remove()
@@ -634,6 +635,7 @@ class FileList(SelectionList, inherit_bindings=False):
                 "#file_list",
                 sort_by=self.sort_by,
                 sort_order=self.sort_order,
+                add_to_session=add_to_history,
             )
             self.focus()
 
@@ -642,7 +644,7 @@ class FileList(SelectionList, inherit_bindings=False):
     ) -> None:
         if self.dummy:
             return
-        if not self.select:
+        if not self.select_mode_enabled:
             event.prevent_default()
             cwd = getcwd()
             # Get the selected option
@@ -680,7 +682,7 @@ class FileList(SelectionList, inherit_bindings=False):
         elif event.option.value == "HTI":
             self.app.query_one("#preview_sidebar").remove_children()
             return  # ignore folders that go to prev dir
-        if self.select:
+        if self.select_mode_enabled:
             state.set_scuffed_subtitle(
                 self.parent,
                 "SELECT",
@@ -716,7 +718,7 @@ class FileList(SelectionList, inherit_bindings=False):
         Returns:
             The width of the left gutter.
         """
-        if self.dummy or not self.select:
+        if self.dummy or not self.select_mode_enabled:
             return 0
         else:
             return len(
@@ -737,7 +739,7 @@ class FileList(SelectionList, inherit_bindings=False):
         """
         line = super(SelectionList, self).render_line(y)
 
-        if self.dummy or not self.select:
+        if self.dummy or not self.select_mode_enabled:
             return Strip([*line])
 
         _, scroll_y = self.scroll_offset
@@ -778,12 +780,11 @@ class FileList(SelectionList, inherit_bindings=False):
             ]
         )
 
-    @work
     async def toggle_mode(self) -> None:
         """Toggle the selection mode between select and normal."""
-        self.select = not self.select
+        self.select_mode_enabled = not self.select_mode_enabled
         highlighted = self.highlighted
-        await self.on_mount()
+        await self.on_mount(add_to_history=False)
         self.highlighted = highlighted
 
     @on(events.Focus)
@@ -792,7 +793,7 @@ class FileList(SelectionList, inherit_bindings=False):
         """Handle the focus event to update the border style."""
         if self.dummy:
             return
-        elif self.select:
+        elif self.select_mode_enabled:
             state.set_scuffed_subtitle(
                 self.parent, "SELECT", f"{len(self.selected)}/{len(self.options)}", True
             )
@@ -810,7 +811,7 @@ class FileList(SelectionList, inherit_bindings=False):
     @work
     async def event_on_blur(self, event: events.Blur) -> None:
         """Handle the leave event to update the border style"""
-        if self.select:
+        if self.select_mode_enabled:
             state.set_scuffed_subtitle(
                 self.parent,
                 "SELECT",
@@ -830,7 +831,7 @@ class FileList(SelectionList, inherit_bindings=False):
     async def get_selected_objects(self) -> list[str]:
         """Get the selected objects in the file list."""
         cwd = getcwd()
-        if not self.select:
+        if not self.select_mode_enabled:
             return [
                 path.join(
                     cwd,
@@ -844,13 +845,88 @@ class FileList(SelectionList, inherit_bindings=False):
 
     async def on_key(self, event: events.Key) -> None:
         """Handle key events for the file list."""
-        if event.key in state.config["keybinds"]["manipulation"]["copy"]:
-            """Copy the selected files to the clipboard."""
-            selected_files = await self.get_selected_objects()
-            if selected_files:
-                await self.app.query_one(Clipboard).add_to_clipboard(selected_files)
-            else:
-                self.app.notify("No files selected to copy.", severity="warning")
+        if not self.dummy:
+            if self.select_mode_enabled:
+                if event.key in state.config["mode"]["visual"]["select_up"]:
+                    """Select the current and previous file."""
+                    if self.highlighted == 0:
+                        self.select(self.get_option_at_index(0))
+                    else:
+                        self.select(self.get_option_at_index(self.highlighted))
+                        self.action_cursor_up()
+                        self.select(self.get_option_at_index(self.highlighted))
+                    return
+                elif event.key in state.config["mode"]["visual"]["select_down"]:
+                    """Select the current and next file."""
+                    if self.highlighted == len(self.options) - 1:
+                        self.select(self.get_option_at_index(self.option_count - 1))
+                    else:
+                        self.select(self.get_option_at_index(self.highlighted))
+                        self.action_cursor_down()
+                        self.select(self.get_option_at_index(self.highlighted))
+                    return
+                elif event.key in state.config["mode"]["visual"]["select_page_up"]:
+                    """Select the options between the current and the previous 'page'."""
+                    old = self.highlighted
+                    self.action_page_up()
+                    new = self.highlighted
+                    if old is None:
+                        old = 0
+                    if new is None:
+                        new = 0
+                    for index in range(new, old + 1):
+                        self.select(self.get_option_at_index(index))
+                    return
+                elif event.key in state.config["mode"]["visual"]["select_page_down"]:
+                    """Select the options between the current and the next 'page'."""
+                    old = self.highlighted
+                    self.action_page_down()
+                    new = self.highlighted
+                    if old is None:
+                        old = 0
+                    if new is None:
+                        new = 0
+                    for index in range(old, new + 1):
+                        self.select(self.get_option_at_index(index))
+                    return
+                elif event.key in state.config["mode"]["visual"]["select_home"]:
+                    old = self.highlighted
+                    self.action_first()
+                    new = self.highlighted
+                    if old is None:
+                        old = 0
+                    for index in range(new, old + 1):
+                        self.select(self.get_option_at_index(index))
+                    return
+                elif event.key in state.config["mode"]["visual"]["select_end"]:
+                    old = self.highlighted
+                    self.action_last()
+                    new = self.highlighted
+                    if old is None:
+                        old = 0
+                    for index in range(old, new + 1):
+                        self.select(self.get_option_at_index(index))
+                    return
+            if event.key in state.config["keybinds"]["manipulation"]["copy"]:
+                """Copy the selected files to the clipboard."""
+                selected_files = await self.get_selected_objects()
+                if selected_files:
+                    await self.app.query_one(Clipboard).add_to_clipboard(selected_files)
+                else:
+                    self.app.notify(
+                        "No files selected to copy.",
+                        title="Clipboard",
+                        severity="warning",
+                    )
+            elif event.key in state.config["keybinds"]["manipulation"]["toggle_all"]:
+                if not self.select_mode_enabled:
+                    await self.toggle_mode()
+                if len(self.selected) == len(self.options):
+                    self.deselect_all()
+                else:
+                    self.select_all()
+            elif event.key in state.config["keybinds"]["manipulation"]["cut"]:
+                """Cut the selected files to the clipboard."""
 
 
 class Clipboard(SelectionList, inherit_bindings=False):
@@ -903,10 +979,26 @@ class Clipboard(SelectionList, inherit_bindings=False):
     async def add_to_clipboard(self, items: list) -> None:
         """Add items to the clipboard and update the selection list."""
         for item in items[::-1]:
-            self.insert_selection_at_beginning(item)
+            self.insert_selection_at_beginning(
+                Selection(
+                    Content(f"{ICONS['general']['copy'][0]} {item}"),
+                    value=state.compress(f"{item}-copy"),
+                )
+            )
         self.deselect_all()
         for item_number in range(len(items)):
             self.select(self.get_option_at_index(item_number))
+
+    async def cut_to_clipboard(self, items: list) -> None:
+        """Cut the selected files to the clipboard."""
+        for item in items[::-1]:
+            if isinstance(item, str):
+                self.insert_selection_at_beginning(
+                    Selection(
+                        Content(f"{ICONS['general']['cut'][0]} {item}"),
+                        value=state.compress(f"{item}-cut"),
+                    )
+                )
 
     # Use better versions of the checkbox icons
 
@@ -975,43 +1067,33 @@ class Clipboard(SelectionList, inherit_bindings=False):
         )
 
     # Why isnt this already a thing
-    def insert_selection_at_beginning(self, content: str | Selection) -> None:
+    def insert_selection_at_beginning(self, content: Selection) -> None:
         """Insert a new selection at the beginning of the clipboard list.
 
         Args:
-            content: Either a string to use as content or a pre-created Selection object
+            content (Selection): A pre-created Selection object to insert.
         """
-        # create instance if content is a string
-        if isinstance(content, str):
-            selection = Selection(
-                Content(content), value=state.compress(content)
-            )  # i swear lzstring follows me everywhere even if i try to not use it
-        else:
-            selection = content
-
         # Check for duplicate ID
-        if selection.id is not None and selection.id in self._id_to_option:
-            raise DuplicateID(
-                f"Unable to add selection with duplicate ID: {selection.id}"
-            )
+        if content.id is not None and content.id in self._id_to_option:
+            raise DuplicateID(f"Unable to add content with duplicate ID: {content.id}")
 
         # custom checker: ignore similar values
         if any(
-            selection.value == existing_selection.value
-            for existing_selection in self.options
+            content.value == existing_content.value for existing_content in self.options
         ):
             self.app.notify(
                 "Cannot recopy a copied item!",
+                title="Clipboard",
                 severity="error",
                 timeout=1.5,
             )
             return
 
         # insert
-        self._options.insert(0, selection)
+        self._options.insert(0, content)
 
         # update self._values
-        values = {selection.value: 0}
+        values = {content.value: 0}
 
         # update mapping
         for option, index in list(self._option_to_index.items()):
@@ -1020,11 +1102,11 @@ class Clipboard(SelectionList, inherit_bindings=False):
             values[key] = value + 1
         self._values = values
         print(self._values)
-        self._option_to_index[selection] = 0
+        self._option_to_index[content] = 0
 
         # update id mapping
-        if selection.id is not None:
-            self._id_to_option[selection.id] = selection
+        if content.id is not None:
+            self._id_to_option[content.id] = content
 
         # force redraw
         self._clear_caches()
@@ -1036,3 +1118,15 @@ class Clipboard(SelectionList, inherit_bindings=False):
         # // serve refreshments
         # redraw
         self.refresh(layout=True)
+
+    @work
+    async def on_key(self, event: events.Key):
+        if event.key in state.config["keybinds"]["manipulation"]["delete"]:
+            """Delete the selected files from the clipboard."""
+            self.remove_option_at_index(self.highlighted)
+        elif event.key in state.config["keybinds"]["manipulation"]["toggle_all"]:
+            """Select all items in the clipboard."""
+            if len(self.selected) == len(self.options):
+                self.deselect_all()
+            else:
+                self.select_all()
