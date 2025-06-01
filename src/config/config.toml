@@ -1,6 +1,3 @@
-[sidebar]
-wrap = true
-
 [sidebar.text]
 error = "Hmm, I think this file got corrupted (or maybe not?)"
 binary = "This file is not UTF-8 encoded, so I decline to read it."
@@ -9,6 +6,7 @@ start = "print(\"Hello, world!\")"
 [filelist]
 sort_by = "name"
 sort_order = "ascending"
+use_recycle_bin = true
 
 [interface]
 tooltips = true

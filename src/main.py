@@ -2,6 +2,7 @@ from maps import ICONS
 from types import SimpleNamespace as Namespace
 from os import getcwd, path, chdir
 from ScreensCore import ZToDirectory
+import shutil
 import state
 from textual import work, on, events
 from textual.app import App, ComposeResult
@@ -360,6 +361,12 @@ class Application(App):
             event.key in state.config["plugins"]["zoxide"]["keybinds"]
             and state.config["plugins"]["zoxide"]["enabled"]
         ):
+            if shutil.which("zoxide") is None:
+                self.notify(
+                    "Zoxide is not installed or not in PATH.",
+                    title="Zoxide",
+                    severity="error",
+                )
 
             def on_response(response: str) -> None:
                 """Handle the response from the ZToDirectory dialog."""

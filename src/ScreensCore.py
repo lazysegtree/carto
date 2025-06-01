@@ -10,6 +10,64 @@ from textual.binding import Binding
 import state
 
 
+class Dismissable(ModalScreen):
+    """Super simple screen that can be dismissed."""
+
+    DEFAULT_CSS = """
+    Dismissable {
+        align: center middle;
+    }
+    #dialog {
+        grid-size: 1;
+        grid-gutter: 1 2;
+        grid-rows: 1fr 3;
+        padding: 1 3;
+        width: 50vw;
+        max-height: 13;
+        border: round $primary-lighten-3;
+        column-span: 3;
+    }
+    #message {
+        height: 1fr;
+        width: 1fr;
+        content-align: center middle;
+    }
+    Container {
+        align: center middle;
+    }
+    Button {
+        width: 50%;
+    }
+    """
+
+    def __init__(self, message: str, **kwargs):
+        super().__init__(**kwargs)
+        self.message = message
+
+    def compose(self) -> ComposeResult:
+        yield Grid(
+            Label(self.message, id="message"),
+            Container(
+                Button("Ok", variant="primary", id="ok"),
+            ),
+            id="dialog",
+        )
+
+    def on_mount(self) -> None:
+        self.query_one("#ok").focus()
+
+    def on_key(self, event: events.Key) -> None:
+        """Handle key presses."""
+        if event.key in "escape":
+            event.prevent_default()
+            self.dismiss()
+
+    @on(Button.Pressed, "#ok")
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        """Handle button presses."""
+        self.dismiss()
+
+
 class YesOrNo(ModalScreen):
     """Screen with a dialog to quit."""
 
@@ -111,6 +169,73 @@ class CopyOverwrite(ModalScreen):
             self.dismiss("skip")
         elif event.key in ["c", "escape"]:
             self.dismiss("cancel")
+
+
+class DeleteFiles(ModalScreen):
+    """Screen with a dialog to confirm whether to delete files."""
+
+    DEFAULT_CSS = """
+    DeleteFiles {
+        align: center middle;
+    }
+    #dialog {
+        grid-size: 2;
+        grid-gutter: 1 2;
+        grid-rows: 1fr 3;
+        padding: 1 3;
+        max-width: 50vw;
+        max-height: 15;
+        border: round $primary-lighten-3;
+    }
+    #question {
+        column-span: 2;
+        height: 1fr;
+        width: 1fr;
+        content-align: center middle;
+    }
+    Button {
+        width: 100%;
+    }
+    Container {
+        column-span: 2;
+        align: center middle;
+    }
+    Button#cancel {
+        width: 50%;
+    }
+    """
+
+    def __init__(self, message: str, **kwargs):
+        super().__init__(**kwargs)
+
+    def compose(self) -> ComposeResult:
+        yield Grid(
+            Label("How do you want to delete the files?", id="question"),
+            Button("\\[D]elete", variant="error", id="delete"),
+            Button("\\[T]rash", variant="warning", id="trash"),
+            Container(
+                Button("\\[C]ancel", variant="primary", id="cancel"),
+            ),
+            id="dialog",
+        )
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        """Handle button presses."""
+        if event.button.id == "delete":
+            self.dismiss("delete")
+        elif event.button.id == "trash":
+            self.dismiss("trash")
+        elif event.button.id == "cancel":
+            self.dismiss("cancel")
+
+    def on_key(self, event) -> None:
+        """Handle key presses."""
+        if event.key == "d":
+            self.dismiss("delete")
+        elif event.key in ["c", "escape"]:
+            self.dismiss("cancel")
+        elif event.key == "t":
+            self.dismiss("trash")
 
 
 class ZToDirectory(ModalScreen):
@@ -257,12 +382,25 @@ if __name__ == "__main__":
     class TestApp(App):
         def compose(self) -> ComposeResult:
             yield VerticalGroup(
+                Button("Open Dismissable Dialog", id="open_dismissable"),
                 Button("Open Yes/No Dialog", id="open_dialog"),
+                Button("Open Delete Files Dialog", id="open_delete_files"),
                 Button("Open Input Dialog", id="open_input_dialog"),
                 Button("Open Copy/Overwrite Dialog", id="open_copy_overwrite_dialog"),
                 Button(
                     "Open ZToDirectory Dialog", id="open_zoxide_to_directory_dialog"
                 ),
+            )
+
+        @on(Button.Pressed, "#open_dismissable")
+        def open_dismissable(self, event: Button.Pressed) -> None:
+            """Open the Dismissable dialog."""
+
+            def on_receive_response(response) -> None:
+                self.mount(Label("Dismissable dialog closed."))
+
+            self.push_screen(
+                Dismissable("This is a dismissable dialog."), on_receive_response
             )
 
         @on(Button.Pressed, "#open_dialog")
@@ -285,6 +423,22 @@ if __name__ == "__main__":
                 self.mount(Label(f"User input: {input_value}"))
 
             self.push_screen(ModalInput("Test the modal input"), on_input_received)
+
+        @on(Button.Pressed, "#open_delete_files")
+        def open_delete_files(self, event: Button.Pressed) -> None:
+            """Open the DeleteFiles dialog."""
+
+            def on_response(response: str) -> None:
+                if response == "delete":
+                    self.mount(Label("User chose to delete files."))
+                elif response == "trash":
+                    self.mount(Label("User chose to move files to trash."))
+                else:
+                    self.mount(Label("User cancelled the operation."))
+
+            self.push_screen(
+                DeleteFiles("How do you want to delete the files?"), on_response
+            )
 
         @on(Button.Pressed, "#open_copy_overwrite_dialog")
         def open_copy_overwrite_dialog(self, event: Button.Pressed) -> None:
