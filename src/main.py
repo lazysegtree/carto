@@ -1,7 +1,8 @@
+from Actions import create_new_item
 from maps import ICONS
 from types import SimpleNamespace as Namespace
 from os import getcwd, path, chdir
-from ScreensCore import ZToDirectory
+from ScreensCore import ZToDirectory, ModalInput
 import shutil
 import state
 from textual import work, on, events
@@ -57,87 +58,75 @@ class Application(App):
             validators=[Function(lambda x: path.exists(x), "Path does not exist")],
         )
         yield Header(name="carto", show_clock=True, icon="📁")
-        yield Vertical(
-            HorizontalScroll(
-                Button(
+        with Vertical(id="root"):
+            with HorizontalScroll(id="menu"):
+                yield Button(
                     ICONS["general"]["up"][0],
                     classes="option",
                     id="sort_order",
-                ),
-                Button(ICONS["general"]["copy"][0], classes="option", id="copy"),
-                Button(
+                )
+                yield Button(ICONS["general"]["copy"][0], classes="option", id="copy")
+                yield Button(
                     ICONS["general"]["cut"][0],
                     classes="option",
                     id="cut",
-                ),
-                Button(
+                )
+                yield Button(
                     ICONS["general"]["paste"][0],
                     classes="option",
                     id="paste",
                     disabled=True,
-                ),
-                Button(
-                    ICONS["general"]["delete"][0],
+                )
+                yield Button(
+                    ICONS["general"]["new"][0],
                     classes="option",
-                    id="delete",
-                    disabled=True,
-                ),
-                Button(
+                    id="new",
+                )
+                yield Button(
                     ICONS["general"]["rename"][0],
                     classes="option",
                     id="rename",
                     disabled=True,
-                ),
-                id="menu",
-            ),
-            VerticalGroup(
-                HorizontalGroup(
-                    Button(ICONS["general"]["left"][0], id="back"),
-                    Button(ICONS["general"]["right"][0], id="forward"),
-                    Button(ICONS["general"]["up"][0], id="up"),
-                    Button(ICONS["general"]["refresh"][0], id="reload"),
-                    path_switcher,
-                ),
-                # Container(
-                PathAutoCompleteInput(
+                )
+                yield Button(
+                    ICONS["general"]["delete"][0],
+                    classes="option",
+                    id="delete",
+                    disabled=True,
+                )
+            with VerticalGroup(id="below_menu"):
+                with HorizontalGroup():
+                    yield Button(ICONS["general"]["left"][0], id="back")
+                    yield Button(ICONS["general"]["right"][0], id="forward")
+                    yield Button(ICONS["general"]["up"][0], id="up")
+                    yield Button(ICONS["general"]["refresh"][0], id="reload")
+                    yield path_switcher
+                yield PathAutoCompleteInput(
                     target=path_switcher,
                     path=getcwd().split(path.sep)[0],
                     folder_prefix=ICONS["folder"]["default"][0] + " ",
                     file_prefix=ICONS["file"]["default"][0] + " ",
                     id="path_autocomplete",
-                ),
-                # ),
-                id="below_menu",
-            ),
-            HorizontalGroup(
-                VerticalGroup(
-                    PinnedSidebar(id="pinned_sidebar"),
-                    id="pinned_sidebar_container",
-                ),
-                VerticalGroup(
-                    FileList(
+                )
+            with HorizontalGroup(id="main"):
+                with VerticalGroup(id="pinned_sidebar_container"):
+                    yield PinnedSidebar(id="pinned_sidebar")
+                with VerticalGroup(id="file_list_container"):
+                    yield FileList(
                         id="file_list",
                         name="File List",
                         classes="file-list",
                         sort_by=self.main_sort_by,
                         sort_order=self.main_sort_order,
-                    ),
-                    id="file_list_container",
-                ),
-                PreviewContainer(
+                    )
+                yield PreviewContainer(
                     id="preview_sidebar",
-                ),
-                id="main",
-            ),
-            HorizontalGroup(
-                # ? should we switch to a vertical scroll?
-                RichLog(id="processes", highlight=True, markup=True, wrap=True),
-                VerticalGroup(id="metadata"),
-                Clipboard(id="clipboard"),
-                id="footer",
-            ),
-            id="root",
-        )
+                )
+            with HorizontalGroup(id="footer"):
+                # ? should we switch to a vertical scroll for richlog?
+                yield RichLog(id="processes", highlight=True, markup=True, wrap=True)
+                yield VerticalGroup(id="metadata")
+                yield Clipboard(id="clipboard")
 
     def on_mount(self):
         # border titles
@@ -161,6 +150,7 @@ class Application(App):
             self.query_one("#paste").tooltip = "Paste files from clipboard"
             self.query_one("#delete").tooltip = "Delete selected files"
             self.query_one("#rename").tooltip = "Rename selected file"
+            self.query_one("#new").tooltip = "Create a new file or directory"
             self.query_one("#back").tooltip = "Go back in history"
             self.query_one("#forward").tooltip = "Go forward in history"
             self.query_one("#up").tooltip = "Go up the directory tree"
@@ -244,6 +234,16 @@ class Application(App):
                 "No files selected to cut.", title="Clipboard", severity="warning"
             )
 
+    @on(Button.Pressed, "#new")
+    async def create_new_object(self, event: Button.Pressed) -> None:
+        self.push_screen(
+            ModalInput(
+                border_title="Create New Item",
+                border_subtitle="End with a slash (/) to create a directory",
+            ),
+            callback=lambda response: create_new_item(self, response),
+        )
+
     @work
     async def update_session_dicts(self, sessionDirs, sessionHisIndex):
         """Update the session directories and history index"""
@@ -315,7 +315,7 @@ class Application(App):
                 self.query_one("#file_list").focus()
             else:
                 self.query_one("#clipboard").focus()
-        # this is so scuffed
+        # navi buttons but keybind
         elif event.key in state.config["keybinds"]["navigation"]["hist_previous"]:
             if self.query_one("#back").disabled:
                 self.go_up_path(Button.Pressed(self.query_one("#up")))

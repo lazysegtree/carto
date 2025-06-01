@@ -67,11 +67,9 @@ Footer {
 }
 
 #below_menu Button {
-  padding: 0 !important;
   margin: 0 1;
   height: 3;
   max-width: 7;
-  border: none;
 }
 #below_menu {
   margin: 0 1 0 1;
@@ -115,8 +113,9 @@ Footer {
 #pinned_sidebar_container,
 #file_list_container,
 #preview_sidebar,
-Input,
-#zoxide_options {
+#path_switcher,
+#zoxide_options,
+#below_menu Button {
   background: transparent;
   border: $-interface-border-style-$ $-interface-border-inactive_color-$;
   border-subtitle-color: $background;
@@ -129,8 +128,9 @@ Input,
 #file_list_container:focus-within,
 #preview_sidebar:focus-within, /* only while using textual-image */
 #preview_sidebar:focus,
-Input:focus-within,
-#zoxide_options:focus, {
+#path_switcher:focus-within,
+#zoxide_options:focus,
+#below_menu Button:focus {
   border: $-interface-border-style-$ $-interface-border-color-$;
   border-subtitle-background: $-interface-border-color-$;
 }
@@ -202,7 +202,8 @@ RichLog {
 Content.selected {
   color: red;
 }
-FileList, Clipboard {
+FileList,
+Clipboard {
   .selection-list--button {
     background: transparent;
     color: $primary;
@@ -229,27 +230,30 @@ FileList, Clipboard {
   }
 }
 
-Static {
-  background: red;
-}
 ZToDirectory {
-    align: center middle;
+  align: center middle;
 }
 #zoxide_input {
-    width: 100%;
-    max-width: 100%;
-    padding: 0 1;
-    background: transparent;
+  width: 100%;
+  max-width: 100%;
+  padding: 0 1;
+  background: transparent;
+  border: $-interface-border-style-$ $-interface-border-color-$;
 }
 #zoxide_options {
-    width: 100%;
-    max-width: 100%;
-    height: 1fr;
-    background: transparent;
+  width: 100%;
+  max-width: 100%;
+  height: 1fr;
+  background: transparent;
+  border: $-interface-border-style-$ $-interface-border-color-$;
+  .option-list--option-highlighted {
+    background: $primary-lighten-3;
+    color: $background;
+  }
 }
 #zoxide_group {
-    max-width: 50vw;
-    max-height: 50vh;
+  max-width: 50vw;
+  max-height: 50vh;
 }
 
 Tooltip {
@@ -257,5 +261,5 @@ Tooltip {
 }
 
 CommandInput {
-  border: blank !important
+  border: blank !important;
 }

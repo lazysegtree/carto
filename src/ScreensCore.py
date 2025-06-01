@@ -45,13 +45,10 @@ class Dismissable(ModalScreen):
         self.message = message
 
     def compose(self) -> ComposeResult:
-        yield Grid(
-            Label(self.message, id="message"),
-            Container(
-                Button("Ok", variant="primary", id="ok"),
-            ),
-            id="dialog",
-        )
+        with Grid(id="dialog"):
+            yield Label(self.message, id="message")
+            with Container():
+                yield Button("Ok", variant="primary", id="ok")
 
     def on_mount(self) -> None:
         self.query_one("#ok").focus()
@@ -100,12 +97,10 @@ class YesOrNo(ModalScreen):
         self.message = message
 
     def compose(self) -> ComposeResult:
-        yield Grid(
-            Label(self.message, id="question"),
-            Button("\\[Y]es", variant="error", id="yes"),
-            Button("\\[N]o", variant="primary", id="no"),
-            id="dialog",
-        )
+        with Grid(id="dialog"):
+            yield Label(self.message, id="question")
+            yield Button("\\[Y]es", variant="error", id="yes")
+            yield Button("\\[N]o", variant="primary", id="no")
 
     def on_key(self, event) -> None:
         """Handle key presses."""
@@ -150,14 +145,12 @@ class CopyOverwrite(ModalScreen):
         self.message = message
 
     def compose(self) -> ComposeResult:
-        yield Grid(
-            Label(self.message, id="question"),
-            Button("\\[O]verwrite", variant="error", id="overwrite"),
-            Button("\\[R]ename", variant="warning", id="rename"),
-            Button("\\[S]kip", variant="default", id="skip"),
-            Button("\\[C]ancel", variant="primary", id="cancel"),
-            id="dialog",
-        )
+        with Grid(id="dialog"):
+            yield Label(self.message, id="question")
+            yield Button("\\[O]verwrite", variant="error", id="overwrite")
+            yield Button("\\[R]ename", variant="warning", id="rename")
+            yield Button("\\[S]kip", variant="default", id="skip")
+            yield Button("\\[C]ancel", variant="primary", id="cancel")
 
     def on_key(self, event) -> None:
         """Handle key presses."""
@@ -209,15 +202,12 @@ class DeleteFiles(ModalScreen):
         super().__init__(**kwargs)
 
     def compose(self) -> ComposeResult:
-        yield Grid(
-            Label("How do you want to delete the files?", id="question"),
-            Button("\\[D]elete", variant="error", id="delete"),
-            Button("\\[T]rash", variant="warning", id="trash"),
-            Container(
-                Button("\\[C]ancel", variant="primary", id="cancel"),
-            ),
-            id="dialog",
-        )
+        with Grid(id="dialog"):
+            yield Label("How do you want to delete the files?", id="question")
+            yield Button("\\[D]elete", variant="error", id="delete")
+            yield Button("\\[T]rash", variant="warning", id="trash")
+            with Container():
+                yield Button("\\[C]ancel", variant="primary", id="cancel")
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """Handle button presses."""
@@ -263,6 +253,7 @@ class ZToDirectory(ModalScreen):
         zoxide_input.focus()
         zoxide_options = self.query_one("#zoxide_options")
         zoxide_options.border_title = "Folders"
+        zoxide_options.can_focus = False
         self.on_input_changed(Input.Changed(zoxide_input, value=""))
 
     @work(exclusive=True)
@@ -304,6 +295,7 @@ class ZToDirectory(ModalScreen):
                 zoxide_options.highlighted = 0
             zoxide_options.action_select()
 
+    # you cant manually tab into the option list, but you can click, so i guess
     @work(exclusive=True)
     async def on_option_list_option_selected(
         self, event: OptionList.OptionSelected
@@ -337,7 +329,6 @@ class ZToDirectory(ModalScreen):
 
 
 class ModalInput(ModalScreen):
-    BINDINGS = [Binding("escape", "dismiss", "Dismiss Input", show=False)]
     DEFAULT_CSS = """
     ModalInput {
         align: center middle;
@@ -355,42 +346,54 @@ class ModalInput(ModalScreen):
     }
     """
 
-    def __init__(self, border_title: str, **kwargs):
+    def __init__(self, border_title: str, border_subtitle: str = "", **kwargs):
         super().__init__(**kwargs)
         self.border_title = border_title
+        self.border_subtitle = border_subtitle
 
     def compose(self) -> ComposeResult:
-        yield Container(
-            Input(
+        with Container():
+            yield Input(
                 id="input",
                 compact=True,
             )
-        )
 
     def on_mount(self) -> None:
         self.query_one(Container).border_title = self.border_title
+        if self.border_subtitle != "":
+            self.query_one(Container).border_subtitle = self.border_subtitle
         self.query_one("#input").focus()
 
     def on_input_submitted(self, event: Input.Submitted) -> None:
         """Handle input submission."""
         self.dismiss(event.input.value)
 
+    def on_key(self, event: events.Key) -> None:
+        if event.key == "escape":
+            """Handle escape key to dismiss the dialog."""
+            self.dismiss("")
+
 
 if __name__ == "__main__":
     state.load_config()
 
     class TestApp(App):
+        CSS_PATH = "style.tcss"
+
         def compose(self) -> ComposeResult:
-            yield VerticalGroup(
-                Button("Open Dismissable Dialog", id="open_dismissable"),
-                Button("Open Yes/No Dialog", id="open_dialog"),
-                Button("Open Delete Files Dialog", id="open_delete_files"),
-                Button("Open Input Dialog", id="open_input_dialog"),
-                Button("Open Copy/Overwrite Dialog", id="open_copy_overwrite_dialog"),
-                Button(
+            with VerticalGroup():
+                yield Button("Open Dismissable Dialog", id="open_dismissable")
+                yield Button("Open Yes/No Dialog", id="open_dialog")
+                yield Button("Open Delete Files Dialog", id="open_delete_files")
+                yield Button("Open Input Dialog", id="open_input_dialog")
+                yield (
+                    Button(
+                        "Open Copy/Overwrite Dialog", id="open_copy_overwrite_dialog"
+                    ),
+                )
+                yield Button(
                     "Open ZToDirectory Dialog", id="open_zoxide_to_directory_dialog"
-                ),
-            )
+                )
 
         @on(Button.Pressed, "#open_dismissable")
         def open_dismissable(self, event: Button.Pressed) -> None:
@@ -422,7 +425,10 @@ if __name__ == "__main__":
             def on_input_received(input_value: str) -> None:
                 self.mount(Label(f"User input: {input_value}"))
 
-            self.push_screen(ModalInput("Test the modal input"), on_input_received)
+            self.push_screen(
+                ModalInput("Test the modal input", border_subtitle="subtitle"),
+                on_input_received,
+            )
 
         @on(Button.Pressed, "#open_delete_files")
         def open_delete_files(self, event: Button.Pressed) -> None:
@@ -464,4 +470,5 @@ if __name__ == "__main__":
 
             self.push_screen(ZToDirectory(), on_response)
 
+    state.start_watcher()
     TestApp().run()

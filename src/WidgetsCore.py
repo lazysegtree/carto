@@ -1,3 +1,4 @@
+from Actions import create_new_item
 from humanize import naturalsize
 from maps import (
     get_icon_for_file,
@@ -12,6 +13,7 @@ from pathlib import Path
 import platform
 from rich.segment import Segment
 from rich.style import Style
+from ScreensCore import ModalInput
 import state
 import subprocess
 from textual import events, work, on
@@ -929,6 +931,15 @@ class FileList(SelectionList, inherit_bindings=False):
                         title="Clipboard",
                         severity="warning",
                     )
+            elif event.key in state.config["keybinds"]["manipulation"]["new"]:
+                """Create a new file or folder."""
+                self.app.push_screen(
+                    ModalInput(
+                        border_title="Create New Item",
+                        border_subtitle="End with a slash (/) to create a directory",
+                    ),
+                    callback=lambda response: create_new_item(self.app, response),
+                )
             elif event.key in state.config["keybinds"]["manipulation"]["toggle_all"]:
                 if not self.select_mode_enabled:
                     await self.toggle_mode()
@@ -936,8 +947,6 @@ class FileList(SelectionList, inherit_bindings=False):
                     self.deselect_all()
                 else:
                     self.select_all()
-            elif event.key in state.config["keybinds"]["manipulation"]["cut"]:
-                """Cut the selected files to the clipboard."""
 
 
 class Clipboard(SelectionList, inherit_bindings=False):

@@ -15,8 +15,8 @@ VAR_TO_DIR = {
 
 ICONS = {
     "general": {
-        "new": ["\uf415", "green"],
-        "open": ["\uf47c", "blue"],
+        "new": ["\uea7f", "green"],
+        "open": ["\uf07c", "blue"],
         "save": ["\uf0c7", "cyan"],
         "search": ["\uf002", "orange"],
         "refresh": ["\uf021", "teal"],

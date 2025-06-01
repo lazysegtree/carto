@@ -36,7 +36,7 @@ This is a list of features that I plan to add before releasing the appropriate v
 - [ ] Search Bar (superfile)
 - [ ] Clipboard (superfile)
   - [x] Copy files and folders
-  - [ ] Cut files and folders
+  - [x] Cut files and folders
   - [ ] Paste files and folders
     - [ ] Warn when overwriting same named files
 - [ ] Multiple File Lists
