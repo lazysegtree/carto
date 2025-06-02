@@ -43,8 +43,12 @@ This is a list of features that I plan to add before releasing the appropriate v
   - [ ] Tabs
   - [ ] VSplit and HSplit
 - [ ] Active and Completed processes (superfile)
-- [ ] Actions (explorer)
-  - [ ] Delete files/folders
+- [ ] Actions bar (explorer)
+  - [x] Copy files
+  - [x] Cut files
+  - [x] Paste files
+  - [x] Create new files/folders
+  - [x] Delete files/folders
   - [ ] Rename **a** file/folder
 - [ ] bat as previewer (using `--force-colorization`) (might need to check how textual might support it or not)
 
