@@ -57,8 +57,11 @@ class Dismissable(ModalScreen):
         event.stop()
         """Handle key presses."""
         if event.key in "escape":
-            event.stop()
             self.dismiss()
+        elif event.key == "tab":
+            self.focus_next()
+        elif event.key == "shift+tab":
+            self.focus_previous()
 
     @on(Button.Pressed, "#ok")
     def on_button_pressed(self, event: Button.Pressed) -> None:
@@ -201,10 +204,11 @@ class DeleteFiles(ModalScreen):
 
     def __init__(self, message: str, **kwargs):
         super().__init__(**kwargs)
+        self.message = message
 
     def compose(self) -> ComposeResult:
         with Grid(id="dialog"):
-            yield Label("How do you want to delete the files?", id="question")
+            yield Label(self.message, id="question")
             yield Button("\\[D]elete", variant="error", id="delete")
             yield Button("\\[T]rash", variant="warning", id="trash")
             with Container():
@@ -212,7 +216,6 @@ class DeleteFiles(ModalScreen):
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """Handle button presses."""
-        event.stop()
         if event.button.id == "delete":
             self.dismiss("delete")
         elif event.button.id == "trash":
@@ -229,6 +232,10 @@ class DeleteFiles(ModalScreen):
             self.dismiss("cancel")
         elif event.key == "t":
             self.dismiss("trash")
+        elif event.key == "tab":
+            self.focus_next()
+        elif event.key == "shift+tab":
+            self.focus_previous()
 
 
 class ZToDirectory(ModalScreen):
@@ -321,15 +328,17 @@ class ZToDirectory(ModalScreen):
         if event.key in ["escape"]:
             self.dismiss(None)
         elif event.key == "down":
-            event.stop()
             zoxide_options = self.query_one("#zoxide_options")
             if zoxide_options.options:
                 zoxide_options.action_cursor_down()
         elif event.key == "up":
-            event.stop()
             zoxide_options = self.query_one("#zoxide_options")
             if zoxide_options.options:
                 zoxide_options.action_cursor_up()
+        elif event.key == "tab":
+            self.focus_next()
+        elif event.key == "shift+tab":
+            self.focus_previous()
 
 
 class ModalInput(ModalScreen):
