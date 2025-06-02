@@ -1,4 +1,4 @@
-from Actions import create_new_item
+from Actions import create_new_item, remove_files
 from humanize import naturalsize
 from maps import (
     get_icon_for_file,
@@ -13,7 +13,7 @@ from pathlib import Path
 import platform
 from rich.segment import Segment
 from rich.style import Style
-from ScreensCore import ModalInput
+from ScreensCore import ModalInput, DeleteFiles
 import state
 import subprocess
 from textual import events, work, on
@@ -940,6 +940,28 @@ class FileList(SelectionList, inherit_bindings=False):
                     ),
                     callback=lambda response: create_new_item(self.app, response),
                 )
+            elif event.key in state.config["keybinds"]["manipulation"]["delete"]:
+                """Delete the selected files."""
+                selected_files = await self.get_selected_objects()
+                if selected_files:
+                    async def callback(response: str) -> None:
+                        """Callback to remove files after confirmation"""
+                        if response == "delete":
+                            await remove_files(self.app, selected_files, ignore_trash=True, compressed=False)
+                        elif response == "trash":
+                            await remove_files(self.app, selected_files, ignore_trash=False, compressed=False)
+                        else:
+                            self.app.notify("File deletion cancelled.", title="Delete Files")
+                    self.app.push_screen(
+                        DeleteFiles(
+                            message=f"Are you sure you want to delete {len(selected_files)} files?",
+                        ),
+                        callback=callback,
+                    )
+                else:
+                    self.app.notify(
+                        "No files selected to delete.", title="Delete Files", severity="warning"
+                    )
             elif event.key in state.config["keybinds"]["manipulation"]["toggle_all"]:
                 if not self.select_mode_enabled:
                     await self.toggle_mode()
@@ -1135,12 +1157,20 @@ class Clipboard(SelectionList, inherit_bindings=False):
 
     @work
     async def on_key(self, event: events.Key):
-        if event.key in state.config["keybinds"]["manipulation"]["delete"]:
-            """Delete the selected files from the clipboard."""
-            self.remove_option_at_index(self.highlighted)
-        elif event.key in state.config["keybinds"]["manipulation"]["toggle_all"]:
-            """Select all items in the clipboard."""
-            if len(self.selected) == len(self.options):
-                self.deselect_all()
-            else:
-                self.select_all()
+        if self.has_focus:
+            if event.key in state.config["keybinds"]["manipulation"]["delete"]:
+                """Delete the selected files from the clipboard."""
+                if not self.selected:
+                    self.app.notify(
+                        "No files selected to delete from the clipboard.",
+                        title="Clipboard",
+                        severity="warning",
+                    )
+                    return
+                self.remove_option_at_index(self.highlighted)
+            elif event.key in state.config["keybinds"]["manipulation"]["toggle_all"]:
+                """Select all items in the clipboard."""
+                if len(self.selected) == len(self.options):
+                    self.deselect_all()
+                else:
+                    self.select_all()

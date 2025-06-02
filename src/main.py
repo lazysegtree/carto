@@ -1,8 +1,8 @@
-from Actions import create_new_item
+from Actions import create_new_item, remove_files
 from maps import ICONS
 from types import SimpleNamespace as Namespace
 from os import getcwd, path, chdir
-from ScreensCore import ZToDirectory, ModalInput
+from ScreensCore import ZToDirectory, ModalInput, DeleteFiles
 import shutil
 import state
 from textual import work, on, events
@@ -92,7 +92,6 @@ class Application(App):
                     ICONS["general"]["delete"][0],
                     classes="option",
                     id="delete",
-                    disabled=True,
                 )
             with VerticalGroup(id="below_menu"):
                 with HorizontalGroup():
@@ -243,6 +242,31 @@ class Application(App):
             ),
             callback=lambda response: create_new_item(self, response),
         )
+
+    @on(Button.Pressed, "#delete")
+    async def delete_files(self, event: Button.Pressed) -> None:
+        """Delete selected files or directories"""
+        file_list = self.query_one("#file_list")
+        selected_files = await file_list.get_selected_objects()
+        if selected_files:
+            async def callback(response: str) -> None:
+                """Callback to remove files after confirmation"""
+                if response == "delete":
+                    await remove_files(self, selected_files, ignore_trash=True, compressed=False)
+                elif response == "trash":
+                    await remove_files(self, selected_files, ignore_trash=False, compressed=False)
+                else:
+                    self.notify("File deletion cancelled.", title="Delete Files")
+            self.push_screen(
+                DeleteFiles(
+                    message=f"Are you sure you want to delete {len(selected_files)} files?",
+                ),
+                callback=callback,
+            )
+        else:
+            self.notify(
+                "No files selected to delete.", title="Delete Files", severity="warning"
+            )
 
     @work
     async def update_session_dicts(self, sessionDirs, sessionHisIndex):

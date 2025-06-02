@@ -54,9 +54,10 @@ class Dismissable(ModalScreen):
         self.query_one("#ok").focus()
 
     def on_key(self, event: events.Key) -> None:
+        event.stop()
         """Handle key presses."""
         if event.key in "escape":
-            event.prevent_default()
+            event.stop()
             self.dismiss()
 
     @on(Button.Pressed, "#ok")
@@ -211,6 +212,7 @@ class DeleteFiles(ModalScreen):
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """Handle button presses."""
+        event.stop()
         if event.button.id == "delete":
             self.dismiss("delete")
         elif event.button.id == "trash":
@@ -219,6 +221,7 @@ class DeleteFiles(ModalScreen):
             self.dismiss("cancel")
 
     def on_key(self, event) -> None:
+        event.stop()
         """Handle key presses."""
         if event.key == "d":
             self.dismiss("delete")
@@ -314,15 +317,16 @@ class ZToDirectory(ModalScreen):
 
     def on_key(self, event: events.Key) -> None:
         """Handle key presses."""
+        event.stop()
         if event.key in ["escape"]:
             self.dismiss(None)
         elif event.key == "down":
-            event.prevent_default()
+            event.stop()
             zoxide_options = self.query_one("#zoxide_options")
             if zoxide_options.options:
                 zoxide_options.action_cursor_down()
         elif event.key == "up":
-            event.prevent_default()
+            event.stop()
             zoxide_options = self.query_one("#zoxide_options")
             if zoxide_options.options:
                 zoxide_options.action_cursor_up()
