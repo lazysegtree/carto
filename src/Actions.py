@@ -1,8 +1,9 @@
-from os import path, remove, makedirs
+from os import path, remove, makedirs, getcwd
 import shutil
 import state
 from textual.app import App
 from send2trash import send2trash
+
 state.load_config()
 
 
@@ -26,14 +27,13 @@ async def remove_files(
         file = path.realpath(file)
         try:
             if path.exists(file):
-                if (
-                    state.config["filelist"]["use_recycle_bin"]
-                    and not ignore_trash
-                ):
+                if state.config["filelist"]["use_recycle_bin"] and not ignore_trash:
                     try:
                         send2trash(file)
                     except Exception as e:
-                        appInstance.notify(message=f"Error sending {file} to trash: {e}")
+                        appInstance.notify(
+                            message=f"Error sending {file} to trash: {e}"
+                        )
                 else:
                     shutil.rmtree(file) if path.isdir(file) else remove(file)
         except Exception as e:
@@ -47,7 +47,9 @@ async def create_new_item(appInstance: App, location: str):
     if location == "":
         return
     elif path.exists(location):
-        appInstance.notify(message=f"Location '{location}' already exists.", severity="error")
+        appInstance.notify(
+            message=f"Location '{location}' already exists.", severity="error"
+        )
     elif location.endswith("/"):
         # recursive directory creation
         try:
@@ -77,5 +79,36 @@ async def create_new_item(appInstance: App, location: str):
             appInstance.notify(
                 message=f"Error creating file '{location}': {e}", severity="error"
             )
+    appInstance.query_one("#reload").action_press()
+    appInstance.query_one("#file_list").focus()
+
+
+async def rename_object(appInstance: App, old_name: str, new_name: str):
+    """Rename a file or directory.
+
+    Args:
+        appInstance (App): The application instance.
+        old_name (str): The current name of the file or directory.
+        new_name (str): The new name for the file or directory.
+    """
+    old_name = path.realpath(path.join(getcwd(), old_name.strip().replace("\\", "/")))
+    new_name = path.realpath(path.join(getcwd(), new_name.strip().replace("\\", "/")))
+
+    if not path.exists(old_name):
+        appInstance.notify(message=f"'{old_name}' does not exist.", severity="error")
+        return
+
+    if path.exists(new_name):
+        appInstance.notify(message=f"'{new_name}' already exists.", severity="error")
+        return
+
+    try:
+        shutil.move(old_name, new_name)
+    except Exception as e:
+        appInstance.notify(
+            message=f"Error renaming '{old_name}' to '{new_name}': {e}",
+            severity="error",
+        )
+
     appInstance.query_one("#reload").action_press()
     appInstance.query_one("#file_list").focus()

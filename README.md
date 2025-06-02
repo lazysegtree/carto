@@ -34,6 +34,7 @@ This is a list of features that I plan to add before releasing the appropriate v
 - [x] Previewing directories (superfile)
 - [x] Pinned folder sidebar (superfile)<br><sub>explorer does support pinned sidebar, but it also includes the massive file tree, which I won't add.</sub>
 - [ ] Search Bar (superfile)
+- [ ] Metadata
 - [ ] Clipboard (superfile)
   - [x] Copy files and folders
   - [x] Cut files and folders
@@ -44,12 +45,13 @@ This is a list of features that I plan to add before releasing the appropriate v
   - [ ] VSplit and HSplit
 - [ ] Active and Completed processes (superfile)
 - [ ] Actions bar (explorer)
+  - [ ] Change sort order of files
   - [x] Copy files
   - [x] Cut files
   - [x] Paste files
   - [x] Create new files/folders
   - [x] Delete files/folders
-  - [ ] Rename **a** file/folder
+  - [x] Rename **a** file/folder
 - [ ] bat as previewer (using `--force-colorization`) (might need to check how textual might support it or not)
 
 #### v2

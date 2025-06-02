@@ -359,16 +359,24 @@ class ModalInput(ModalScreen):
     }
     """
 
-    def __init__(self, border_title: str, border_subtitle: str = "", **kwargs):
+    def __init__(
+        self,
+        border_title: str,
+        border_subtitle: str = "",
+        initial_value: str = "",
+        **kwargs,
+    ):
         super().__init__(**kwargs)
         self.border_title = border_title
         self.border_subtitle = border_subtitle
+        self.initial_value = initial_value
 
     def compose(self) -> ComposeResult:
         with Container():
             yield Input(
                 id="input",
                 compact=True,
+                value=self.initial_value,
             )
 
     def on_mount(self) -> None:

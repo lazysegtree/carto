@@ -1,4 +1,4 @@
-from Actions import create_new_item, remove_files
+from Actions import create_new_item, remove_files, rename_object
 from humanize import naturalsize
 from maps import (
     get_icon_for_file,
@@ -23,7 +23,6 @@ from textual.containers import Container
 from textual.content import Content
 from textual.css.query import NoMatches
 from textual.strip import Strip
-from textual.types import DuplicateID
 from textual.widgets import OptionList, Static, TextArea, SelectionList
 from textual.widgets.option_list import Option, OptionDoesNotExist
 from textual.widgets.selection_list import Selection
@@ -185,7 +184,7 @@ def update_file_list(
         sort_order (str): The order to sort by ("ascending" or "descending").
         add_to_session (bool): Whether to add the current directory to the session history.
     """
-    cwd = getcwd()
+    cwd = getcwd().replace(path.sep, "/").replace(path.sep, "/")
     file_list = appInstance.query_one(f"{file_list_id}")
     file_list.clear_options()
     # seperate folders and files
@@ -210,10 +209,12 @@ def update_file_list(
                         name=item["name"],
                     ),
                     value=state.compress(item["name"]),
+                    id=state.compress(item["name"]),
                 )
             )
+    print(file_list.options)
     # session handler
-    appInstance.query_one("#path_switcher").value = cwd.replace(path.sep, "/") + "/"
+    appInstance.query_one("#path_switcher").value = cwd + "/"
     if add_to_session:
         if state.sessionHistoryIndex != len(state.sessionDirectories) - 1:
             state.sessionDirectories = state.sessionDirectories[
@@ -222,13 +223,19 @@ def update_file_list(
         state.sessionDirectories.append(
             {
                 "path": cwd,
-                "highlighted": appInstance.query_one("#file_list").options[0].value,
             }
         )
+        print(state.sessionLastHighlighted)
+        if state.sessionLastHighlighted.get(cwd) is None:
+            state.sessionLastHighlighted[cwd] = (
+                appInstance.query_one("#file_list").options[0].value
+            )
+        print(state.sessionLastHighlighted)
         state.sessionHistoryIndex = len(state.sessionDirectories) - 1
         appInstance.update_session_dicts(
             state.sessionDirectories,
             state.sessionHistoryIndex,
+            state.sessionLastHighlighted,
         )
     appInstance.query_one("Button#back").disabled = (
         True if state.sessionHistoryIndex == 0 else False
@@ -238,12 +245,9 @@ def update_file_list(
         if state.sessionHistoryIndex == len(state.sessionDirectories) - 1
         else False
     )
-    try:
-        file_list.highlighted = file_list.get_option_index(
-            state.sessionDirectories[state.sessionHistoryIndex]["highlighted"]
-        )
-    except OptionDoesNotExist:
-        file_list.highlighted = 0
+    file_list.highlighted = file_list.get_option_index(
+        state.sessionLastHighlighted[cwd]
+    )
     appInstance.title = f"carto - {cwd.replace(path.sep, '/')}"
 
 
@@ -264,7 +268,7 @@ def dummy_update_file_list(
         cwd (str): The current working directory.
     """
     if cwd == "":
-        cwd = getcwd()
+        cwd = getcwd().replace(path.sep, "/")
     file_list = appInstance.query_one(f"{file_list_id}")
     file_list.clear_options()
     # seperate folders and files
@@ -383,7 +387,7 @@ class PreviewContainer(Container):
                 sort_by="name",
                 sort_order="ascending",
                 dummy=True,
-                enter_into=path.relpath(getcwd(), folder_path),
+                enter_into=path.relpath(getcwd().replace(path.sep, "/"), folder_path),
             )
         )
         dummy_update_file_list(
@@ -648,7 +652,7 @@ class FileList(SelectionList, inherit_bindings=False):
             return
         if not self.select_mode_enabled:
             event.prevent_default()
-            cwd = getcwd()
+            cwd = getcwd().replace(path.sep, "/")
             # Get the selected option
             selected_option = self.get_option_at_index(
                 self.highlighted
@@ -679,6 +683,7 @@ class FileList(SelectionList, inherit_bindings=False):
     async def on_option_list_option_highlighted(
         self, event: OptionList.OptionHighlighted
     ) -> None:
+        global state
         if self.dummy:
             return
         elif event.option.value == "HTI":
@@ -694,8 +699,13 @@ class FileList(SelectionList, inherit_bindings=False):
             return
         # Get the highlighted option
         highlighted_option = event.option
-        state.sessionDirectories[state.sessionHistoryIndex]["highlighted"] = (
-            event.option.value
+        state.sessionLastHighlighted[getcwd().replace(path.sep, "/")] = (
+            highlighted_option.value
+        )
+        self.app.update_session_dicts(
+            state.sessionDirectories,
+            state.sessionHistoryIndex,
+            state.sessionLastHighlighted,
         )
         # Get the file name from the option id
         file_name = state.decompress(highlighted_option.value)
@@ -707,7 +717,7 @@ class FileList(SelectionList, inherit_bindings=False):
         )
         # preview
         self.app.query_one("#preview_sidebar").show_preview(
-            path.join(getcwd(), file_name)
+            path.join(getcwd().replace(path.sep, "/"), file_name)
         )
 
     # Use better versions of the checkbox icons
@@ -830,9 +840,11 @@ class FileList(SelectionList, inherit_bindings=False):
                 False,
             )
 
-    async def get_selected_objects(self) -> list[str]:
+    async def get_selected_objects(self) -> list[str] | None:
         """Get the selected objects in the file list."""
-        cwd = getcwd()
+        cwd = getcwd().replace(path.sep, "/")
+        if self.get_option_at_index(self.highlighted).value == "HTI":
+            return None
         if not self.select_mode_enabled:
             return [
                 path.join(
@@ -940,18 +952,54 @@ class FileList(SelectionList, inherit_bindings=False):
                     ),
                     callback=lambda response: create_new_item(self.app, response),
                 )
+            elif event.key in state.config["keybinds"]["manipulation"]["rename"]:
+                """Rename the selected file/folder"""
+                selected_files = await self.get_selected_objects()
+                if selected_files is None or len(selected_files) != 1:
+                    self.app.notify(
+                        "Please select exactly one file to rename.",
+                        title="Rename File",
+                        severity="warning",
+                    )
+                else:
+                    selected_file = selected_files[0]
+                    type_of_file = "Folder" if path.isdir(selected_file) else "File"
+                    self.app.push_screen(
+                        ModalInput(
+                            border_title=f"Rename {type_of_file}",
+                            border_subtitle=f"Current name: {path.basename(selected_file)}",
+                            initial_value=path.basename(selected_file),
+                        ),
+                        callback=lambda response: rename_object(
+                            self.app, selected_file, response
+                        ),
+                    )
             elif event.key in state.config["keybinds"]["manipulation"]["delete"]:
                 """Delete the selected files."""
                 selected_files = await self.get_selected_objects()
                 if selected_files:
+
                     async def callback(response: str) -> None:
                         """Callback to remove files after confirmation"""
                         if response == "delete":
-                            await remove_files(self.app, selected_files, ignore_trash=True, compressed=False)
+                            await remove_files(
+                                self.app,
+                                selected_files,
+                                ignore_trash=True,
+                                compressed=False,
+                            )
                         elif response == "trash":
-                            await remove_files(self.app, selected_files, ignore_trash=False, compressed=False)
+                            await remove_files(
+                                self.app,
+                                selected_files,
+                                ignore_trash=False,
+                                compressed=False,
+                            )
                         else:
-                            self.app.notify("File deletion cancelled.", title="Delete Files")
+                            self.app.notify(
+                                "File deletion cancelled.", title="Delete Files"
+                            )
+
                     self.app.push_screen(
                         DeleteFiles(
                             message=f"Are you sure you want to delete {len(selected_files)} files?",
@@ -960,7 +1008,9 @@ class FileList(SelectionList, inherit_bindings=False):
                     )
                 else:
                     self.app.notify(
-                        "No files selected to delete.", title="Delete Files", severity="warning"
+                        "No files selected to delete.",
+                        title="Delete Files",
+                        severity="warning",
                     )
             elif event.key in state.config["keybinds"]["manipulation"]["toggle_all"]:
                 if not self.select_mode_enabled:

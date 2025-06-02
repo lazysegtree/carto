@@ -1,4 +1,4 @@
-from Actions import create_new_item, remove_files
+from Actions import create_new_item, remove_files, rename_object
 from maps import ICONS
 from types import SimpleNamespace as Namespace
 from os import getcwd, path, chdir
@@ -86,7 +86,6 @@ class Application(App):
                     ICONS["general"]["rename"][0],
                     classes="option",
                     id="rename",
-                    disabled=True,
                 )
                 yield Button(
                     ICONS["general"]["delete"][0],
@@ -249,14 +248,20 @@ class Application(App):
         file_list = self.query_one("#file_list")
         selected_files = await file_list.get_selected_objects()
         if selected_files:
+
             async def callback(response: str) -> None:
                 """Callback to remove files after confirmation"""
                 if response == "delete":
-                    await remove_files(self, selected_files, ignore_trash=True, compressed=False)
+                    await remove_files(
+                        self, selected_files, ignore_trash=True, compressed=False
+                    )
                 elif response == "trash":
-                    await remove_files(self, selected_files, ignore_trash=False, compressed=False)
+                    await remove_files(
+                        self, selected_files, ignore_trash=False, compressed=False
+                    )
                 else:
                     self.notify("File deletion cancelled.", title="Delete Files")
+
             self.push_screen(
                 DeleteFiles(
                     message=f"Are you sure you want to delete {len(selected_files)} files?",
@@ -268,10 +273,35 @@ class Application(App):
                 "No files selected to delete.", title="Delete Files", severity="warning"
             )
 
+    @on(Button.Pressed, "#rename")
+    async def rename_file(self, event: Button.Pressed) -> None:
+        """Rename the selected file or directory"""
+        file_list = self.query_one("#file_list")
+        selected_files = await file_list.get_selected_objects()
+        if selected_files is None or len(selected_files) != 1:
+            self.notify(
+                "Please select exactly one file to rename.",
+                title="Rename File",
+                severity="warning",
+            )
+        else:
+            selected_file = selected_files[0]
+            type_of_file = "Folder" if path.isdir(selected_file) else "File"
+            self.push_screen(
+                ModalInput(
+                    border_title=f"Rename {type_of_file}",
+                    border_subtitle=f"Current name: {path.basename(selected_file)}",
+                    initial_value=path.basename(selected_file),
+                ),
+                callback=lambda response: rename_object(self, selected_file, response),
+            )
+
     @work
-    async def update_session_dicts(self, sessionDirs, sessionHisIndex):
+    async def update_session_dicts(
+        self, sessionDirs, sessionHisIndex, sessionLastHighlight
+    ) -> None:
         """Update the session directories and history index"""
-        state.update_session_state(sessionDirs, sessionHisIndex)
+        state.update_session_state(sessionDirs, sessionHisIndex, sessionLastHighlight)
 
     @work
     async def on_key(self, event: events.Key) -> None:
