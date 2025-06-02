@@ -212,7 +212,6 @@ def update_file_list(
                     id=state.compress(item["name"]),
                 )
             )
-    print(file_list.options)
     # session handler
     appInstance.query_one("#path_switcher").value = cwd + "/"
     if add_to_session:
@@ -245,9 +244,15 @@ def update_file_list(
         if state.sessionHistoryIndex == len(state.sessionDirectories) - 1
         else False
     )
-    file_list.highlighted = file_list.get_option_index(
-        state.sessionLastHighlighted[cwd]
-    )
+    try:
+        file_list.highlighted = file_list.get_option_index(
+            state.sessionLastHighlighted[cwd]
+        )
+    except OptionDoesNotExist:
+        file_list.highlighted = 0
+        state.sessionLastHighlighted[cwd] = (
+            appInstance.query_one("#file_list").options[0].value
+        )
     appInstance.title = f"carto - {cwd.replace(path.sep, '/')}"
 
 
@@ -294,6 +299,8 @@ def dummy_update_file_list(
                 value=state.compress(item["name"]),
             )
         )
+    # somehow prevents more debouncing, ill take it
+    file_list.refresh(repaint=True, layout=True)
 
 
 class PreviewContainer(Container):
@@ -629,6 +636,7 @@ class FileList(SelectionList, inherit_bindings=False):
     def compose(self) -> ComposeResult:
         yield Static()
 
+    @work
     async def on_mount(self, add_to_history: bool = True) -> None:
         """Initialize the file list."""
         try:
@@ -717,7 +725,7 @@ class FileList(SelectionList, inherit_bindings=False):
         )
         # preview
         self.app.query_one("#preview_sidebar").show_preview(
-            path.join(getcwd().replace(path.sep, "/"), file_name)
+            path.join(getcwd(), file_name).replace(path.sep, "/")
         )
 
     # Use better versions of the checkbox icons

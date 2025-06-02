@@ -2,6 +2,7 @@ from os import path, remove, makedirs, getcwd
 import shutil
 import state
 from textual.app import App
+from textual.content import Content
 from send2trash import send2trash
 
 state.load_config()
@@ -32,12 +33,15 @@ async def remove_files(
                         send2trash(file)
                     except Exception as e:
                         appInstance.notify(
-                            message=f"Error sending {file} to trash: {e}"
+                            message=Content(f"Error sending {file} to trash: {e}"),
+                            severity="error",
                         )
                 else:
                     shutil.rmtree(file) if path.isdir(file) else remove(file)
         except Exception as e:
-            appInstance.notify(message=f"Error removing file {file}: {e}")
+            appInstance.notify(
+                message=Content(f"Error removing file {file}: {e}"), severity="error"
+            )
     appInstance.query_one("#reload").action_press()
     appInstance.query_one("#file_list").focus()
 
@@ -56,7 +60,8 @@ async def create_new_item(appInstance: App, location: str):
             makedirs(location)
         except Exception as e:
             appInstance.notify(
-                message=f"Error creating directory '{location}': {e}", severity="error"
+                message=Content(f"Error creating directory '{location}': {e}"),
+                severity="error",
             )
     elif len(location.split("/")) > 1:
         # recursive directory until file creation
@@ -66,9 +71,13 @@ async def create_new_item(appInstance: App, location: str):
             makedirs(dir_path)
             with open(location, "w") as f:
                 f.write("")  # Create an empty file
+        except FileExistsError:
+            with open(location, "w") as f:
+                f.write("")
         except Exception as e:
             appInstance.notify(
-                message=f"Error creating file '{location}': {e}", severity="error"
+                message=Content(f"Error creating file '{location}': {e}"),
+                severity="error",
             )
     else:
         # normal file creation i hope
@@ -77,7 +86,8 @@ async def create_new_item(appInstance: App, location: str):
                 f.write("")  # Create an empty file
         except Exception as e:
             appInstance.notify(
-                message=f"Error creating file '{location}': {e}", severity="error"
+                message=Content(f"Error creating file '{location}': {e}"),
+                severity="error",
             )
     appInstance.query_one("#reload").action_press()
     appInstance.query_one("#file_list").focus()
@@ -106,7 +116,7 @@ async def rename_object(appInstance: App, old_name: str, new_name: str):
         shutil.move(old_name, new_name)
     except Exception as e:
         appInstance.notify(
-            message=f"Error renaming '{old_name}' to '{new_name}': {e}",
+            message=Content(f"Error renaming '{old_name}' to '{new_name}': {e}"),
             severity="error",
         )
 

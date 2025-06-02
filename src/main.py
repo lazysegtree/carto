@@ -33,6 +33,7 @@ from WidgetsCore import (
     PinnedSidebar,
     FileList,
     Clipboard,
+    dummy_update_file_list,
 )
 
 
@@ -198,7 +199,7 @@ class Application(App):
         update_file_list(self, "#file_list", self.main_sort_by, self.main_sort_order)
 
     @on(Button.Pressed, "#reload")
-    def reload_file_list(self, event: Button.Pressed) -> None:
+    async def reload_file_list(self, event: Button.Pressed) -> None:
         """Reload the file list"""
         update_file_list(
             self,
@@ -207,6 +208,9 @@ class Application(App):
             self.main_sort_order,
             add_to_session=False,
         )
+        file_list = self.query_one("#file_list")
+        cd_into = file_list.get_option_at_index(file_list.highlighted).value
+        self.query_one("#preview_sidebar").show_preview(cd_into)
 
     @on(Button.Pressed, "#copy")
     async def copy_files(self, event: Button.Pressed) -> None:
