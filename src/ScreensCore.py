@@ -56,7 +56,7 @@ class Dismissable(ModalScreen):
     def on_key(self, event: events.Key) -> None:
         event.stop()
         """Handle key presses."""
-        if event.key in "escape":
+        if event.key in ["escape", "enter"]:
             self.dismiss()
         elif event.key == "tab":
             self.focus_next()
@@ -156,6 +156,9 @@ class CopyOverwrite(ModalScreen):
             yield Button("\\[S]kip", variant="default", id="skip")
             yield Button("\\[C]ancel", variant="primary", id="cancel")
 
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        self.dismiss(event.button.id)
+
     def on_key(self, event) -> None:
         """Handle key presses."""
         if event.key == "o":
@@ -216,12 +219,7 @@ class DeleteFiles(ModalScreen):
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """Handle button presses."""
-        if event.button.id == "delete":
-            self.dismiss("delete")
-        elif event.button.id == "trash":
-            self.dismiss("trash")
-        elif event.button.id == "cancel":
-            self.dismiss("cancel")
+        self.dismiss(event.button.id)
 
     def on_key(self, event) -> None:
         event.stop()
@@ -236,6 +234,8 @@ class DeleteFiles(ModalScreen):
             self.focus_next()
         elif event.key == "shift+tab":
             self.focus_previous()
+        elif event.key == "enter":
+            self.query_one(f"#{self.focused.id}").action_press()
 
 
 class ZToDirectory(ModalScreen):
