@@ -168,11 +168,17 @@ Screen.-filelistonly {
   #below_menu Button {
     display: none !important;
   }
+  #below_menu PathAutoCompleteInput {
+    margin: -1 1 0 1 !important
+  }
 }
 Screen.-nopreview {
   #preview_sidebar,
   #below_menu Button {
     display: none !important;
+  }
+  #below_menu PathAutoCompleteInput {
+    margin: -1 1 0 1 !important
   }
 }
 .hide {
