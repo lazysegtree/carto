@@ -49,8 +49,8 @@ class Application(App):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.prev_selected_option = None
-        self.main_sort_by = state.config["filelist"]["sort_by"]
-        self.main_sort_order = state.config["filelist"]["sort_order"]
+        self.main_sort_by = state.config["settings"]["filelist_sort_by"]
+        self.main_sort_order = state.config["settings"]["filelist_sort_order"]
 
     def compose(self) -> ComposeResult:
         print("Starting Carto...")
@@ -140,7 +140,7 @@ class Application(App):
         # themes
         for theme in get_custom_themes():
             self.register_theme(theme)
-        self.theme = state.config["interface"]["theme"]["default"]
+        self.theme = state.config["theme"]["default"]
         # tooltips
         if state.config["interface"]["tooltips"]:
             self.query_one("#sort_order").tooltip = "Lists are in ascending order"
@@ -328,7 +328,7 @@ class Application(App):
             return
         # focus toggle pinned sidebar
         event.prevent_default()
-        if event.key in state.config["keybinds"]["focus"]["pinned_sidebar"]:
+        if event.key in state.config["keybinds"]["focus_toggle_pinned_sidebar"]:
             if (
                 self.focused.id == "pinned_sidebar"
                 or "hide" in self.query_one("#pinned_sidebar_container").classes
@@ -337,10 +337,10 @@ class Application(App):
             else:
                 self.query_one("#pinned_sidebar").focus()
         # focus file list from anywhere except input
-        elif event.key in state.config["keybinds"]["focus"]["file_list"]:
+        elif event.key in state.config["keybinds"]["focus_file_list"]:
             self.query_one("#file_list").focus()
         # focus toggle preview sidebar
-        elif event.key in state.config["keybinds"]["focus"]["preview_sidebar"]:
+        elif event.key in state.config["keybinds"]["focus_toggle_preview_sidebar"]:
             if (
                 self.focused.id == "preview_sidebar"
                 or self.focused.parent.id == "preview_sidebar"
@@ -350,10 +350,10 @@ class Application(App):
             else:
                 self.query_one("#preview_sidebar *").focus()
         # focus path switcher
-        elif event.key in state.config["keybinds"]["focus"]["path_switcher"]:
+        elif event.key in state.config["keybinds"]["focus_toggle_path_switcher"]:
             self.query_one("#path_switcher").focus()
         # focus processes
-        elif event.key in state.config["keybinds"]["focus"]["processes"]:
+        elif event.key in state.config["keybinds"]["focus_toggle_processes"]:
             if (
                 self.focused.id == "processes"
                 or "hide" in self.query_one("#processes").classes
@@ -362,58 +362,58 @@ class Application(App):
             else:
                 self.query_one("#processes").focus()
         # focus metadata
-        elif event.key in state.config["keybinds"]["focus"]["metadata"]:
+        elif event.key in state.config["keybinds"]["focus_toggle_metadata"]:
             if self.focused.id == "metadata":
                 self.query_one("#file_list").focus()
             else:
                 self.query_one("#metadata").focus()
         # focus clipboard
-        elif event.key in state.config["keybinds"]["focus"]["clipboard"]:
+        elif event.key in state.config["keybinds"]["focus_toggle_clipboard"]:
             if self.focused.id == "clipboard":
                 self.query_one("#file_list").focus()
             else:
                 self.query_one("#clipboard").focus()
         # navi buttons but keybind
-        elif event.key in state.config["keybinds"]["navigation"]["hist_previous"]:
+        elif event.key in state.config["keybinds"]["hist_previous"]:
             if self.query_one("#back").disabled:
                 self.go_up_path(Button.Pressed(self.query_one("#up")))
             else:
                 self.go_back_in_history(Button.Pressed(self.query_one("#back")))
-        elif event.key in state.config["keybinds"]["navigation"]["hist_next"]:
+        elif event.key in state.config["keybinds"]["hist_next"]:
             if not self.query_one("#forward").disabled:
                 self.go_forward_in_history(
                     Button.Pressed(
                         self.query_one("#forward"),
                     )
                 )
-        elif event.key in state.config["keybinds"]["navigation"]["up_tree"]:
+        elif event.key in state.config["keybinds"]["up_tree"]:
             self.go_up_path(Button.Pressed(self.query_one("#up")))
-        elif event.key in state.config["keybinds"]["navigation"]["reload"]:
+        elif event.key in state.config["keybinds"]["reload"]:
             self.reload_file_list(Button.Pressed(self.query_one("#reload")))
         # toggle pin on current directory
         elif event.key in state.config["keybinds"]["toggle_pin"]:
             state.toggle_pin(path.basename(getcwd()), getcwd())
             await self.query_one("#pinned_sidebar").reload_pins()
         # toggle hiding panels
-        elif event.key in state.config["keybinds"]["hide"]["pinned_sidebar"]:
+        elif event.key in state.config["keybinds"]["toggle_pinned_sidebar"]:
             self.query_one("#file_list").focus()
             if self.query_one("#pinned_sidebar_container").display:
                 self.query_one("#pinned_sidebar_container").add_class("hide")
             else:
                 self.query_one("#pinned_sidebar_container").remove_class("hide")
-        elif event.key in state.config["keybinds"]["hide"]["preview_sidebar"]:
+        elif event.key in state.config["keybinds"]["toggle_preview_sidebar"]:
             self.query_one("#file_list").focus()
             if self.query_one("#preview_sidebar").display:
                 self.query_one("#preview_sidebar").add_class("hide")
             else:
                 self.query_one("#preview_sidebar").remove_class("hide")
-        elif event.key in state.config["keybinds"]["hide"]["footer"]:
+        elif event.key in state.config["keybinds"]["toggle_footer"]:
             self.query_one("#file_list").focus()
             if self.query_one("#footer").display:
                 self.query_one("#footer").add_class("hide")
             else:
                 self.query_one("#footer").remove_class("hide")
-        elif event.key in state.config["mode"]["visual"]["toggle"]:
+        elif event.key in state.config["keybinds"]["toggle_visual"]:
             await self.query_one("#file_list").toggle_mode()
         elif (
             event.key in state.config["plugins"]["zoxide"]["keybinds"]

@@ -1,32 +1,29 @@
-[sidebar.text]
-error = "Hmm, I think this file got corrupted (or maybe not?)"
-binary = "This file is not UTF-8 encoded, so I decline to read it."
-start = "print(\"Hello, world!\")"
-
-[filelist]
-sort_by = "name"
-sort_order = "ascending"
-use_recycle_bin = true
-
 [interface]
 tooltips = true
-[interface.border]
-style = "round"
-inactive_color = "$primary-darken-3"
-color = "$primary-lighten-3"
-subtitle = "$primary-muted"
 
-[interface.widths]
-pinned_sidebar = "20"
-file_list = "3fr"
-preview_sidebar = "2fr"
-footer_unfocus = "10"
-footer_focus = "20"
+border_style = "round"
+border_color = "$primary-lighten-3"
+border_inactive_color = "$primary-darken-3"
 
-[interface.theme]
+pinned_sidebar_width = "20"
+file_list_width = "3fr"
+preview_sidebar_width = "2fr"
+footer_unfocus_width = "10"
+footer_focus_width = "20"
+
+preview_error = "Hmm, I think this file got corrupted (or maybe not?)"
+preview_binary = "This file is not UTF-8 encoded, so I decline to read it."
+preview_start = "print(\"Hello, world!\")"
+
+[settings]
+use_recycle_bin = true
+filelist_sort_by = "name"
+filelist_sort_order = "ascending"
+
+[theme]
 default = "nord"
 
-[[interface.custom_theme]]
+[[custom_theme]]
 name = "High Contrast Dark"
 primary = "#ffffff"
 secondary = "#cccccc"
@@ -42,23 +39,19 @@ is_dark = true
 
 [keybinds]
 toggle_pin = ["P"]
+toggle_pinned_sidebar = ["S"]
+toggle_preview_sidebar = ["I"]
+toggle_footer = ["F"]
 
-[keybinds.hide]
-pinned_sidebar = ["S"]
-preview_sidebar = ["I"]
-footer = ["F"]
+focus_toggle_pinned_sidebar = ["s"]
+focus_file_list = ["escape"]
+focus_toggle_preview_sidebar = ["i"] 
+focus_toggle_path_switcher = ["slash", "/"]
+focus_toggle_search = ["f", "/"]
+focus_toggle_processes = ["p"]
+focus_toggle_clipboard = ["c"]
+focus_toggle_metadata = ["m"]
 
-[keybinds.focus]
-pinned_sidebar = ["s"]
-file_list = ["escape"]
-preview_sidebar = ["i"] 
-path_switcher = ["slash", "/"]
-search = ["f", "/"]
-processes = ["p"]
-clipboard = ["c"]
-metadata = ["m"]
-
-[keybinds.manipulation]
 copy = ["y", "ctrl+c"]
 paste = ["p", "ctrl+v"]
 cut = ["x", "ctrl+x"]
@@ -67,7 +60,6 @@ rename = ["r", "f2"]
 toggle_all = ["%", "ctrl+a"]
 new = ["o", "ctrl+n"]
 
-[keybinds.navigation]
 up = ["up", "k"]
 down = ["down", "j"]
 up_tree = ["left", "h"]
@@ -80,8 +72,7 @@ hist_previous = ["backspace", "u"]
 hist_next = ["space", "ctrl+r"]
 reload = ["ctrl+r", "f5"]
 
-[mode.visual]
-toggle = ["v"]
+toggle_visual = ["v"]
 select_up = ["shift+up", "K"]
 select_down = ["shift+down", "J"]
 select_page_up = ["shift+pageup"]

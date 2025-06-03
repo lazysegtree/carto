@@ -288,9 +288,9 @@ def set_scuffed_subtitle(element, mode: str, frac: str, hover: bool) -> None:
         element.styles.border_bottom[0], BORDER_BOTTOM["blank"]
     )
     border_color = (
-        config["interface"]["border"]["color"]
+        config["interface"]["border_color"]
         if hover
-        else config["interface"]["border"]["inactive_color"]
+        else config["interface"]["border_inactive_color"]
     )
     element.border_subtitle = (
         f"{mode} [{border_color} on $background]{border_bottom}[/] {frac}"

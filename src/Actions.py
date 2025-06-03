@@ -28,7 +28,7 @@ async def remove_files(
         file = path.realpath(file)
         try:
             if path.exists(file):
-                if state.config["filelist"]["use_recycle_bin"] and not ignore_trash:
+                if state.config["settings"]["use_recycle_bin"] and not ignore_trash:
                     try:
                         send2trash(file)
                     except Exception as e:

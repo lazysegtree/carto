@@ -20,13 +20,13 @@ Footer {
 #file_list_container {
   height: 1fr;
   border: none;
-  width: $-interface-widths-file_list-$;
+  width: $-interface-file_list_width-$;
 }
 
 #pinned_sidebar_container {
   height: 1fr;
   margin: 0;
-  width: $-interface-widths-pinned_sidebar-$;
+  width: $-interface-pinned_sidebar_width-$;
 }
 #pinned_sidebar_container > Input,
 #file_list_container > Input {
@@ -45,7 +45,7 @@ Footer {
   margin: 0;
   width: 2fr;
   border: none;
-  width: $-interface-widths-preview_sidebar-$;
+  width: $-interface-preview_sidebar_width-$;
   padding: 0 1;
 }
 /*
@@ -73,7 +73,7 @@ Footer {
 }
 #below_menu {
   margin: 0 1 0 1;
-  border: $-interface-border-style-$ white;
+  border: $-interface-border_style-$ white;
   max-height: 11;
 }
 #below_menu PathAutoCompleteInput {
@@ -83,7 +83,7 @@ Footer {
   overlay: screen;
   height: 9;
   width: 1fr;
-  border: $-interface-border-style-$ white;
+  border: $-interface-border_style-$ white;
   border-top: none;
   background: $boost;
   AutoCompleteList {
@@ -117,9 +117,9 @@ Footer {
 #zoxide_options,
 #below_menu Button {
   background: transparent;
-  border: $-interface-border-style-$ $-interface-border-inactive_color-$;
+  border: $-interface-border_style-$ $-interface-border_inactive_color-$;
   border-subtitle-color: $background;
-  border-subtitle-background: $-interface-border-inactive_color-$;
+  border-subtitle-background: $-interface-border_inactive_color-$;
 }
 
 #menu:focus-within,
@@ -131,8 +131,8 @@ Footer {
 #path_switcher:focus-within,
 #zoxide_options:focus,
 #below_menu Button:focus {
-  border: $-interface-border-style-$ $-interface-border-color-$;
-  border-subtitle-background: $-interface-border-color-$;
+  border: $-interface-border_style-$ $-interface-border_color-$;
+  border-subtitle-background: $-interface-border_color-$;
 }
 #preview_sidebar > * {
   background: transparent;
@@ -186,12 +186,12 @@ Screen.-nopreview {
   height: 0.5fr;
 }
 #footer > * {
-  border: $-interface-border-style-$ $-interface-border-inactive_color-$;
+  border: $-interface-border_style-$ $-interface-border_inactive_color-$;
   height: 1fr;
   background: transparent;
 }
 #footer > *:focus-within {
-  border: $-interface-border-style-$ $-interface-border-color-$;
+  border: $-interface-border_style-$ $-interface-border_color-$;
 }
 RichLog {
   scrollbar-size: 0 0 !important;
@@ -238,14 +238,14 @@ ZToDirectory {
   max-width: 100%;
   padding: 0 1;
   background: transparent;
-  border: $-interface-border-style-$ $-interface-border-color-$;
+  border: $-interface-border_style-$ $-interface-border_color-$;
 }
 #zoxide_options {
   width: 100%;
   max-width: 100%;
   height: 1fr;
   background: transparent;
-  border: $-interface-border-style-$ $-interface-border-color-$;
+  border: $-interface-border_style-$ $-interface-border_color-$;
   .option-list--option-highlighted {
     background: $primary-lighten-3;
     color: $background;

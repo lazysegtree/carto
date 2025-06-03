@@ -314,7 +314,7 @@ class PreviewContainer(Container):
             show_line_numbers=True,
             soft_wrap=False,
             read_only=True,
-            text=state.config["sidebar"]["text"]["start"],
+            text=state.config["interface"]["preview_start"],
             language="markdown",
             compact=True,
         )
@@ -362,7 +362,7 @@ class PreviewContainer(Container):
                         show_line_numbers=True,
                         soft_wrap=False,
                         read_only=True,
-                        text=state.config["sidebar"]["text"]["binary"],
+                        text=state.config["interface"]["preview_binary"],
                         language="markdown",
                         compact=True,
                     )
@@ -374,7 +374,7 @@ class PreviewContainer(Container):
                         show_line_numbers=True,
                         soft_wrap=False,
                         read_only=True,
-                        text=state.config["sidebar"]["text"]["error"],
+                        text=state.config["interface"]["preview_error"],
                         language="markdown",
                         compact=True,
                     )
@@ -419,31 +419,31 @@ class PinnedSidebar(OptionList, inherit_bindings=False):
     BINDINGS: ClassVar[list[BindingType]] = (
         [
             Binding(bind, "cursor_down", "Down", show=False)
-            for bind in state.config["keybinds"]["navigation"]["down"]
+            for bind in state.config["keybinds"]["down"]
         ]
         + [
             Binding(bind, "last", "Last", show=False)
-            for bind in state.config["keybinds"]["navigation"]["end"]
+            for bind in state.config["keybinds"]["end"]
         ]
         + [
             Binding(bind, "select", "Select", show=False)
-            for bind in state.config["keybinds"]["navigation"]["down_tree"]
+            for bind in state.config["keybinds"]["down_tree"]
         ]
         + [
             Binding(bind, "first", "First", show=False)
-            for bind in state.config["keybinds"]["navigation"]["home"]
+            for bind in state.config["keybinds"]["home"]
         ]
         + [
             Binding(bind, "page_down", "Page Down", show=False)
-            for bind in state.config["keybinds"]["navigation"]["page_down"]
+            for bind in state.config["keybinds"]["page_down"]
         ]
         + [
             Binding(bind, "page_up", "Page Up", show=False)
-            for bind in state.config["keybinds"]["navigation"]["page_up"]
+            for bind in state.config["keybinds"]["page_up"]
         ]
         + [
             Binding(bind, "cursor_up", "Up", show=False)
-            for bind in state.config["keybinds"]["navigation"]["up"]
+            for bind in state.config["keybinds"]["up"]
         ]
     )
 
@@ -564,31 +564,31 @@ class FileList(SelectionList, inherit_bindings=False):
     BINDINGS: ClassVar[list[BindingType]] = (
         [
             Binding(bind, "cursor_down", "Down", show=False)
-            for bind in state.config["keybinds"]["navigation"]["down"]
+            for bind in state.config["keybinds"]["down"]
         ]
         + [
             Binding(bind, "last", "Last", show=False)
-            for bind in state.config["keybinds"]["navigation"]["end"]
+            for bind in state.config["keybinds"]["end"]
         ]
         + [
             Binding(bind, "select", "Select", show=False)
-            for bind in state.config["keybinds"]["navigation"]["down_tree"]
+            for bind in state.config["keybinds"]["down_tree"]
         ]
         + [
             Binding(bind, "first", "First", show=False)
-            for bind in state.config["keybinds"]["navigation"]["home"]
+            for bind in state.config["keybinds"]["home"]
         ]
         + [
             Binding(bind, "page_down", "Page Down", show=False)
-            for bind in state.config["keybinds"]["navigation"]["page_down"]
+            for bind in state.config["keybinds"]["page_down"]
         ]
         + [
             Binding(bind, "page_up", "Page Up", show=False)
-            for bind in state.config["keybinds"]["navigation"]["page_up"]
+            for bind in state.config["keybinds"]["page_up"]
         ]
         + [
             Binding(bind, "cursor_up", "Up", show=False)
-            for bind in state.config["keybinds"]["navigation"]["up"]
+            for bind in state.config["keybinds"]["up"]
         ]
     )
 
@@ -869,7 +869,7 @@ class FileList(SelectionList, inherit_bindings=False):
         """Handle key events for the file list."""
         if not self.dummy:
             if self.select_mode_enabled:
-                if event.key in state.config["mode"]["visual"]["select_up"]:
+                if event.key in state.config["keybinds"]["toggle_visual"]:
                     """Select the current and previous file."""
                     if self.highlighted == 0:
                         self.select(self.get_option_at_index(0))
@@ -878,7 +878,7 @@ class FileList(SelectionList, inherit_bindings=False):
                         self.action_cursor_up()
                         self.select(self.get_option_at_index(self.highlighted))
                     return
-                elif event.key in state.config["mode"]["visual"]["select_down"]:
+                elif event.key in state.config["keybinds"]["select_down"]:
                     """Select the current and next file."""
                     if self.highlighted == len(self.options) - 1:
                         self.select(self.get_option_at_index(self.option_count - 1))
@@ -887,7 +887,7 @@ class FileList(SelectionList, inherit_bindings=False):
                         self.action_cursor_down()
                         self.select(self.get_option_at_index(self.highlighted))
                     return
-                elif event.key in state.config["mode"]["visual"]["select_page_up"]:
+                elif event.key in state.config["keybinds"]["select_page_up"]:
                     """Select the options between the current and the previous 'page'."""
                     old = self.highlighted
                     self.action_page_up()
@@ -899,7 +899,7 @@ class FileList(SelectionList, inherit_bindings=False):
                     for index in range(new, old + 1):
                         self.select(self.get_option_at_index(index))
                     return
-                elif event.key in state.config["mode"]["visual"]["select_page_down"]:
+                elif event.key in state.config["keybinds"]["select_page_down"]:
                     """Select the options between the current and the next 'page'."""
                     old = self.highlighted
                     self.action_page_down()
@@ -911,7 +911,7 @@ class FileList(SelectionList, inherit_bindings=False):
                     for index in range(old, new + 1):
                         self.select(self.get_option_at_index(index))
                     return
-                elif event.key in state.config["mode"]["visual"]["select_home"]:
+                elif event.key in state.config["keybinds"]["select_home"]:
                     old = self.highlighted
                     self.action_first()
                     new = self.highlighted
@@ -920,7 +920,7 @@ class FileList(SelectionList, inherit_bindings=False):
                     for index in range(new, old + 1):
                         self.select(self.get_option_at_index(index))
                     return
-                elif event.key in state.config["mode"]["visual"]["select_end"]:
+                elif event.key in state.config["keybinds"]["select_end"]:
                     old = self.highlighted
                     self.action_last()
                     new = self.highlighted
@@ -929,7 +929,7 @@ class FileList(SelectionList, inherit_bindings=False):
                     for index in range(old, new + 1):
                         self.select(self.get_option_at_index(index))
                     return
-            if event.key in state.config["keybinds"]["manipulation"]["copy"]:
+            if event.key in state.config["keybinds"]["copy"]:
                 """Copy the selected files to the clipboard."""
                 selected_files = await self.get_selected_objects()
                 if selected_files:
@@ -940,7 +940,7 @@ class FileList(SelectionList, inherit_bindings=False):
                         title="Clipboard",
                         severity="warning",
                     )
-            elif event.key in state.config["keybinds"]["manipulation"]["cut"]:
+            elif event.key in state.config["keybinds"]["cut"]:
                 """Cut the selected files to the clipboard."""
                 selected_files = await self.get_selected_objects()
                 if selected_files:
@@ -951,7 +951,7 @@ class FileList(SelectionList, inherit_bindings=False):
                         title="Clipboard",
                         severity="warning",
                     )
-            elif event.key in state.config["keybinds"]["manipulation"]["new"]:
+            elif event.key in state.config["keybinds"]["new"]:
                 """Create a new file or folder."""
                 self.app.push_screen(
                     ModalInput(
@@ -960,7 +960,7 @@ class FileList(SelectionList, inherit_bindings=False):
                     ),
                     callback=lambda response: create_new_item(self.app, response),
                 )
-            elif event.key in state.config["keybinds"]["manipulation"]["rename"]:
+            elif event.key in state.config["keybinds"]["rename"]:
                 """Rename the selected file/folder"""
                 selected_files = await self.get_selected_objects()
                 if selected_files is None or len(selected_files) != 1:
@@ -982,7 +982,7 @@ class FileList(SelectionList, inherit_bindings=False):
                             self.app, selected_file, response
                         ),
                     )
-            elif event.key in state.config["keybinds"]["manipulation"]["delete"]:
+            elif event.key in state.config["keybinds"]["delete"]:
                 """Delete the selected files."""
                 selected_files = await self.get_selected_objects()
                 if selected_files:
@@ -1020,7 +1020,7 @@ class FileList(SelectionList, inherit_bindings=False):
                         title="Delete Files",
                         severity="warning",
                     )
-            elif event.key in state.config["keybinds"]["manipulation"]["toggle_all"]:
+            elif event.key in state.config["keybinds"]["toggle_all"]:
                 if not self.select_mode_enabled:
                     await self.toggle_mode()
                 if len(self.selected) == len(self.options):
@@ -1035,31 +1035,31 @@ class Clipboard(SelectionList, inherit_bindings=False):
     BINDINGS: ClassVar[list[BindingType]] = (
         [
             Binding(bind, "cursor_down", "Down", show=False)
-            for bind in state.config["keybinds"]["navigation"]["down"]
+            for bind in state.config["keybinds"]["down"]
         ]
         + [
             Binding(bind, "last", "Last", show=False)
-            for bind in state.config["keybinds"]["navigation"]["end"]
+            for bind in state.config["keybinds"]["end"]
         ]
         + [
             Binding(bind, "select", "Select", show=False)
-            for bind in state.config["keybinds"]["navigation"]["down_tree"]
+            for bind in state.config["keybinds"]["down_tree"]
         ]
         + [
             Binding(bind, "first", "First", show=False)
-            for bind in state.config["keybinds"]["navigation"]["home"]
+            for bind in state.config["keybinds"]["home"]
         ]
         + [
             Binding(bind, "page_down", "Page Down", show=False)
-            for bind in state.config["keybinds"]["navigation"]["page_down"]
+            for bind in state.config["keybinds"]["page_down"]
         ]
         + [
             Binding(bind, "page_up", "Page Up", show=False)
-            for bind in state.config["keybinds"]["navigation"]["page_up"]
+            for bind in state.config["keybinds"]["page_up"]
         ]
         + [
             Binding(bind, "cursor_up", "Up", show=False)
-            for bind in state.config["keybinds"]["navigation"]["up"]
+            for bind in state.config["keybinds"]["up"]
         ]
     )
 
@@ -1216,7 +1216,7 @@ class Clipboard(SelectionList, inherit_bindings=False):
     @work
     async def on_key(self, event: events.Key):
         if self.has_focus:
-            if event.key in state.config["keybinds"]["manipulation"]["delete"]:
+            if event.key in state.config["keybinds"]["delete"]:
                 """Delete the selected files from the clipboard."""
                 if not self.selected:
                     self.app.notify(
@@ -1226,7 +1226,7 @@ class Clipboard(SelectionList, inherit_bindings=False):
                     )
                     return
                 self.remove_option_at_index(self.highlighted)
-            elif event.key in state.config["keybinds"]["manipulation"]["toggle_all"]:
+            elif event.key in state.config["keybinds"]["toggle_all"]:
                 """Select all items in the clipboard."""
                 if len(self.selected) == len(self.options):
                     self.deselect_all()
