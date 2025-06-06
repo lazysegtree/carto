@@ -636,7 +636,6 @@ class FileList(SelectionList, inherit_bindings=False):
     def compose(self) -> ComposeResult:
         yield Static()
 
-    @work
     async def on_mount(self, add_to_history: bool = True) -> None:
         """Initialize the file list."""
         try:
