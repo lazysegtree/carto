@@ -703,7 +703,6 @@ class FileList(SelectionList, inherit_bindings=False):
                 f"{len(self.selected)}/{len(self.options)}",
                 True,
             )
-            return
         # Get the highlighted option
         highlighted_option = event.option
         state.sessionLastHighlighted[getcwd().replace(path.sep, "/")] = (
@@ -868,7 +867,7 @@ class FileList(SelectionList, inherit_bindings=False):
         """Handle key events for the file list."""
         if not self.dummy:
             if self.select_mode_enabled:
-                if event.key in state.config["keybinds"]["toggle_visual"]:
+                if event.key in state.config["keybinds"]["select_up"]:
                     """Select the current and previous file."""
                     if self.highlighted == 0:
                         self.select(self.get_option_at_index(0))
