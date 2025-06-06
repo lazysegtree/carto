@@ -1,33 +1,35 @@
-from Actions import create_new_item, remove_files, rename_object
-from humanize import naturalsize
-from maps import (
-    get_icon_for_file,
-    get_icon_for_folder,
-    EXT_TO_LANG_MAP,
-    PIL_EXTENSIONS,
-    TOGGLE_BUTTON_ICONS,
-    ICONS,
-)
-from os import listdir, path, getcwd, chdir, scandir
-from pathlib import Path
 import platform
+import subprocess
+from os import chdir, getcwd, listdir, path, scandir
+from pathlib import Path
+from typing import ClassVar
+
+from humanize import naturalsize
 from rich.segment import Segment
 from rich.style import Style
-from ScreensCore import ModalInput, DeleteFiles
-import state
-import subprocess
-from textual import events, work, on
-from textual.app import ComposeResult, App
+from textual import events, on, work
+from textual.app import App, ComposeResult
 from textual.binding import Binding, BindingType
 from textual.containers import Container
 from textual.content import Content
 from textual.css.query import NoMatches
 from textual.strip import Strip
-from textual.widgets import OptionList, Static, TextArea, SelectionList
+from textual.widgets import OptionList, SelectionList, Static, TextArea
 from textual.widgets.option_list import Option, OptionDoesNotExist
 from textual.widgets.selection_list import Selection
-from textual_autocomplete import PathAutoComplete, TargetState, DropdownItem
-from typing import ClassVar
+from textual_autocomplete import DropdownItem, PathAutoComplete, TargetState
+
+import state
+from Actions import create_new_item, remove_files, rename_object
+from maps import (
+    EXT_TO_LANG_MAP,
+    ICONS,
+    PIL_EXTENSIONS,
+    TOGGLE_BUTTON_ICONS,
+    get_icon_for_file,
+    get_icon_for_folder,
+)
+from ScreensCore import DeleteFiles, ModalInput
 
 state.load_config()
 

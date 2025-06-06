@@ -1,11 +1,8 @@
-from Actions import create_new_item, remove_files, rename_object
-from maps import ICONS
-from types import SimpleNamespace as Namespace
-from os import getcwd, path, chdir
-from ScreensCore import ZToDirectory, ModalInput, DeleteFiles
 import shutil
-import state
-from textual import work, on, events
+from os import chdir, getcwd, path
+from types import SimpleNamespace as Namespace
+
+from textual import events, on, work
 from textual.app import App, ComposeResult
 from textual.containers import (
     HorizontalGroup,
@@ -14,28 +11,27 @@ from textual.containers import (
     VerticalGroup,
 )
 from textual.validation import Function
-from textual.widgets import (
-    # OptionList,
-    # TabbedContent,
-    # Switch,
-    # Label,
+from textual.widgets import (  # OptionList,; TabbedContent,; Switch,; Label,; Static,
     Button,
-    # Static,
     Header,
     Input,
     RichLog,
 )
+
+import state
+from Actions import create_new_item, remove_files, rename_object
+from maps import ICONS
+from ScreensCore import DeleteFiles, ModalInput, ZToDirectory
 from themes import get_custom_themes
 from WidgetsCore import (
-    PathAutoCompleteInput,
-    update_file_list,
-    PreviewContainer,
-    PinnedSidebar,
-    FileList,
     Clipboard,
+    FileList,
+    PathAutoCompleteInput,
+    PinnedSidebar,
+    PreviewContainer,
     dummy_update_file_list,
+    update_file_list,
 )
-
 
 state.load_config()
 state.load_pins()

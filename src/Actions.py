@@ -1,9 +1,11 @@
-from os import path, remove, makedirs, getcwd
 import shutil
-import state
+from os import getcwd, makedirs, path, remove, walk
+
+from send2trash import send2trash
 from textual.app import App
 from textual.content import Content
-from send2trash import send2trash
+
+import state
 
 state.load_config()
 

@@ -1,5 +1,6 @@
-from platformdirs import PlatformDirs
 from os import path
+
+from platformdirs import PlatformDirs
 
 dirs = PlatformDirs("NSPC911", "carto")
 

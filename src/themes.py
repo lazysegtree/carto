@@ -1,5 +1,6 @@
-import state
 from textual.theme import Theme
+
+import state
 
 state.load_config()
 

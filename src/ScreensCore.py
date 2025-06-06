@@ -1,12 +1,14 @@
 from subprocess import run
-from textual import on, events, work
-from textual.app import ComposeResult, App
-from textual.containers import Grid, Container, VerticalGroup
+
+from textual import events, on, work
+from textual.app import App, ComposeResult
+from textual.binding import Binding
+from textual.containers import Container, Grid, VerticalGroup
 from textual.content import Content
 from textual.screen import ModalScreen
-from textual.widgets import Button, Label, Input, OptionList, Static
+from textual.widgets import Button, Input, Label, OptionList, Static
 from textual.widgets.option_list import Option
-from textual.binding import Binding
+
 import state
 
 

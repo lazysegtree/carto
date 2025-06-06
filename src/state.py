@@ -1,18 +1,20 @@
 """Module that holds variable states + other functions"""
 
-from lzstring import LZString
-from maps import VAR_TO_DIR, BORDER_BOTTOM
-from os import path
 import platform
-from platformdirs import *  # leaving it here just in case we need it later
-import psutil
 import re
+from os import path
 from threading import Thread
 from time import sleep, time
+
+import psutil
 import toml
 import ujson
+from lzstring import LZString
+from platformdirs import *  # leaving it here just in case we need it later
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
+
+from maps import BORDER_BOTTOM, VAR_TO_DIR
 
 lzstring = LZString()
 
