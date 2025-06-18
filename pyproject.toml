@@ -23,18 +23,9 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "codeflash>=0.13.0",
     "hatch>=1.14.1",
     "isort>=6.0.1",
     "ruff>=0.11.12",
 ]
-
-[tool.codeflash]
-# All paths are relative to this pyproject.toml's directory.
-module-root = "src"
-tests-root = "tests"
-test-framework = "pytest"
-benchmarks-root = ""
-ignore-paths = []
-disable-telemetry = true
-formatter-cmds = ["disabled"]
+[lint]
+select = ["ASYNC251", "COM819", "F541", "W191", "W291", "W293", "W391", "W605", "F632", "SIM201", "SIM202"]
