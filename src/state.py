@@ -19,6 +19,7 @@ from maps import BORDER_BOTTOM, VAR_TO_DIR
 lzstring = LZString()
 
 
+# what is textual reactive?
 sessionDirectories = []
 sessionHistoryIndex = 0
 sessionLastHighlighted = {}

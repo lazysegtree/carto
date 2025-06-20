@@ -29,8 +29,6 @@ from WidgetsCore import (
     PathAutoCompleteInput,
     PinnedSidebar,
     PreviewContainer,
-    dummy_update_file_list,
-    update_file_list,
 )
 
 state.load_config()
@@ -157,9 +155,7 @@ class Application(App):
         state.sessionHistoryIndex = state.sessionHistoryIndex - 1
         #! reminder to add a check for path
         chdir(state.sessionDirectories[state.sessionHistoryIndex]["path"])
-        update_file_list(
-            self,
-            "#file_list",
+        self.query_one("#file_list").update_file_list(
             self.main_sort_by,
             self.main_sort_order,
             add_to_session=False,
@@ -171,9 +167,7 @@ class Application(App):
         state.sessionHistoryIndex = state.sessionHistoryIndex + 1
         #! reminder to add a check for path
         chdir(state.sessionDirectories[state.sessionHistoryIndex]["path"])
-        update_file_list(
-            self,
-            "#file_list",
+        self.query_one("#file_list").update_file_list(
             self.main_sort_by,
             self.main_sort_order,
             add_to_session=False,
@@ -184,7 +178,7 @@ class Application(App):
         """Go up the current location's directory"""
         #! on the off chance that parent's parent got nuked, might need to check if the parent exists
         chdir(path.sep.join(getcwd().split(path.sep)[:-1]))
-        update_file_list(self, "#file_list", self.main_sort_by, self.main_sort_order)
+        self.query_one("#file_list").update_file_list(self.main_sort_by, self.main_sort_order)
 
     @on(Input.Submitted, "#path_switcher")
     def switch_to_path(self, event: Input.Submitted) -> None:
@@ -192,14 +186,12 @@ class Application(App):
         if path.exists(event.value):
             chdir(event.value)
         #! at least try to alert user
-        update_file_list(self, "#file_list", self.main_sort_by, self.main_sort_order)
+        self.query_one("#file_list").update_file_list(self.main_sort_by, self.main_sort_order)
 
     @on(Button.Pressed, "#reload")
     async def reload_file_list(self, event: Button.Pressed) -> None:
         """Reload the file list"""
-        update_file_list(
-            self,
-            "#file_list",
+        self.query_one("#file_list").update_file_list(
             self.main_sort_by,
             self.main_sort_order,
             add_to_session=False,

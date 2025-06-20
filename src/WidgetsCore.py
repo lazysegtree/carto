@@ -169,142 +169,6 @@ def get_cwd_object(cwd: str, sort_order: str, sort_by: str) -> list[dict]:
     print(f"Found {len(folders)} folders and {len(files)} files in {cwd}")
     return folders, files
 
-
-def update_file_list(
-    appInstance: App,
-    file_list_id: str,
-    sort_by: str = "name",
-    sort_order: str = "ascending",
-    add_to_session: bool = True,
-) -> None:
-    """Update the file list with the current directory contents.
-
-    Args:
-        appInstance: The application instance.
-        file_list_id (str): The ID of the file list widget.
-        sort_by (str): The attribute to sort by ("name" or "size").
-        sort_order (str): The order to sort by ("ascending" or "descending").
-        add_to_session (bool): Whether to add the current directory to the session history.
-    """
-    cwd = getcwd().replace(path.sep, "/").replace(path.sep, "/")
-    file_list = appInstance.query_one(f"{file_list_id}")
-    file_list.clear_options()
-    # seperate folders and files
-    folders, files = get_cwd_object(cwd, sort_order, sort_by)
-    if folders == [PermissionError] or files == [PermissionError]:
-        file_list.add_option(
-            Selection(
-                Content("Permission Error: Unable to access this directory."),
-                value="HTI",
-            ),
-        )
-        file_list_options = [".."]
-    else:
-        file_list_options = (
-            files + folders if sort_order == "descending" else folders + files
-        )
-        for item in file_list_options:
-            file_list.add_option(
-                Selection(
-                    Content.from_markup(
-                        f" [{item['icon'][1]}]{item['icon'][0]}[/{item['icon'][1]}] $name",
-                        name=item["name"],
-                    ),
-                    value=state.compress(item["name"]),
-                    id=state.compress(item["name"]),
-                )
-            )
-    # session handler
-    appInstance.query_one("#path_switcher").value = cwd + "/"
-    if add_to_session:
-        if state.sessionHistoryIndex != len(state.sessionDirectories) - 1:
-            state.sessionDirectories = state.sessionDirectories[
-                : state.sessionHistoryIndex + 1
-            ]
-        state.sessionDirectories.append(
-            {
-                "path": cwd,
-            }
-        )
-        print(state.sessionLastHighlighted)
-        if state.sessionLastHighlighted.get(cwd) is None:
-            state.sessionLastHighlighted[cwd] = (
-                appInstance.query_one("#file_list").options[0].value
-            )
-        print(state.sessionLastHighlighted)
-        state.sessionHistoryIndex = len(state.sessionDirectories) - 1
-        appInstance.update_session_dicts(
-            state.sessionDirectories,
-            state.sessionHistoryIndex,
-            state.sessionLastHighlighted,
-        )
-    appInstance.query_one("Button#back").disabled = (
-        True if state.sessionHistoryIndex == 0 else False
-    )
-    appInstance.query_one("Button#forward").disabled = (
-        True
-        if state.sessionHistoryIndex == len(state.sessionDirectories) - 1
-        else False
-    )
-    try:
-        file_list.highlighted = file_list.get_option_index(
-            state.sessionLastHighlighted[cwd]
-        )
-    except OptionDoesNotExist:
-        file_list.highlighted = 0
-        state.sessionLastHighlighted[cwd] = (
-            appInstance.query_one("#file_list").options[0].value
-        )
-    appInstance.title = f"carto - {cwd.replace(path.sep, '/')}"
-
-
-def dummy_update_file_list(
-    appInstance: App,
-    file_list_id: str,
-    sort_by: str = "name",
-    sort_order: str = "ascending",
-    cwd: str = "",
-) -> None:
-    """Update the file list with the current directory contents.
-
-    Args:
-        appInstance: The application instance.
-        file_list_id (str): The ID of the file list widget.
-        sort_by (str): The attribute to sort by ("name" or "size").
-        sort_order (str): The order to sort by ("ascending" or "descending").
-        cwd (str): The current working directory.
-    """
-    if cwd == "":
-        cwd = getcwd().replace(path.sep, "/")
-    file_list = appInstance.query_one(f"{file_list_id}")
-    file_list.clear_options()
-    # seperate folders and files
-    folders, files = get_cwd_object(cwd, sort_order, sort_by)
-    if folders == [PermissionError] or files == [PermissionError]:
-        file_list.add_option(
-            Selection(
-                Content("Permission Error: Unable to access this directory."),
-                id="HTI",
-            )
-        )
-        return
-    file_list_options = (
-        files + folders if sort_order == "descending" else folders + files
-    )
-    for item in file_list_options:
-        file_list.add_option(
-            Selection(
-                Content.from_markup(
-                    f" [{item['icon'][1]}]{item['icon'][0]}[/{item['icon'][1]}] $name",
-                    name=item["name"],
-                ),
-                value=state.compress(item["name"]),
-            )
-        )
-    # somehow prevents more debouncing, ill take it
-    file_list.refresh(repaint=True, layout=True)
-
-
 class PreviewContainer(Container):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -399,9 +263,7 @@ class PreviewContainer(Container):
                 enter_into=path.relpath(getcwd().replace(path.sep, "/"), folder_path),
             )
         )
-        dummy_update_file_list(
-            self.app,
-            "#folder_preview",
+        self.app.query_one("#folder_preview").dummy_update_file_list(
             sort_by="name",
             sort_order="ascending",
             cwd=folder_path,
@@ -554,7 +416,7 @@ class PinnedSidebar(OptionList, inherit_bindings=False):
             else:
                 return
         chdir(file_path)
-        update_file_list(self.app, "#file_list", "name", "ascending")
+        self.app.query_one("#file_list").update_file_list("name", "ascending")
         self.app.query_one("#file_list").focus()
 
 
@@ -645,14 +507,134 @@ class FileList(SelectionList, inherit_bindings=False):
         except NoMatches:
             pass
         if not self.dummy:
-            update_file_list(
-                self.app,
-                "#file_list",
+            self.update_file_list(
                 sort_by=self.sort_by,
                 sort_order=self.sort_order,
                 add_to_session=add_to_history,
             )
             self.focus()
+    def update_file_list(
+        self,
+        sort_by: str = "name",
+        sort_order: str = "ascending",
+        add_to_session: bool = True,
+    ) -> None:
+        """Update the file list with the current directory contents.
+
+        Args:
+            sort_by (str): The attribute to sort by ("name" or "size").
+            sort_order (str): The order to sort by ("ascending" or "descending").
+            add_to_session (bool): Whether to add the current directory to the session history.
+        """
+        cwd = getcwd().replace(path.sep, "/").replace(path.sep, "/")
+        self.clear_options()
+        # seperate folders and files
+        folders, files = get_cwd_object(cwd, sort_order, sort_by)
+        if folders == [PermissionError] or files == [PermissionError]:
+            self.add_option(
+                Selection(
+                    Content("Permission Error: Unable to access this directory."),
+                    value="HTI",
+                ),
+            )
+            file_list_options = [".."]
+        else:
+            file_list_options = (
+                files + folders if sort_order == "descending" else folders + files
+            )
+            for item in file_list_options:
+                self.add_option(
+                    Selection(
+                        Content.from_markup(
+                            f" [{item['icon'][1]}]{item['icon'][0]}[/{item['icon'][1]}] $name",
+                            name=item["name"],
+                        ),
+                        value=state.compress(item["name"]),
+                        id=state.compress(item["name"]),
+                    )
+                )
+        # session handler
+        self.app.query_one("#path_switcher").value = cwd + "/"
+        if add_to_session:
+            if state.sessionHistoryIndex != len(state.sessionDirectories) - 1:
+                state.sessionDirectories = state.sessionDirectories[
+                    : state.sessionHistoryIndex + 1
+                ]
+            state.sessionDirectories.append(
+                {
+                    "path": cwd,
+                }
+            )
+            if state.sessionLastHighlighted.get(cwd) is None:
+                # hard coding is my passion (referring to the id)
+                state.sessionLastHighlighted[cwd] = self.app.query_one("#file_list").options[0].value
+            state.sessionHistoryIndex = len(state.sessionDirectories) - 1
+            self.app.update_session_dicts(
+                state.sessionDirectories,
+                state.sessionHistoryIndex,
+                state.sessionLastHighlighted,
+            )
+        self.app.query_one("Button#back").disabled = (
+            True if state.sessionHistoryIndex == 0 else False
+        )
+        self.app.query_one("Button#forward").disabled = (
+            True
+            if state.sessionHistoryIndex == len(state.sessionDirectories) - 1
+            else False
+        )
+        try:
+            self.highlighted = self.get_option_index(
+                state.sessionLastHighlighted[cwd]
+            )
+        except OptionDoesNotExist:
+            self.highlighted = 0
+            state.sessionLastHighlighted[cwd] = (
+                self.app.query_one("#file_list").options[0].value
+            )
+        self.app.title = f"carto - {cwd.replace(path.sep, '/')}"
+
+
+    def dummy_update_file_list(
+        self,
+        sort_by: str = "name",
+        sort_order: str = "ascending",
+        cwd: str = "",
+    ) -> None:
+        """Update the file list with the current directory contents.
+
+        Args:
+            sort_by (str): The attribute to sort by ("name" or "size").
+            sort_order (str): The order to sort by ("ascending" or "descending").
+            cwd (str): The current working directory.
+        """
+        if cwd == "":
+            cwd = getcwd().replace(path.sep, "/")
+        self.clear_options()
+        # seperate folders and files
+        folders, files = get_cwd_object(cwd, sort_order, sort_by)
+        if folders == [PermissionError] or files == [PermissionError]:
+            self.add_option(
+                Selection(
+                    Content("Permission Error: Unable to access this directory."),
+                    id="HTI",
+                )
+            )
+            return
+        file_list_options = (
+            files + folders if sort_order == "descending" else folders + files
+        )
+        for item in file_list_options:
+            self.add_option(
+                Selection(
+                    Content.from_markup(
+                        f" [{item['icon'][1]}]{item['icon'][0]}[/{item['icon'][1]}] $name",
+                        name=item["name"],
+                    ),
+                    value=state.compress(item["name"]),
+                )
+            )
+        # somehow prevents more debouncing, ill take it
+        self.refresh(repaint=True, layout=True)
 
     async def on_selection_list_selected_changed(
         self, event: SelectionList.SelectedChanged
@@ -672,7 +654,7 @@ class FileList(SelectionList, inherit_bindings=False):
             if path.isdir(path.join(cwd, file_name)):
                 # If it's a folder, navigate into it
                 chdir(path.join(cwd, file_name))
-                update_file_list(self.app, "#file_list", self.sort_by, self.sort_order)
+                self.app.query_one("#file_list").update_file_list(self.sort_by, self.sort_order)
             else:
                 open_file(path.join(cwd, file_name))
             if self.highlighted is None:
