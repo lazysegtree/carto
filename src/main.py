@@ -178,7 +178,9 @@ class Application(App):
         """Go up the current location's directory"""
         #! on the off chance that parent's parent got nuked, might need to check if the parent exists
         chdir(path.sep.join(getcwd().split(path.sep)[:-1]))
-        self.query_one("#file_list").update_file_list(self.main_sort_by, self.main_sort_order)
+        self.query_one("#file_list").update_file_list(
+            self.main_sort_by, self.main_sort_order
+        )
 
     @on(Input.Submitted, "#path_switcher")
     def switch_to_path(self, event: Input.Submitted) -> None:
@@ -186,7 +188,9 @@ class Application(App):
         if path.exists(event.value):
             chdir(event.value)
         #! at least try to alert user
-        self.query_one("#file_list").update_file_list(self.main_sort_by, self.main_sort_order)
+        self.query_one("#file_list").update_file_list(
+            self.main_sort_by, self.main_sort_order
+        )
 
     @on(Button.Pressed, "#reload")
     async def reload_file_list(self, event: Button.Pressed) -> None:

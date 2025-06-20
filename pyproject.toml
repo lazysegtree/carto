@@ -29,3 +29,10 @@ dev = [
 ]
 [tool.ruff]
 select = ["ASYNC251", "COM819", "F541", "W191", "W291", "W293", "W391", "W605", "F632", "SIM201", "SIM202"]
+
+ignore = []
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"

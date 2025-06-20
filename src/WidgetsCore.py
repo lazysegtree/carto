@@ -169,6 +169,7 @@ def get_cwd_object(cwd: str, sort_order: str, sort_by: str) -> list[dict]:
     print(f"Found {len(folders)} folders and {len(files)} files in {cwd}")
     return folders, files
 
+
 class PreviewContainer(Container):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -513,6 +514,7 @@ class FileList(SelectionList, inherit_bindings=False):
                 add_to_session=add_to_history,
             )
             self.focus()
+
     def update_file_list(
         self,
         sort_by: str = "name",
@@ -567,7 +569,9 @@ class FileList(SelectionList, inherit_bindings=False):
             )
             if state.sessionLastHighlighted.get(cwd) is None:
                 # hard coding is my passion (referring to the id)
-                state.sessionLastHighlighted[cwd] = self.app.query_one("#file_list").options[0].value
+                state.sessionLastHighlighted[cwd] = (
+                    self.app.query_one("#file_list").options[0].value
+                )
             state.sessionHistoryIndex = len(state.sessionDirectories) - 1
             self.app.update_session_dicts(
                 state.sessionDirectories,
@@ -583,16 +587,13 @@ class FileList(SelectionList, inherit_bindings=False):
             else False
         )
         try:
-            self.highlighted = self.get_option_index(
-                state.sessionLastHighlighted[cwd]
-            )
+            self.highlighted = self.get_option_index(state.sessionLastHighlighted[cwd])
         except OptionDoesNotExist:
             self.highlighted = 0
             state.sessionLastHighlighted[cwd] = (
                 self.app.query_one("#file_list").options[0].value
             )
         self.app.title = f"carto - {cwd.replace(path.sep, '/')}"
-
 
     def dummy_update_file_list(
         self,
@@ -654,7 +655,9 @@ class FileList(SelectionList, inherit_bindings=False):
             if path.isdir(path.join(cwd, file_name)):
                 # If it's a folder, navigate into it
                 chdir(path.join(cwd, file_name))
-                self.app.query_one("#file_list").update_file_list(self.sort_by, self.sort_order)
+                self.app.query_one("#file_list").update_file_list(
+                    self.sort_by, self.sort_order
+                )
             else:
                 open_file(path.join(cwd, file_name))
             if self.highlighted is None:
