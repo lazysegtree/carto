@@ -130,7 +130,11 @@ Footer {
 #preview_sidebar:focus,
 #path_switcher:focus-within,
 #zoxide_options:focus,
-#below_menu Button:focus {
+#below_menu Button:focus,
+/* This is when people maximize */
+#file_list.-maximized,
+#pinned_sidebar.-maximized,
+#preview_sidebar .inner_preview.-maximized {
   border: $-interface-border_style-$ $-interface-border_color-$;
   border-subtitle-background: $-interface-border_color-$;
 }

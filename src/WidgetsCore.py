@@ -4,11 +4,11 @@ from os import chdir, getcwd, listdir, path, scandir
 from pathlib import Path
 from typing import ClassVar
 
-from humanize import naturalsize
+# from humanize import naturalsize
 from rich.segment import Segment
 from rich.style import Style
 from textual import events, on, work
-from textual.app import App, ComposeResult
+from textual.app import ComposeResult
 from textual.binding import Binding, BindingType
 from textual.containers import Container
 from textual.content import Content
@@ -204,7 +204,9 @@ class PreviewContainer(Container):
         if len(self.children) != 0:
             await self.remove_children()
         if any(file_path.endswith(ext) for ext in PIL_EXTENSIONS):
-            await self.mount(AutoImage(file_path, id="image_preview"))
+            await self.mount(
+                AutoImage(file_path, id="image_preview", classes="inner_preview")
+            )
             self.border_title = "Image Preview"
             self.query_one("#image_preview").can_focus = True
         else:
@@ -221,6 +223,7 @@ class PreviewContainer(Container):
                                 path.splitext(file_path)[1], "markdown"
                             ),
                             compact=True,
+                            classes="inner_preview",
                         )
                     )
             except UnicodeDecodeError:
@@ -233,6 +236,7 @@ class PreviewContainer(Container):
                         text=state.config["interface"]["preview_binary"],
                         language="markdown",
                         compact=True,
+                        classes="inner_preivew",
                     )
                 )
             except (FileNotFoundError, PermissionError, OSError):
@@ -245,6 +249,7 @@ class PreviewContainer(Container):
                         text=state.config["interface"]["preview_error"],
                         language="markdown",
                         compact=True,
+                        classes="inner_preview",
                     )
                 )
             finally:
@@ -258,7 +263,7 @@ class PreviewContainer(Container):
             FileList(
                 id="folder_preview",
                 name=folder_path,
-                classes="file-list",
+                classes="file-list inner_preview",
                 sort_by="name",
                 sort_order="ascending",
                 dummy=True,

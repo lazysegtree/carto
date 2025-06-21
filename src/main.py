@@ -59,6 +59,7 @@ class Application(App):
             id="path_switcher",
             validators=[Function(lambda x: path.exists(x), "Path does not exist")],
         )
+        path_switcher.ALLOW_MAXIMIZE = False
         yield Header(name="carto", show_clock=True, icon="📁")
         with Vertical(id="root"):
             with HorizontalScroll(id="menu"):

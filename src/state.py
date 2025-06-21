@@ -4,13 +4,12 @@ import platform
 import re
 from os import path
 from threading import Thread
-from time import sleep, time
+from time import sleep
 
 import psutil
 import toml
 import ujson
 from lzstring import LZString
-from platformdirs import *  # leaving it here just in case we need it later
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
@@ -155,7 +154,10 @@ def add_pin(pin_name: str, pin_path: str) -> None:
 
     pin_path_normalized = pin_path.replace("\\", "/")
     pins_to_write.setdefault("pins", []).append(
-        {"name": pin_name, "path": pin_path_normalized}
+        {
+            "name": pin_name,
+            "path": pin_path_normalized,
+        }
     )
 
     sorted_vars = sorted(VAR_TO_DIR.items(), key=lambda x: len(x[1]), reverse=True)
@@ -322,7 +324,7 @@ def watch_config_file() -> None:
     try:
         while True:
             sleep(1)
-    except:
+    except Exception:
         observer.stop()
     observer.join()
 
