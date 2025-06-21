@@ -186,6 +186,7 @@ class PreviewContainer(Container):
             compact=True,
         )
 
+    # no clue when we can thread it... :husk:
     @work(exclusive=True)
     async def show_preview(self, file_path: str) -> None:
         """Show the preview of the file or folder in the preview container."""
@@ -816,6 +817,8 @@ class FileList(SelectionList, inherit_bindings=False):
     @work
     async def event_on_blur(self, event: events.Blur) -> None:
         """Handle the leave event to update the border style"""
+        if self.dummy:
+            return
         if self.select_mode_enabled:
             state.set_scuffed_subtitle(
                 self.parent,
