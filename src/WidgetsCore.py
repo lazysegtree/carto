@@ -20,7 +20,7 @@ from textual.widgets.selection_list import Selection
 from textual_autocomplete import DropdownItem, PathAutoComplete, TargetState
 
 import state
-from Actions import create_new_item, remove_files, rename_object
+from Actions import remove_files, rename_object
 from maps import (
     EXT_TO_LANG_MAP,
     ICONS,
@@ -918,16 +918,7 @@ class FileList(SelectionList, inherit_bindings=False):
                     for index in range(old, new + 1):
                         self.select(self.get_option_at_index(index))
                     return
-            if event.key in state.config["keybinds"]["new"]:
-                """Create a new file or folder."""
-                self.app.push_screen(
-                    ModalInput(
-                        border_title="Create New Item",
-                        border_subtitle="End with a slash (/) to create a directory",
-                    ),
-                    callback=lambda response: create_new_item(self.app, response),
-                )
-            elif event.key in state.config["keybinds"]["rename"]:
+            if event.key in state.config["keybinds"]["rename"]:
                 """Rename the selected file/folder"""
                 selected_files = await self.get_selected_objects()
                 if selected_files is None or len(selected_files) != 1:

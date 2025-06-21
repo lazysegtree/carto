@@ -1,11 +1,15 @@
-from textual import events, on, work
+from textual import events
 from textual.widgets import Button
 
 import state
 from maps import ICONS
+from Actions import create_new_item
+from ScreensCore import ModalInput
 
 
 class SortOrderButton(Button):
+    ALLOW_MAXIMIZE = False
+
     def __init__(self, *args, **kwargs):
         super().__init__(
             ICONS["general"]["up"][0],
@@ -23,6 +27,8 @@ class SortOrderButton(Button):
 
 
 class CopyButton(Button):
+    ALLOW_MAXIMIZE = False
+
     def __init__(self, *args, **kwargs):
         super().__init__(
             ICONS["general"]["copy"][0], classes="option", id="copy", *args, **kwargs
@@ -49,6 +55,8 @@ class CopyButton(Button):
 
 
 class CutButton(Button):
+    ALLOW_MAXIMIZE = False
+
     def __init__(self, *args, **kwargs):
         super().__init__(
             ICONS["general"]["cut"][0], classes="option", id="cut", *args, **kwargs
@@ -67,7 +75,6 @@ class CutButton(Button):
             self.app.notify("No files selected to cut.")
 
     async def on_key(self, event: events.Key) -> None:
-        self.app.notify(str(self.app.query_one("#file_list").has_focus))
         if (
             self.app.query_one("#file_list").has_focus
             and event.key in state.config["keybinds"]["cut"]
@@ -76,6 +83,8 @@ class CutButton(Button):
 
 
 class PasteButton(Button):
+    ALLOW_MAXIMIZE = False
+
     def __init__(self, *args, **kwargs):
         super().__init__(
             ICONS["general"]["paste"][0], classes="option", id="paste", *args, **kwargs
@@ -84,3 +93,32 @@ class PasteButton(Button):
     def on_mount(self):
         if state.config["interface"]["tooltips"]:
             self.tooltip = "Paste files from clipboard"
+
+
+class NewItemButton(Button):
+    ALLOW_MAXIMIZE = False
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(
+            ICONS["general"]["new"][0], classes="option", id="new", *args, **kwargs
+        )
+
+    def on_mount(self):
+        if state.config["interface"]["tooltips"]:
+            self.tooltip = "Create a new file or directory"
+
+    async def on_button_pressed(self, event: Button.Pressed) -> None:
+        self.push_screen(
+            ModalInput(
+                border_title="Create New Item",
+                border_subtitle="End with a slash (/) to create a directory",
+            ),
+            callback=lambda response: create_new_item(self, response),
+        )
+
+    async def on_key(self, event: events.Key) -> None:
+        if (
+            self.app.query_one("#file_list").has_focus
+            and event.key in state.config["keybinds"]["new"]
+        ):
+            self.action_press()

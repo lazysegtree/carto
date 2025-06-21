@@ -19,8 +19,14 @@ from textual.widgets import (
 )
 
 import state
-from Actions import create_new_item, remove_files, rename_object
-from ActionButtons import SortOrderButton, CopyButton, CutButton, PasteButton
+from Actions import remove_files, rename_object
+from ActionButtons import (
+    SortOrderButton,
+    CopyButton,
+    CutButton,
+    PasteButton,
+    NewItemButton,
+)
 from maps import ICONS
 from ScreensCore import DeleteFiles, ModalInput, ZToDirectory
 from themes import get_custom_themes
@@ -60,11 +66,7 @@ class Application(App):
                 yield CopyButton()
                 yield CutButton()
                 yield PasteButton()
-                yield Button(
-                    ICONS["general"]["new"][0],
-                    classes="option",
-                    id="new",
-                )
+                yield NewItemButton()
                 yield Button(
                     ICONS["general"]["rename"][0],
                     classes="option",
@@ -127,7 +129,6 @@ class Application(App):
         if state.config["interface"]["tooltips"]:
             self.query_one("#delete").tooltip = "Delete selected files"
             self.query_one("#rename").tooltip = "Rename selected file"
-            self.query_one("#new").tooltip = "Create a new file or directory"
             self.query_one("#back").tooltip = "Go back in history"
             self.query_one("#forward").tooltip = "Go forward in history"
             self.query_one("#up").tooltip = "Go up the directory tree"
@@ -187,16 +188,6 @@ class Application(App):
         file_list = self.query_one("#file_list")
         cd_into = file_list.get_option_at_index(file_list.highlighted).value
         self.query_one("#preview_sidebar").show_preview(cd_into)
-
-    @on(Button.Pressed, "#new")
-    async def create_new_object(self, event: Button.Pressed) -> None:
-        self.push_screen(
-            ModalInput(
-                border_title="Create New Item",
-                border_subtitle="End with a slash (/) to create a directory",
-            ),
-            callback=lambda response: create_new_item(self, response),
-        )
 
     @on(Button.Pressed, "#delete")
     async def delete_files(self, event: Button.Pressed) -> None:
