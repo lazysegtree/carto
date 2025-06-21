@@ -24,12 +24,13 @@ This is a list of features that I plan to add before releasing the appropriate v
 - [ ] Keyboard Navigation
   - [x] Directory Navigation (explorer)
   - [ ] Others (superfile)
+     - There currently is a bug during my refactoring where due to Action Bar Buttons being seperate classes and their keys are in it, Textual doesn't seem to pass the key event to it. Looking into it.
 - [x] Double Click to enter into directories (explorer)
 - Configuration (superfile)
   - [x] Base
   - [ ] Schema
   - [x] Extending custom themes via configuration
-- [x] [zoxide](https://github.com/ajeetdsouza/zoxide) support (ranger)<br><sub>There is no command line for tfe, which means it will use keybinds to launch either a modified current folder bar or a panel</sub>
+- [x] [zoxide](https://github.com/ajeetdsouza/zoxide) support (ranger)<br><sub>There is no command line for carto, which means it will use keybinds to launch either a modified current folder bar or a panel</sub>
 - [x] Previewing image files using [textual-image](https://github.com/lnqs/textual-image) (superfile)<br><sub>Explorer does support image viewing, but this is a TUI, so inspiration is from superfile</sub>
 - [x] Previewing directories (superfile)
 - [x] Pinned folder sidebar (superfile)<br><sub>explorer does support pinned sidebar, but it also includes the massive file tree, which I won't add.</sub>
@@ -48,13 +49,13 @@ This is a list of features that I plan to add before releasing the appropriate v
   - [ ] Change sort order of files
   - [x] Copy files
   - [x] Cut files
-  - [x] Paste files
+  - [ ] Paste files
   - [x] Create new files/folders
   - [x] Delete files/folders
   - [x] Rename **a** file/folder
-- [ ] bat as previewer (using `--force-colorization`) (might need to check how textual might support it or not)
+- [ ] bat as previewer (using `--force-colorization`)
 
 #### v2
 - [ ] Plugins using [pytest-dev/pluggy](https://github.com/pytest-dev/pluggy) or a custom way (i wish not)
 - [ ] Cross process clipboard sync (two carto instances should have synced clipboards)
-- [ ] Recycle Bin of 1 day when files get overwritten
+- [ ] Recycle Bin of 1 day when files get overwritten (Currently handled with `sendtotrash` but it doesn't work at times, so not a reliable solution)
