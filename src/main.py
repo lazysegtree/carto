@@ -19,16 +19,17 @@ from textual.widgets import (
 )
 
 import state
-from Actions import remove_files, rename_object
+from Actions import remove_files
 from ActionButtons import (
     SortOrderButton,
     CopyButton,
     CutButton,
     PasteButton,
     NewItemButton,
+    RenameItemButton,
 )
 from maps import ICONS
-from ScreensCore import DeleteFiles, ModalInput, ZToDirectory
+from ScreensCore import DeleteFiles, ZToDirectory
 from themes import get_custom_themes
 from WidgetsCore import (
     Clipboard,
@@ -68,11 +69,7 @@ class Application(App):
                 yield CutButton()
                 yield PasteButton()
                 yield NewItemButton()
-                yield Button(
-                    ICONS["general"]["rename"][0],
-                    classes="option",
-                    id="rename",
-                )
+                yield RenameItemButton()
                 yield Button(
                     ICONS["general"]["delete"][0],
                     classes="option",
@@ -129,7 +126,6 @@ class Application(App):
         # tooltips
         if state.config["interface"]["tooltips"]:
             self.query_one("#delete").tooltip = "Delete selected files"
-            self.query_one("#rename").tooltip = "Rename selected file"
             self.query_one("#back").tooltip = "Go back in history"
             self.query_one("#forward").tooltip = "Go forward in history"
             self.query_one("#up").tooltip = "Go up the directory tree"
@@ -221,29 +217,6 @@ class Application(App):
                 "No files selected to delete.", title="Delete Files", severity="warning"
             )
 
-    @on(Button.Pressed, "#rename")
-    async def rename_file(self, event: Button.Pressed) -> None:
-        """Rename the selected file or directory"""
-        file_list = self.query_one("#file_list")
-        selected_files = await file_list.get_selected_objects()
-        if selected_files is None or len(selected_files) != 1:
-            self.notify(
-                "Please select exactly one file to rename.",
-                title="Rename File",
-                severity="warning",
-            )
-        else:
-            selected_file = selected_files[0]
-            type_of_file = "Folder" if path.isdir(selected_file) else "File"
-            self.push_screen(
-                ModalInput(
-                    border_title=f"Rename {type_of_file}",
-                    border_subtitle=f"Current name: {path.basename(selected_file)}",
-                    initial_value=path.basename(selected_file),
-                ),
-                callback=lambda response: rename_object(self, selected_file, response),
-            )
-
     @work
     async def update_session_dicts(
         self, sessionDirs, sessionHisIndex, sessionLastHighlight
@@ -271,7 +244,6 @@ class Application(App):
         ) and event.key == "backspace":
             return
         # focus toggle pinned sidebar
-        event.prevent_default()
         if event.key in state.config["keybinds"]["focus_toggle_pinned_sidebar"]:
             if (
                 self.focused.id == "pinned_sidebar"

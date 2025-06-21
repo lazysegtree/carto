@@ -20,7 +20,7 @@ from textual.widgets.selection_list import Selection
 from textual_autocomplete import DropdownItem, PathAutoComplete, TargetState
 
 import state
-from Actions import remove_files, rename_object
+from Actions import remove_files
 from maps import (
     EXT_TO_LANG_MAP,
     ICONS,
@@ -29,7 +29,7 @@ from maps import (
     get_icon_for_file,
     get_icon_for_folder,
 )
-from ScreensCore import DeleteFiles, ModalInput
+from ScreensCore import DeleteFiles
 
 state.load_config()
 
@@ -923,29 +923,7 @@ class FileList(SelectionList, inherit_bindings=False):
                     for index in range(old, new + 1):
                         self.select(self.get_option_at_index(index))
                     return
-            if event.key in state.config["keybinds"]["rename"]:
-                """Rename the selected file/folder"""
-                selected_files = await self.get_selected_objects()
-                if selected_files is None or len(selected_files) != 1:
-                    self.app.notify(
-                        "Please select exactly one file to rename.",
-                        title="Rename File",
-                        severity="warning",
-                    )
-                else:
-                    selected_file = selected_files[0]
-                    type_of_file = "Folder" if path.isdir(selected_file) else "File"
-                    self.app.push_screen(
-                        ModalInput(
-                            border_title=f"Rename {type_of_file}",
-                            border_subtitle=f"Current name: {path.basename(selected_file)}",
-                            initial_value=path.basename(selected_file),
-                        ),
-                        callback=lambda response: rename_object(
-                            self.app, selected_file, response
-                        ),
-                    )
-            elif event.key in state.config["keybinds"]["delete"]:
+            if event.key in state.config["keybinds"]["delete"]:
                 """Delete the selected files."""
                 selected_files = await self.get_selected_objects()
                 if selected_files:
