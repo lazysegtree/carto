@@ -20,7 +20,7 @@ from textual.widgets import (
 
 import state
 from Actions import create_new_item, remove_files, rename_object
-from ActionButtons import SortOrderButton, CopyButton, CutButton
+from ActionButtons import SortOrderButton, CopyButton, CutButton, PasteButton
 from maps import ICONS
 from ScreensCore import DeleteFiles, ModalInput, ZToDirectory
 from themes import get_custom_themes
@@ -59,12 +59,7 @@ class Application(App):
                 yield SortOrderButton()
                 yield CopyButton()
                 yield CutButton()
-                yield Button(
-                    ICONS["general"]["paste"][0],
-                    classes="option",
-                    id="paste",
-                    disabled=True,
-                )
+                yield PasteButton()
                 yield Button(
                     ICONS["general"]["new"][0],
                     classes="option",
@@ -130,7 +125,6 @@ class Application(App):
         self.theme = state.config["theme"]["default"]
         # tooltips
         if state.config["interface"]["tooltips"]:
-            self.query_one("#paste").tooltip = "Paste files from clipboard"
             self.query_one("#delete").tooltip = "Delete selected files"
             self.query_one("#rename").tooltip = "Rename selected file"
             self.query_one("#new").tooltip = "Create a new file or directory"

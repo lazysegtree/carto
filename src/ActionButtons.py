@@ -73,3 +73,14 @@ class CutButton(Button):
             and event.key in state.config["keybinds"]["cut"]
         ):
             self.action_press()
+
+
+class PasteButton(Button):
+    def __init__(self, *args, **kwargs):
+        super().__init__(
+            ICONS["general"]["paste"][0], classes="option", id="paste", *args, **kwargs
+        )
+
+    def on_mount(self):
+        if state.config["interface"]["tooltips"]:
+            self.tooltip = "Paste files from clipboard"
