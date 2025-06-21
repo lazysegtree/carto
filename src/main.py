@@ -20,7 +20,7 @@ from textual.widgets import (
 
 import state
 from Actions import create_new_item, remove_files, rename_object
-from ActionButtons import SortOrderButton
+from ActionButtons import SortOrderButton, CopyButton
 from maps import ICONS
 from ScreensCore import DeleteFiles, ModalInput, ZToDirectory
 from themes import get_custom_themes
@@ -57,7 +57,7 @@ class Application(App):
         with Vertical(id="root"):
             with HorizontalScroll(id="menu"):
                 yield SortOrderButton()
-                yield Button(ICONS["general"]["copy"][0], classes="option", id="copy")
+                yield CopyButton()
                 yield Button(
                     ICONS["general"]["cut"][0],
                     classes="option",
@@ -134,7 +134,6 @@ class Application(App):
         self.theme = state.config["theme"]["default"]
         # tooltips
         if state.config["interface"]["tooltips"]:
-            self.query_one("#copy").tooltip = "Copy selected files"
             self.query_one("#cut").tooltip = "Cut selected files"
             self.query_one("#paste").tooltip = "Paste files from clipboard"
             self.query_one("#delete").tooltip = "Delete selected files"
@@ -199,18 +198,6 @@ class Application(App):
         file_list = self.query_one("#file_list")
         cd_into = file_list.get_option_at_index(file_list.highlighted).value
         self.query_one("#preview_sidebar").show_preview(cd_into)
-
-    @on(Button.Pressed, "#copy")
-    async def copy_files(self, event: Button.Pressed) -> None:
-        """Copy selected files to the clipboard"""
-        file_list = self.query_one("#file_list")
-        selected_files = await file_list.get_selected_objects()
-        if selected_files:
-            await self.query_one("#clipboard").add_to_clipboard(selected_files)
-        else:
-            self.app.notify(
-                "No files selected to copy.", title="Clipboard", severity="warning"
-            )
 
     @on(Button.Pressed, "#cut")
     async def cut_files(self, event: Button.Pressed) -> None:

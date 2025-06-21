@@ -846,11 +846,12 @@ class FileList(SelectionList, inherit_bindings=False):
                 path.join(
                     cwd,
                     state.decompress(self.get_option_at_index(self.highlighted).value),
-                )
+                ).replace(path.sep, "/")
             ]
         else:
             return [
-                path.join(cwd, state.decompress(option)) for option in self.selected
+                path.join(cwd, state.decompress(option)).replace(path.sep, "/")
+                for option in self.selected
             ]
 
     async def on_key(self, event: events.Key) -> None:
@@ -917,18 +918,7 @@ class FileList(SelectionList, inherit_bindings=False):
                     for index in range(old, new + 1):
                         self.select(self.get_option_at_index(index))
                     return
-            if event.key in state.config["keybinds"]["copy"]:
-                """Copy the selected files to the clipboard."""
-                selected_files = await self.get_selected_objects()
-                if selected_files:
-                    await self.app.query_one(Clipboard).add_to_clipboard(selected_files)
-                else:
-                    self.app.notify(
-                        "No files selected to copy.",
-                        title="Clipboard",
-                        severity="warning",
-                    )
-            elif event.key in state.config["keybinds"]["cut"]:
+            if event.key in state.config["keybinds"]["cut"]:
                 """Cut the selected files to the clipboard."""
                 selected_files = await self.get_selected_objects()
                 if selected_files:
