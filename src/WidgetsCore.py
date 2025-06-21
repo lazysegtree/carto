@@ -918,18 +918,7 @@ class FileList(SelectionList, inherit_bindings=False):
                     for index in range(old, new + 1):
                         self.select(self.get_option_at_index(index))
                     return
-            if event.key in state.config["keybinds"]["cut"]:
-                """Cut the selected files to the clipboard."""
-                selected_files = await self.get_selected_objects()
-                if selected_files:
-                    await self.app.query_one(Clipboard).cut_to_clipboard(selected_files)
-                else:
-                    self.app.notify(
-                        "No files selected to cut.",
-                        title="Clipboard",
-                        severity="warning",
-                    )
-            elif event.key in state.config["keybinds"]["new"]:
+            if event.key in state.config["keybinds"]["new"]:
                 """Create a new file or folder."""
                 self.app.push_screen(
                     ModalInput(
@@ -1054,8 +1043,8 @@ class Clipboard(SelectionList, inherit_bindings=False):
         for item in self.clipboard_contents:
             self.add_option(Selection(Content(item), value=state.compress(item)))
 
-    async def add_to_clipboard(self, items: list[str]) -> None:
-        """Add items to the clipboard and update the selection list."""
+    async def copy_to_clipboard(self, items: list[str]) -> None:
+        """Copy the selected files to the clipboard"""
         for item in items[::-1]:
             self.insert_selection_at_beginning(
                 Selection(
