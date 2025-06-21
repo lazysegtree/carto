@@ -11,7 +11,7 @@ from textual.containers import (
     VerticalGroup,
 )
 from textual.validation import Function
-from textual.widgets import (  # OptionList,; TabbedContent,; Switch,; Label,; Static,
+from textual.widgets import (
     Button,
     Header,
     Input,
@@ -20,6 +20,7 @@ from textual.widgets import (  # OptionList,; TabbedContent,; Switch,; Label,; S
 
 import state
 from Actions import create_new_item, remove_files, rename_object
+from ActionButtons import SortOrderButton
 from maps import ICONS
 from ScreensCore import DeleteFiles, ModalInput, ZToDirectory
 from themes import get_custom_themes
@@ -55,11 +56,7 @@ class Application(App):
         yield Header(name="carto", show_clock=True, icon="📁")
         with Vertical(id="root"):
             with HorizontalScroll(id="menu"):
-                yield Button(
-                    ICONS["general"]["up"][0],
-                    classes="option",
-                    id="sort_order",
-                )
+                yield SortOrderButton()
                 yield Button(ICONS["general"]["copy"][0], classes="option", id="copy")
                 yield Button(
                     ICONS["general"]["cut"][0],
@@ -137,7 +134,6 @@ class Application(App):
         self.theme = state.config["theme"]["default"]
         # tooltips
         if state.config["interface"]["tooltips"]:
-            self.query_one("#sort_order").tooltip = "Lists are in ascending order"
             self.query_one("#copy").tooltip = "Copy selected files"
             self.query_one("#cut").tooltip = "Cut selected files"
             self.query_one("#paste").tooltip = "Paste files from clipboard"
