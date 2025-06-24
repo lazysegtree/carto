@@ -1,6 +1,10 @@
-## carto
-
-> Your map through the uncharted directories
+<div align="center">
+  <h2>carto</h2>
+  <img alt="Static Badge" src="https://img.shields.io/badge/Python-3.13-yellow?style=for-the-badge">
+  <img alt="Static Badge" src="https://img.shields.io/badge/made_with-textual-0b171d?style=for-the-badge&logoColor=yellow">
+  <!--python -c "import toml;print(len(toml.load('uv.lock')['package']))"-->
+  <img alt="Static Badge" src="https://img.shields.io/badge/Dependencies-105-purple?style=for-the-badge">
+</div>
 
 > [!caution]
 > This project is in its very early stages. Feedback is appreciated, but this cannot be daily-driven yet.
