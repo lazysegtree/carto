@@ -1,7 +1,6 @@
 """Module that holds variable states + other functions"""
 
 import platform
-import re
 from os import path
 from threading import Thread
 from time import sleep
@@ -12,6 +11,7 @@ import ujson
 from lzstring import LZString
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
+from textual.widget import Widget
 
 from maps import BORDER_BOTTOM, VAR_TO_DIR
 
@@ -86,19 +86,6 @@ def load_config() -> None:
         config = toml.loads(f.read())
     # update styles
     # get vars to replace
-    with open(
-        path.join(path.dirname(__file__), "config/template_style.tcss"), "r"
-    ) as f:
-        template = f.read()
-    # replace vars with values from config
-    vars = r"\$\-([^\$]+)-\$"
-    for match in re.findall(vars, template):
-        match_keys = match.split("-")
-        config_value = get_nested_value(config, match_keys)
-        if config_value is not None:
-            template = template.replace(f"$-{match}-$", str(config_value))
-    with open(path.join(path.dirname(__file__), "style.tcss"), "w") as f:
-        f.write(template)
 
 
 def load_pins() -> None:
@@ -280,7 +267,7 @@ def get_mounted_drives() -> list:
     return drives
 
 
-def set_scuffed_subtitle(element, mode: str, frac: str, hover: bool) -> None:
+def set_scuffed_subtitle(element: Widget, mode: str, frac: str, hover: bool) -> None:
     """The most scuffed way to display a custom subtitle
 
     Args:
@@ -292,11 +279,7 @@ def set_scuffed_subtitle(element, mode: str, frac: str, hover: bool) -> None:
     border_bottom = BORDER_BOTTOM.get(
         element.styles.border_bottom[0], BORDER_BOTTOM["blank"]
     )
-    border_color = (
-        config["interface"]["border_color"]
-        if hover
-        else config["interface"]["border_inactive_color"]
-    )
+    border_color = element.styles.border.bottom[1].hex
     element.border_subtitle = (
         f"{mode} [{border_color} on $background]{border_bottom}[/] {frac}"
     )

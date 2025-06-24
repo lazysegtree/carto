@@ -1,16 +1,6 @@
 [interface]
 tooltips = true
 
-border_style = "round"
-border_color = "$primary-lighten-3"
-border_inactive_color = "$primary-darken-3"
-
-pinned_sidebar_width = "20"
-file_list_width = "3fr"
-preview_sidebar_width = "2fr"
-footer_unfocus_width = "10"
-footer_focus_width = "20"
-
 preview_error = "Hmm, I think this file got corrupted (or maybe not?)"
 preview_binary = "This file is not UTF-8 encoded, so I decline to read it."
 preview_start = "print(\"Hello, world!\")"
@@ -45,7 +35,7 @@ toggle_footer = ["F"]
 
 focus_toggle_pinned_sidebar = ["s"]
 focus_file_list = ["escape"]
-focus_toggle_preview_sidebar = ["i"] 
+focus_toggle_preview_sidebar = ["i"]
 focus_toggle_path_switcher = ["slash", "/"]
 focus_toggle_search = ["f", "/"]
 focus_toggle_processes = ["p"]

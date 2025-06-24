@@ -1,3 +1,14 @@
+/* Variables */
+$border-color: $primary-darken-3;
+$border-active-color: $primary-lighten-3;
+$border-style: round;
+
+$pinned_sidebar_width: 20;
+$file_list_width: 3fr;
+$preview_sidebar_width: 2fr;
+$footer_unfocus_height: 10;
+$footer_focus_height: 10;
+
 #menu {
   align: left middle;
   height: 3;
@@ -20,13 +31,13 @@ Footer {
 #file_list_container {
   height: 1fr;
   border: none;
-  width: $-interface-file_list_width-$;
+  width: $file_list_width;
 }
 
 #pinned_sidebar_container {
   height: 1fr;
   margin: 0;
-  width: $-interface-pinned_sidebar_width-$;
+  width: $pinned_sidebar_width;
 }
 #pinned_sidebar_container > Input,
 #file_list_container > Input {
@@ -43,15 +54,11 @@ Footer {
 #preview_sidebar {
   height: 1fr;
   margin: 0;
-  width: 2fr;
+  width: $preview_sidebar_width;
   border: none;
-  width: $-interface-preview_sidebar_width-$;
+  width: 2fr;
   padding: 0 1;
 }
-/*
-* {
-    border: ascii blue;
-}*/
 
 #below_menu Input {
   height: 3;
@@ -61,9 +68,9 @@ Footer {
 }
 
 #below_menu Input.hide_border_bottom {
+  border: $border-style $accent !important;
   border-bottom: none !important;
   height: 3;
-  background: $boost !important;
 }
 
 #below_menu Button {
@@ -73,7 +80,7 @@ Footer {
 }
 #below_menu {
   margin: 0 1 0 1;
-  border: $-interface-border_style-$ white;
+  border: $border-style white;
   max-height: 11;
 }
 #below_menu PathAutoCompleteInput {
@@ -81,13 +88,13 @@ Footer {
   margin: -1 1 0 33;
   max-height: 9;
   overlay: screen;
-  height: 9;
   width: 1fr;
-  border: $-interface-border_style-$ white;
+  border: $border-style $accent;
   border-top: none;
-  background: $boost;
+  background: $background;
   AutoCompleteList {
     width: 1fr;
+    scrollbar-size: 0 2;
   }
   Option {
     width: 100%;
@@ -117,9 +124,9 @@ Footer {
 #zoxide_options,
 #below_menu Button {
   background: transparent;
-  border: $-interface-border_style-$ $-interface-border_inactive_color-$;
+  border: $border-style $border-color;
   border-subtitle-color: $background;
-  border-subtitle-background: $-interface-border_inactive_color-$;
+  border-subtitle-background: $border-color;
 }
 
 #menu:focus-within,
@@ -135,8 +142,8 @@ Footer {
 #file_list.-maximized,
 #pinned_sidebar.-maximized,
 #preview_sidebar .inner_preview.-maximized {
-  border: $-interface-border_style-$ $-interface-border_color-$;
-  border-subtitle-background: $-interface-border_color-$;
+  border: $border-style $border-active-color;
+  border-subtitle-background: $border-active-color;
 }
 #preview_sidebar > * {
   background: transparent;
@@ -189,19 +196,19 @@ Screen.-nopreview {
   display: none !important;
 }
 #footer {
-  height: 0.25fr;
+  height: $footer_unfocus_height;
   margin: 0 0 0 1;
 }
 #footer:focus-within {
-  height: 0.5fr;
+  height: $footer_focus_height;
 }
 #footer > * {
-  border: $-interface-border_style-$ $-interface-border_inactive_color-$;
+  border: $border-style $border-color;
   height: 1fr;
   background: transparent;
 }
 #footer > *:focus-within {
-  border: $-interface-border_style-$ $-interface-border_color-$;
+  border: $border-style $border-active-color;
 }
 RichLog {
   scrollbar-size: 0 0 !important;
@@ -248,16 +255,16 @@ ZToDirectory {
   max-width: 100%;
   padding: 0 1;
   background: transparent;
-  border: $-interface-border_style-$ $-interface-border_color-$;
+  border: $border-style $border-active-color;
 }
 #zoxide_options {
   width: 100%;
   max-width: 100%;
   height: 1fr;
   background: transparent;
-  border: $-interface-border_style-$ $-interface-border_color-$;
+  border: $border-style $border-active-color;
   .option-list--option-highlighted {
-    background: $primary-lighten-3;
+    background: $border-active-color;
     color: $background;
   }
 }
