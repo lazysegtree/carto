@@ -11,23 +11,18 @@ from textual.containers import (
     VerticalGroup,
 )
 from textual.validation import Function
-from textual.widgets import (
-    Button,
-    Header,
-    Input,
-    RichLog,
-)
+from textual.widgets import Button, Header, Input, RichLog
 
 import state
-from Actions import remove_files
 from ActionButtons import (
-    SortOrderButton,
     CopyButton,
     CutButton,
-    PasteButton,
     NewItemButton,
+    PasteButton,
     RenameItemButton,
+    SortOrderButton,
 )
+from Actions import remove_files
 from maps import ICONS
 from ScreensCore import DeleteFiles, ZToDirectory
 from themes import get_custom_themes

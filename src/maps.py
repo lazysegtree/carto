@@ -273,7 +273,6 @@ PIL_EXTENSIONS = [
     ".psd",
     ".svg",
     ".palm",
-    ".pdf",
     ".pxr",
     ".qoi",
     ".tim",

@@ -18,6 +18,7 @@ from textual.widgets import OptionList, SelectionList, Static, TextArea
 from textual.widgets.option_list import Option, OptionDoesNotExist
 from textual.widgets.selection_list import Selection
 from textual_autocomplete import DropdownItem, PathAutoComplete, TargetState
+from textual_image.widget import AutoImage
 
 import state
 from Actions import remove_files
@@ -53,12 +54,6 @@ def open_file(filepath: str) -> None:
             subprocess.run(["xdg-open", filepath], check=True)
     except Exception as e:
         print(f"Error opening file: {e}")
-
-
-try:
-    from textual_image.widget import AutoImage
-except TimeoutError:
-    pass
 
 
 class PathDropdownItem(DropdownItem):
@@ -160,9 +155,6 @@ def get_cwd_object(cwd: str, sort_order: str, sort_by: str) -> list[dict]:
             )
         else:
             files.append({"name": item, "icon": get_icon_for_file(item)})
-    if files == [] and folders == []:
-        print(f"No files or folders found in {cwd}")
-        return [{"name": "..", "icon": ["", "red"]}], []
     # Sort folders and files properly
     folders.sort(key=lambda x: x["name"].lower(), reverse=(sort_order == "descending"))
     files.sort(key=lambda x: x["name"].lower(), reverse=(sort_order == "descending"))
@@ -542,10 +534,16 @@ class FileList(SelectionList, inherit_bindings=False):
             self.add_option(
                 Selection(
                     Content("Permission Error: Unable to access this directory."),
-                    value="HTI",
+                    value="",
+                    id="",
+                    disabled=True,
                 ),
             )
             file_list_options = [".."]
+        elif folders == [] and files == []:
+            self.add_option(Selection("  --no-files--", value="", id="", disabled=True))
+            self.app.query_one(PreviewContainer).remove_children()
+            # nothing inside
         else:
             file_list_options = (
                 files + folders if sort_order == "descending" else folders + files
@@ -623,9 +621,14 @@ class FileList(SelectionList, inherit_bindings=False):
             self.add_option(
                 Selection(
                     Content("Permission Error: Unable to access this directory."),
-                    id="HTI",
+                    id="",
+                    value="",
+                    disabled=True,
                 )
             )
+            return
+        elif folders == [] and files == []:
+            self.add_option(Selection("  --no-files--", value="", id="", disabled=True))
             return
         file_list_options = (
             files + folders if sort_order == "descending" else folders + files
@@ -660,7 +663,11 @@ class FileList(SelectionList, inherit_bindings=False):
             # Check if it's a folder or a file
             if path.isdir(path.join(cwd, file_name)):
                 # If it's a folder, navigate into it
-                chdir(path.join(cwd, file_name))
+                try:
+                    chdir(path.join(cwd, file_name))
+                except PermissionError:
+                    # cannot access, so dont change anything ig
+                    return
                 self.app.query_one("#file_list").update_file_list(
                     self.sort_by, self.sort_order
                 )
