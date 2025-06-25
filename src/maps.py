@@ -49,6 +49,7 @@ ICONS = {
         "hidden": ["\uf7c9", "gray"],
         "node_modules": ["\ue5fa", "green"],
         "carto": ["\uf14e", "teal"],
+        "home": ["\uf015", "cyan"],
     },
     "file": {
         "default": ["\uf4a5", "white"],
@@ -118,6 +119,7 @@ FOLDER_MAP = {
     # other stuff
     "node_modules": "node_modules",
     "carto": "carto",
+    "home": "home",
 }
 
 FILES_MAP = {
