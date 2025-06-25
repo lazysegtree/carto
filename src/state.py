@@ -9,9 +9,9 @@ import psutil
 import toml
 import ujson
 from lzstring import LZString
+from textual.widget import Widget
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
-from textual.widget import Widget
 
 from maps import BORDER_BOTTOM, VAR_TO_DIR
 

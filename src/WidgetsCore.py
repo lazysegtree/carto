@@ -21,7 +21,6 @@ from textual_autocomplete import DropdownItem, PathAutoComplete, TargetState
 from textual_image.widget import AutoImage
 
 import state
-from Actions import remove_files
 from maps import (
     EXT_TO_LANG_MAP,
     ICONS,
@@ -30,7 +29,6 @@ from maps import (
     get_icon_for_file,
     get_icon_for_folder,
 )
-from ScreensCore import DeleteFiles
 
 state.load_config()
 
@@ -930,45 +928,7 @@ class FileList(SelectionList, inherit_bindings=False):
                     for index in range(old, new + 1):
                         self.select(self.get_option_at_index(index))
                     return
-            if event.key in state.config["keybinds"]["delete"]:
-                """Delete the selected files."""
-                selected_files = await self.get_selected_objects()
-                if selected_files:
-
-                    async def callback(response: str) -> None:
-                        """Callback to remove files after confirmation"""
-                        if response == "delete":
-                            await remove_files(
-                                self.app,
-                                selected_files,
-                                ignore_trash=True,
-                                compressed=False,
-                            )
-                        elif response == "trash":
-                            await remove_files(
-                                self.app,
-                                selected_files,
-                                ignore_trash=False,
-                                compressed=False,
-                            )
-                        else:
-                            self.app.notify(
-                                "File deletion cancelled.", title="Delete Files"
-                            )
-
-                    self.app.push_screen(
-                        DeleteFiles(
-                            message=f"Are you sure you want to delete {len(selected_files)} files?",
-                        ),
-                        callback=callback,
-                    )
-                else:
-                    self.app.notify(
-                        "No files selected to delete.",
-                        title="Delete Files",
-                        severity="warning",
-                    )
-            elif event.key in state.config["keybinds"]["toggle_all"]:
+            if event.key in state.config["keybinds"]["toggle_all"]:
                 if not self.select_mode_enabled:
                     await self.toggle_mode()
                 if len(self.selected) == len(self.options):

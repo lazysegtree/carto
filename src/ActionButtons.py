@@ -4,9 +4,9 @@ from textual import events
 from textual.widgets import Button
 
 import state
+from Actions import create_new_item, remove_files, rename_object
 from maps import ICONS
-from Actions import create_new_item, rename_object
-from ScreensCore import ModalInput
+from ScreensCore import DeleteFiles, ModalInput
 
 
 class SortOrderButton(Button):
@@ -168,5 +168,59 @@ class RenameItemButton(Button):
         if (
             self.app.query_one("#file_list").has_focus
             and event.key in state.config["keybinds"]["rename"]
+        ):
+            self.action_press()
+
+
+class DeleteButton(Button):
+    ALLOW_MAXIMIZE = False
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(
+            ICONS["general"]["delete"][0],
+            classes="option",
+            id="delete",
+            *args,
+            **kwargs,
+        )
+
+    def on_mount(self):
+        if state.config["interface"]["tooltips"]:
+            self.tooltip = "Delete selected files"
+
+    async def on_button_pressed(self, event: Button.Pressed) -> None:
+        """Delete selected files or directories"""
+        file_list = self.app.query_one("#file_list")
+        selected_files = await file_list.get_selected_objects()
+        if selected_files:
+
+            async def callback(response: str) -> None:
+                """Callback to remove files after confirmation"""
+                if response == "delete":
+                    await remove_files(
+                        self.app, selected_files, ignore_trash=True, compressed=False
+                    )
+                elif response == "trash":
+                    await remove_files(
+                        self.app, selected_files, ignore_trash=False, compressed=False
+                    )
+                else:
+                    self.app.notify("File deletion cancelled.", title="Delete Files")
+
+            self.app.push_screen(
+                DeleteFiles(
+                    message=f"Are you sure you want to delete {len(selected_files)} files?",
+                ),
+                callback=callback,
+            )
+        else:
+            self.app.notify(
+                "No files selected to delete.", title="Delete Files", severity="warning"
+            )
+
+    async def on_key(self, event: events.Key):
+        if (
+            self.app.query_one("#file_list").has_focus
+            and event.key in state.config["keybinds"]["delete"]
         ):
             self.action_press()

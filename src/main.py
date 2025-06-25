@@ -17,14 +17,14 @@ import state
 from ActionButtons import (
     CopyButton,
     CutButton,
+    DeleteButton,
     NewItemButton,
     PasteButton,
     RenameItemButton,
     SortOrderButton,
 )
-from Actions import remove_files
 from maps import ICONS
-from ScreensCore import DeleteFiles, ZToDirectory
+from ScreensCore import ZToDirectory
 from themes import get_custom_themes
 from WidgetsCore import (
     Clipboard,
@@ -65,11 +65,7 @@ class Application(App):
                 yield PasteButton()
                 yield NewItemButton()
                 yield RenameItemButton()
-                yield Button(
-                    ICONS["general"]["delete"][0],
-                    classes="option",
-                    id="delete",
-                )
+                yield DeleteButton()
             with VerticalGroup(id="below_menu"):
                 with HorizontalGroup():
                     yield Button(ICONS["general"]["left"][0], id="back")
@@ -120,7 +116,6 @@ class Application(App):
         self.theme = state.config["theme"]["default"]
         # tooltips
         if state.config["interface"]["tooltips"]:
-            self.query_one("#delete").tooltip = "Delete selected files"
             self.query_one("#back").tooltip = "Go back in history"
             self.query_one("#forward").tooltip = "Go forward in history"
             self.query_one("#up").tooltip = "Go up the directory tree"
@@ -180,37 +175,6 @@ class Application(App):
         file_list = self.query_one("#file_list")
         cd_into = file_list.get_option_at_index(file_list.highlighted).value
         self.query_one("#preview_sidebar").show_preview(cd_into)
-
-    @on(Button.Pressed, "#delete")
-    async def delete_files(self, event: Button.Pressed) -> None:
-        """Delete selected files or directories"""
-        file_list = self.query_one("#file_list")
-        selected_files = await file_list.get_selected_objects()
-        if selected_files:
-
-            async def callback(response: str) -> None:
-                """Callback to remove files after confirmation"""
-                if response == "delete":
-                    await remove_files(
-                        self, selected_files, ignore_trash=True, compressed=False
-                    )
-                elif response == "trash":
-                    await remove_files(
-                        self, selected_files, ignore_trash=False, compressed=False
-                    )
-                else:
-                    self.notify("File deletion cancelled.", title="Delete Files")
-
-            self.push_screen(
-                DeleteFiles(
-                    message=f"Are you sure you want to delete {len(selected_files)} files?",
-                ),
-                callback=callback,
-            )
-        else:
-            self.notify(
-                "No files selected to delete.", title="Delete Files", severity="warning"
-            )
 
     @work
     async def update_session_dicts(
