@@ -1,6 +1,6 @@
 [project]
 name = "carto"
-version = "0.1.0"
+version = "0.0.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
@@ -24,13 +24,19 @@ dependencies = [
 [dependency-groups]
 dev = [
     "commitizen>=4.8.3",
-    "hatch>=1.14.1",
     "isort>=6.0.1",
     "ruff>=0.11.12",
 ]
+
+[build-system]
+requires = ["hatch"]
+build-backend = "hatchling.build"
+
+[project.scripts]
+carto = "carto:main"
+
 [tool.ruff.lint]
 select = ["ASYNC251", "COM819", "F541", "W191", "W291", "W293", "W391", "W605", "F632", "SIM201", "SIM202", "E4", "E7", "E9", "F", "Q"]
-
 ignore = []
 
 [tool.ruff.format]

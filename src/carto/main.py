@@ -13,8 +13,8 @@ from textual.containers import (
 from textual.validation import Function
 from textual.widgets import Button, Header, Input, RichLog
 
-import state
-from ActionButtons import (
+from . import state
+from .ActionButtons import (
     CopyButton,
     CutButton,
     DeleteButton,
@@ -23,10 +23,10 @@ from ActionButtons import (
     RenameItemButton,
     SortOrderButton,
 )
-from maps import ICONS
-from ScreensCore import ZToDirectory
-from themes import get_custom_themes
-from WidgetsCore import (
+from .maps import ICONS
+from .ScreensCore import ZToDirectory
+from .themes import get_custom_themes
+from .WidgetsCore import (
     Clipboard,
     FileList,
     PathAutoCompleteInput,
@@ -307,8 +307,22 @@ class Application(App):
                     self.switch_to_path(Namespace(value=state.decompress(response)))
 
             self.push_screen(ZToDirectory(), on_response)
+        else:
+            await self._handle_action_keybinds(event)
+
+    async def _handle_action_keybinds(self, event: events.Key) -> None:
+        if self.query_one("#file_list").has_focus:
+            if event.key in state.config["keybinds"]["copy"]:
+                self.query_one("#copy").action_press()
+            elif event.key in state.config["keybinds"]["cut"]:
+                self.query_one("#cut").action_press()
+            elif event.key in state.config["keybinds"]["new"]:
+                self.query_one("#new").action_press()
+            elif event.key in state.config["keybinds"]["rename"]:
+                self.query_one("#rename").action_press()
+            elif event.key in state.config["keybinds"]["delete"]:
+                self.query_one("#delete").action_press()
 
 
 state.start_watcher()
 app = Application(watch_css=True)
-app.run()

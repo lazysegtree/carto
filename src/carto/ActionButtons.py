@@ -1,12 +1,11 @@
 from os import path
 
-from textual import events
 from textual.widgets import Button
 
-import state
-from Actions import create_new_item, remove_files, rename_object
-from maps import ICONS
-from ScreensCore import DeleteFiles, ModalInput
+from . import state
+from .Actions import create_new_item, remove_files, rename_object
+from .maps import ICONS
+from .ScreensCore import DeleteFiles, ModalInput
 
 
 class SortOrderButton(Button):
@@ -48,13 +47,6 @@ class CopyButton(Button):
         else:
             self.app.notify("No files selected to copy.")
 
-    async def on_key(self, event: events.Key) -> None:
-        if (
-            self.app.query_one("#file_list").has_focus
-            and event.key in state.config["keybinds"]["copy"]
-        ):
-            self.action_press()
-
 
 class CutButton(Button):
     ALLOW_MAXIMIZE = False
@@ -75,13 +67,6 @@ class CutButton(Button):
             await self.app.query_one("#clipboard").cut_to_clipboard(selected_files)
         else:
             self.app.notify("No files selected to cut.")
-
-    async def on_key(self, event: events.Key) -> None:
-        if (
-            self.app.query_one("#file_list").has_focus
-            and event.key in state.config["keybinds"]["cut"]
-        ):
-            self.action_press()
 
 
 class PasteButton(Button):
@@ -117,13 +102,6 @@ class NewItemButton(Button):
             ),
             callback=lambda response: create_new_item(self.app, response),
         )
-
-    async def on_key(self, event: events.Key) -> None:
-        if (
-            self.app.query_one("#file_list").has_focus
-            and event.key in state.config["keybinds"]["new"]
-        ):
-            self.action_press()
 
 
 class RenameItemButton(Button):
@@ -163,13 +141,6 @@ class RenameItemButton(Button):
                     self.app, selected_file, response
                 ),
             )
-
-    async def on_key(self, event: events.Key) -> None:
-        if (
-            self.app.query_one("#file_list").has_focus
-            and event.key in state.config["keybinds"]["rename"]
-        ):
-            self.action_press()
 
 
 class DeleteButton(Button):
@@ -217,10 +188,3 @@ class DeleteButton(Button):
             self.app.notify(
                 "No files selected to delete.", title="Delete Files", severity="warning"
             )
-
-    async def on_key(self, event: events.Key):
-        if (
-            self.app.query_one("#file_list").has_focus
-            and event.key in state.config["keybinds"]["delete"]
-        ):
-            self.action_press()
