@@ -1,5 +1,9 @@
 from .main import Application
 
 
-if __name__ == "__main__":
+def main():
     Application(watch_css=True).run()
+
+
+if __name__ == "__main__":
+    main()
