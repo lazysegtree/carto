@@ -10,6 +10,17 @@ use_recycle_bin = true
 filelist_sort_by = "name"
 filelist_sort_order = "ascending"
 
+[metadata]
+fields = [
+    "type",
+    "permissions",
+    "size",
+    "modified",
+    "accessed",
+    "created",
+]
+datetime_format = "%Y-%m-%d %H:%M"
+
 [theme]
 default = "nord"
 

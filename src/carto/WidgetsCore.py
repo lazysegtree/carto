@@ -1,17 +1,18 @@
 import platform
+from datetime import datetime
+import stat
 import subprocess
-from os import chdir, getcwd, listdir, path, scandir
+from os import chdir, getcwd, listdir, path, scandir, lstat
 from os import system as cmd
 from pathlib import Path
 from typing import ClassVar
 
-# from humanize import naturalsize
 from rich.segment import Segment
 from rich.style import Style
 from textual import events, on, work
 from textual.app import ComposeResult
 from textual.binding import Binding, BindingType
-from textual.containers import Container
+from textual.containers import Container, VerticalScroll, VerticalGroup
 from textual.content import Content
 from textual.css.query import NoMatches
 from textual.strip import Strip
@@ -321,6 +322,7 @@ class PinnedSidebar(OptionList, inherit_bindings=False):
     def compose(self) -> ComposeResult:
         yield Static()
 
+    @work(exclusive=True)
     async def reload_pins(self):
         # be extra sure
         state.load_pins()
@@ -397,7 +399,7 @@ class PinnedSidebar(OptionList, inherit_bindings=False):
         """Reload the pinned files from the config."""
         state.load_pins()
         self.pins = state.pins["pins"]
-        await self.reload_pins()
+        self.reload_pins()
 
     async def on_option_list_option_selected(
         self, event: OptionList.OptionSelected
@@ -726,6 +728,9 @@ class FileList(SelectionList, inherit_bindings=False):
             self.highlighted = 0
         # preview
         self.app.query_one("#preview_sidebar").show_preview(
+            path.join(getcwd(), file_name).replace(path.sep, "/")
+        )
+        self.app.query_one(MetadataContainer).update_metadata(
             path.join(getcwd(), file_name).replace(path.sep, "/")
         )
 
@@ -1149,3 +1154,119 @@ class Clipboard(SelectionList, inherit_bindings=False):
                     self.deselect_all()
                 else:
                     self.select_all()
+
+
+class MetadataContainer(VerticalScroll):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def info_of_file_path(self, file_path: str) -> str:
+        try:
+            file_stat = lstat(file_path)
+        except (OSError, FileNotFoundError):
+            return "?????????"
+        mode = file_stat.st_mode
+
+        permission_string = ""
+
+        if stat.S_ISLNK(mode):
+            permission_string = "l"
+        elif platform.system() == "Windows":
+            if (
+                hasattr(file_stat, "st_file_attributes")
+                and file_stat.st_file_attributes & stat.FILE_ATTRIBUTE_REPARSE_POINT
+            ):
+                permission_string = "j"
+            elif stat.S_ISDIR(mode):
+                permission_string = "d"
+            else:
+                permission_string = "-"
+        elif stat.S_ISDIR(mode):
+            permission_string = "d"
+        else:
+            permission_string = "-"
+
+        permission_string += "r" if mode & stat.S_IRUSR else "-"
+        permission_string += "w" if mode & stat.S_IWUSR else "-"
+        permission_string += "x" if mode & stat.S_IXUSR else "-"
+
+        permission_string += "r" if mode & stat.S_IRGRP else "-"
+        permission_string += "w" if mode & stat.S_IWGRP else "-"
+        permission_string += "x" if mode & stat.S_IXGRP else "-"
+
+        permission_string += "r" if mode & stat.S_IROTH else "-"
+        permission_string += "w" if mode & stat.S_IWOTH else "-"
+        permission_string += "x" if mode & stat.S_IXOTH else "-"
+        return permission_string
+
+    @work(exclusive=True)
+    async def update_metadata(self, location_of_item: str) -> None:
+        await self.remove_children()
+        try:
+            file_stat = lstat(location_of_item)
+            file_info = self.info_of_file_path(location_of_item)
+        except (OSError, FileNotFoundError):
+            await self.mount(Static("Item not found or inaccessible."))
+            return
+
+        type_str = "Unknown"
+        if file_info.startswith("j"):
+            type_str = "Junction"
+        elif file_info.startswith("l"):
+            type_str = "Symlink"
+        elif file_info.startswith("d"):
+            type_str = "Directory"
+        elif file_info.startswith("-"):
+            type_str = "File"
+
+        keys_list = []
+        values_list = []
+
+        for field in state.config["metadata"]["fields"]:
+            if field == "type":
+                keys_list.append(Static("Type"))
+                values_list.append(Static(type_str))
+            elif field == "permissions":
+                keys_list.append(Static("Permissions"))
+                values_list.append(Static(file_info))
+            elif field == "size":
+                keys_list.append(Static("Size"))
+                values_list.append(
+                    Static(
+                        str(file_stat.st_size)
+                        if not file_info.startswith("d")
+                        else "--"
+                    )
+                )
+            elif field == "modified":
+                keys_list.append(Static("Modified"))
+                values_list.append(
+                    Static(
+                        datetime.fromtimestamp(file_stat.st_mtime).strftime(
+                            state.config["metadata"]["datetime_format"]
+                        )
+                    )
+                )
+            elif field == "accessed":
+                keys_list.append(Static("Accessed"))
+                values_list.append(
+                    Static(
+                        datetime.fromtimestamp(file_stat.st_atime).strftime(
+                            state.config["metadata"]["datetime_format"]
+                        )
+                    )
+                )
+            elif field == "created":
+                keys_list.append(Static("Created"))
+                values_list.append(
+                    Static(
+                        datetime.fromtimestamp(file_stat.st_ctime).strftime(
+                            state.config["metadata"]["datetime_format"]
+                        )
+                    )
+                )
+
+        keys = VerticalGroup(*keys_list, id="metadata-keys")
+        values = VerticalGroup(*values_list, id="metadata-values")
+
+        await self.mount(keys, values)

@@ -32,6 +32,7 @@ from .WidgetsCore import (
     PathAutoCompleteInput,
     PinnedSidebar,
     PreviewContainer,
+    MetadataContainer,
 )
 
 state.load_config()
@@ -97,7 +98,7 @@ class Application(App):
             with HorizontalGroup(id="footer"):
                 # ? should we switch to a vertical scroll for richlog?
                 yield RichLog(id="processes", highlight=True, markup=True, wrap=True)
-                yield VerticalGroup(id="metadata")
+                yield MetadataContainer(id="metadata")
                 yield Clipboard(id="clipboard")
 
     def on_mount(self):
@@ -188,140 +189,140 @@ class Application(App):
         if self.focused is None or not self.focused.id:
             return
         # make sure that keybinds dont break
-        if self.focused.id == "path_switcher" and event.key in ["enter", "escape"]:
-            self.query_one("#file_list").focus()
-            await self.query_one("#path_switcher").action_submit()
-            return
-        elif "search" in self.focused.id and event.key == "escape":
-            if self.focused.id == "search_file_list":
+        match event.key:
+            case key if (
+                key in ["enter", "escape"] and self.focused.id == "path_switcher"
+            ):
                 self.query_one("#file_list").focus()
-            elif self.focused.id == "search_pinned_sidebar":
-                self.query_one("#pinned_sidebar").focus()
+                await self.query_one("#path_switcher").action_submit()
                 return
-        elif (
-            type(self.focused) is Input or "search" in self.focused.id
-        ) and event.key == "backspace":
-            return
-        # focus toggle pinned sidebar
-        if event.key in state.config["keybinds"]["focus_toggle_pinned_sidebar"]:
-            if (
-                self.focused.id == "pinned_sidebar"
-                or "hide" in self.query_one("#pinned_sidebar_container").classes
+            case "escape" if "search" in self.focused.id:
+                if self.focused.id == "search_file_list":
+                    self.query_one("#file_list").focus()
+                elif self.focused.id == "search_pinned_sidebar":
+                    self.query_one("#pinned_sidebar").focus()
+                    return
+            case "backspace" if (
+                type(self.focused) is Input or "search in self.focused.id"
             ):
+                return
+            # focus toggle pinned sidebar
+            case key if key in state.config["keybinds"]["focus_toggle_pinned_sidebar"]:
+                if (
+                    self.focused.id == "pinned_sidebar"
+                    or "hide" in self.query_one("#pinned_sidebar_container").classes
+                ):
+                    self.query_one("#file_list").focus()
+                else:
+                    self.query_one("#pinned_sidebar").focus()
+            # focus file list from anywhere except input
+            case key if key in state.config["keybinds"]["focus_file_list"]:
                 self.query_one("#file_list").focus()
-            else:
-                self.query_one("#pinned_sidebar").focus()
-        # focus file list from anywhere except input
-        elif event.key in state.config["keybinds"]["focus_file_list"]:
-            self.query_one("#file_list").focus()
-        # focus toggle preview sidebar
-        elif event.key in state.config["keybinds"]["focus_toggle_preview_sidebar"]:
-            if (
-                self.focused.id == "preview_sidebar"
-                or self.focused.parent.id == "preview_sidebar"
-                or "hide" in self.query_one("#preview_sidebar").classes
-            ):
-                self.query_one("#file_list").focus()
-            else:
-                self.query_one("#preview_sidebar *").focus()
-        # focus path switcher
-        elif event.key in state.config["keybinds"]["focus_toggle_path_switcher"]:
-            self.query_one("#path_switcher").focus()
-        # focus processes
-        elif event.key in state.config["keybinds"]["focus_toggle_processes"]:
-            if (
-                self.focused.id == "processes"
-                or "hide" in self.query_one("#processes").classes
-            ):
-                self.query_one("#file_list").focus()
-            else:
-                self.query_one("#processes").focus()
-        # focus metadata
-        elif event.key in state.config["keybinds"]["focus_toggle_metadata"]:
-            if self.focused.id == "metadata":
-                self.query_one("#file_list").focus()
-            else:
-                self.query_one("#metadata").focus()
-        # focus clipboard
-        elif event.key in state.config["keybinds"]["focus_toggle_clipboard"]:
-            if self.focused.id == "clipboard":
-                self.query_one("#file_list").focus()
-            else:
-                self.query_one("#clipboard").focus()
-        # navi buttons but keybind
-        elif event.key in state.config["keybinds"]["hist_previous"]:
-            if self.query_one("#back").disabled:
-                self.go_up_path(Button.Pressed(self.query_one("#up")))
-            else:
-                self.go_back_in_history(Button.Pressed(self.query_one("#back")))
-        elif event.key in state.config["keybinds"]["hist_next"]:
-            if not self.query_one("#forward").disabled:
-                self.go_forward_in_history(
-                    Button.Pressed(
-                        self.query_one("#forward"),
+            # focus toggle preview sidebar
+            case key if key in state.config["keybinds"]["focus_toggle_preview_sidebar"]:
+                if (
+                    self.focused.id == "preview_sidebar"
+                    or self.focused.parent.id == "preview_sidebar"
+                    or "hide" in self.query_one("#preview_sidebar").classes
+                ):
+                    self.query_one("#file_list").focus()
+                else:
+                    self.query_one("#preview_sidebar *").focus()
+            # focus path switcher
+            case key if key in state.config["keybinds"]["focus_toggle_path_switcher"]:
+                self.query_one("#path_switcher").focus()
+            # focus processes
+            case key if key in state.config["keybinds"]["focus_toggle_processes"]:
+                if (
+                    self.focused.id == "processes"
+                    or "hide" in self.query_one("#processes").classes
+                ):
+                    self.query_one("#file_list").focus()
+                else:
+                    self.query_one("#processes").focus()
+            # focus metadata
+            case key if key in state.config["keybinds"]["focus_toggle_metadata"]:
+                if self.focused.id == "metadata":
+                    self.query_one("#file_list").focus()
+                else:
+                    self.query_one("#metadata").focus()
+            # focus clipboard
+            case key if key in state.config["keybinds"]["focus_toggle_clipboard"]:
+                if self.focused.id == "clipboard":
+                    self.query_one("#file_list").focus()
+                else:
+                    self.query_one("#clipboard").focus()
+            # navi buttons but keybind
+            case key if key in state.config["keybinds"]["hist_previous"]:
+                if self.query_one("#back").disabled:
+                    self.go_up_path(Button.Pressed(self.query_one("#up")))
+                else:
+                    self.go_back_in_history(Button.Pressed(self.query_one("#back")))
+            case key if key in state.config["keybinds"]["hist_next"]:
+                if not self.query_one("#forward").disabled:
+                    self.go_forward_in_history(
+                        Button.Pressed(
+                            self.query_one("#forward"),
+                        )
                     )
-                )
-        elif event.key in state.config["keybinds"]["up_tree"]:
-            self.go_up_path(Button.Pressed(self.query_one("#up")))
-        elif event.key in state.config["keybinds"]["reload"]:
-            self.reload_file_list(Button.Pressed(self.query_one("#reload")))
-        # toggle pin on current directory
-        elif event.key in state.config["keybinds"]["toggle_pin"]:
-            state.toggle_pin(path.basename(getcwd()), getcwd())
-            await self.query_one("#pinned_sidebar").reload_pins()
-        # toggle hiding panels
-        elif event.key in state.config["keybinds"]["toggle_pinned_sidebar"]:
-            self.query_one("#file_list").focus()
-            if self.query_one("#pinned_sidebar_container").display:
-                self.query_one("#pinned_sidebar_container").add_class("hide")
-            else:
-                self.query_one("#pinned_sidebar_container").remove_class("hide")
-        elif event.key in state.config["keybinds"]["toggle_preview_sidebar"]:
-            self.query_one("#file_list").focus()
-            if self.query_one("#preview_sidebar").display:
-                self.query_one("#preview_sidebar").add_class("hide")
-            else:
-                self.query_one("#preview_sidebar").remove_class("hide")
-        elif event.key in state.config["keybinds"]["toggle_footer"]:
-            self.query_one("#file_list").focus()
-            if self.query_one("#footer").display:
-                self.query_one("#footer").add_class("hide")
-            else:
-                self.query_one("#footer").remove_class("hide")
-        elif event.key in state.config["keybinds"]["toggle_visual"]:
-            await self.query_one("#file_list").toggle_mode()
-        elif (
-            event.key in state.config["plugins"]["zoxide"]["keybinds"]
-            and state.config["plugins"]["zoxide"]["enabled"]
-        ):
-            if shutil.which("zoxide") is None:
-                self.notify(
-                    "Zoxide is not installed or not in PATH.",
-                    title="Zoxide",
-                    severity="error",
-                )
+            case key if key in state.config["keybinds"]["up_tree"]:
+                self.go_up_path(Button.Pressed(self.query_one("#up")))
+            case key if key in state.config["keybinds"]["reload"]:
+                self.reload_file_list(Button.Pressed(self.query_one("#reload")))
+            # toggle pin on current directory
+            case key if key in state.config["keybinds"]["toggle_pin"]:
+                state.toggle_pin(path.basename(getcwd()), getcwd())
+                self.query_one("#pinned_sidebar").reload_pins()
+            # toggle hiding panels
+            case key if key in state.config["keybinds"]["toggle_pinned_sidebar"]:
+                self.query_one("#file_list").focus()
+                if self.query_one("#pinned_sidebar_container").display:
+                    self.query_one("#pinned_sidebar_container").add_class("hide")
+                else:
+                    self.query_one("#pinned_sidebar_container").remove_class("hide")
+            case key if key in state.config["keybinds"]["toggle_preview_sidebar"]:
+                self.query_one("#file_list").focus()
+                if self.query_one("#preview_sidebar").display:
+                    self.query_one("#preview_sidebar").add_class("hide")
+                else:
+                    self.query_one("#preview_sidebar").remove_class("hide")
+            case key if key in state.config["keybinds"]["toggle_footer"]:
+                self.query_one("#file_list").focus()
+                if self.query_one("#footer").display:
+                    self.query_one("#footer").add_class("hide")
+                else:
+                    self.query_one("#footer").remove_class("hide")
+            case key if key in state.config["keybinds"]["toggle_visual"]:
+                await self.query_one("#file_list").toggle_mode()
+            case key if (
+                event.key in state.config["plugins"]["zoxide"]["keybinds"]
+                and state.config["plugins"]["zoxide"]["enabled"]
+            ):
+                if shutil.which("zoxide") is None:
+                    self.notify(
+                        "Zoxide is not installed or not in PATH.",
+                        title="Zoxide",
+                        severity="error",
+                    )
 
-            def on_response(response: str) -> None:
-                """Handle the response from the ZToDirectory dialog."""
-                if response:
-                    self.switch_to_path(Namespace(value=state.decompress(response)))
+                def on_response(response: str) -> None:
+                    """Handle the response from the ZToDirectory dialog."""
+                    if response:
+                        self.switch_to_path(Namespace(value=state.decompress(response)))
 
-            self.push_screen(ZToDirectory(), on_response)
-        else:
-            await self._handle_action_keybinds(event)
-
-    async def _handle_action_keybinds(self, event: events.Key) -> None:
-        if self.query_one("#file_list").has_focus:
-            if event.key in state.config["keybinds"]["copy"]:
-                self.query_one("#copy").action_press()
-            elif event.key in state.config["keybinds"]["cut"]:
-                self.query_one("#cut").action_press()
-            elif event.key in state.config["keybinds"]["new"]:
-                self.query_one("#new").action_press()
-            elif event.key in state.config["keybinds"]["rename"]:
-                self.query_one("#rename").action_press()
-            elif event.key in state.config["keybinds"]["delete"]:
-                self.query_one("#delete").action_press()
+                self.push_screen(ZToDirectory(), on_response)
+            case _:
+                if self.query_one("#file_list").has_focus:
+                    if event.key in state.config["keybinds"]["copy"]:
+                        self.query_one("#copy").action_press()
+                    elif event.key in state.config["keybinds"]["cut"]:
+                        self.query_one("#cut").action_press()
+                    elif event.key in state.config["keybinds"]["new"]:
+                        self.query_one("#new").action_press()
+                    elif event.key in state.config["keybinds"]["rename"]:
+                        self.query_one("#rename").action_press()
+                    elif event.key in state.config["keybinds"]["delete"]:
+                        self.query_one("#delete").action_press()
 
 
 state.start_watcher()

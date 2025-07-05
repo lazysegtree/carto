@@ -40,6 +40,8 @@ This is a list of features that I plan to add before releasing the appropriate v
 - [x] Pinned folder sidebar (superfile)<br><sub>explorer does support pinned sidebar, but it also includes the massive file tree, which I won't add.</sub>
 - [ ] Search Bar (superfile)
 - [ ] Metadata
+  - [x] Basic
+  - [ ] Exif
 - [ ] Clipboard (superfile)
   - [x] Copy files and folders
   - [x] Cut files and folders
