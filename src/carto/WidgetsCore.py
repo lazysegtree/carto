@@ -7,6 +7,7 @@ from os import system as cmd
 from pathlib import Path
 from typing import ClassVar
 
+from humanize import naturalsize
 from rich.segment import Segment
 from rich.style import Style
 from textual import events, on, work
@@ -1201,11 +1202,11 @@ class MetadataContainer(VerticalScroll):
 
     @work(exclusive=True)
     async def update_metadata(self, location_of_item: str) -> None:
-        await self.remove_children()
         try:
             file_stat = lstat(location_of_item)
             file_info = self.info_of_file_path(location_of_item)
         except (OSError, FileNotFoundError):
+            await self.remove_children()
             await self.mount(Static("Item not found or inaccessible."))
             return
 
@@ -1218,55 +1219,68 @@ class MetadataContainer(VerticalScroll):
             type_str = "Directory"
         elif file_info.startswith("-"):
             type_str = "File"
-
-        keys_list = []
+        # got the type, now we follow
+        file_stat = lstat(path.realpath(location_of_item))
         values_list = []
-
         for field in state.config["metadata"]["fields"]:
-            if field == "type":
-                keys_list.append(Static("Type"))
-                values_list.append(Static(type_str))
-            elif field == "permissions":
-                keys_list.append(Static("Permissions"))
-                values_list.append(Static(file_info))
-            elif field == "size":
-                keys_list.append(Static("Size"))
-                values_list.append(
-                    Static(
-                        str(file_stat.st_size)
-                        if not file_info.startswith("d")
-                        else "--"
-                    )
-                )
-            elif field == "modified":
-                keys_list.append(Static("Modified"))
-                values_list.append(
-                    Static(
-                        datetime.fromtimestamp(file_stat.st_mtime).strftime(
-                            state.config["metadata"]["datetime_format"]
+            match field:
+                case "type":
+                    values_list.append(Static(type_str))
+                case "permissions":
+                    values_list.append(Static(file_info))
+                case "size":
+                    values_list.append(
+                        Static(
+                            naturalsize(file_stat.st_size)
+                            if type_str == "File"
+                            else "--"
                         )
                     )
-                )
-            elif field == "accessed":
-                keys_list.append(Static("Accessed"))
-                values_list.append(
-                    Static(
-                        datetime.fromtimestamp(file_stat.st_atime).strftime(
-                            state.config["metadata"]["datetime_format"]
+                case "modified":
+                    values_list.append(
+                        Static(
+                            datetime.fromtimestamp(file_stat.st_mtime).strftime(
+                                state.config["metadata"]["datetime_format"]
+                            )
                         )
                     )
-                )
-            elif field == "created":
-                keys_list.append(Static("Created"))
-                values_list.append(
-                    Static(
-                        datetime.fromtimestamp(file_stat.st_ctime).strftime(
-                            state.config["metadata"]["datetime_format"]
+                case "accessed":
+                    values_list.append(
+                        Static(
+                            datetime.fromtimestamp(file_stat.st_atime).strftime(
+                                state.config["metadata"]["datetime_format"]
+                            )
                         )
                     )
-                )
+                case "created":
+                    values_list.append(
+                        Static(
+                            datetime.fromtimestamp(file_stat.st_ctime).strftime(
+                                state.config["metadata"]["datetime_format"]
+                            )
+                        )
+                    )
 
-        keys = VerticalGroup(*keys_list, id="metadata-keys")
         values = VerticalGroup(*values_list, id="metadata-values")
 
-        await self.mount(keys, values)
+        try:
+            await self.query_one("#metadata-values").remove()
+            await self.mount(values)
+        except NoMatches:
+            await self.remove_children()
+            keys_list = []
+            for field in state.config["metadata"]["fields"]:
+                if field == "type":
+                    keys_list.append(Static("Type"))
+                elif field == "permissions":
+                    keys_list.append(Static("Permissions"))
+                elif field == "size":
+                    keys_list.append(Static("Size"))
+                elif field == "modified":
+                    keys_list.append(Static("Modified"))
+                elif field == "accessed":
+                    keys_list.append(Static("Accessed"))
+                elif field == "created":
+                    keys_list.append(Static("Created"))
+            keys = VerticalGroup(*keys_list, id="metadata-keys")
+            await self.mount(keys, values)
