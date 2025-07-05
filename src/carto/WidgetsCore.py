@@ -2,10 +2,11 @@ import platform
 from datetime import datetime
 import stat
 import subprocess
-from os import chdir, getcwd, listdir, path, scandir, lstat
+from os import chdir, getcwd, listdir, path, scandir, lstat, walk
 from os import system as cmd
 from pathlib import Path
 from typing import ClassVar
+import asyncio
 
 from humanize import naturalsize
 from rich.segment import Segment
@@ -1160,6 +1161,8 @@ class Clipboard(SelectionList, inherit_bindings=False):
 class MetadataContainer(VerticalScroll):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.current_path: str | None = None
+        self._size_worker = None
 
     def info_of_file_path(self, file_path: str) -> str:
         try:
@@ -1202,6 +1205,10 @@ class MetadataContainer(VerticalScroll):
 
     @work(exclusive=True)
     async def update_metadata(self, location_of_item: str) -> None:
+        if self._size_worker:
+            self._size_worker.cancel()
+            self._size_worker = None
+        self.current_path = location_of_item
         try:
             file_stat = lstat(location_of_item)
             file_info = self.info_of_file_path(location_of_item)
@@ -1233,7 +1240,8 @@ class MetadataContainer(VerticalScroll):
                         Static(
                             naturalsize(file_stat.st_size)
                             if type_str == "File"
-                            else "--"
+                            else "--",
+                            id="metadata-size",
                         )
                     )
                 case "modified":
@@ -1284,3 +1292,51 @@ class MetadataContainer(VerticalScroll):
                     keys_list.append(Static("Created"))
             keys = VerticalGroup(*keys_list, id="metadata-keys")
             await self.mount(keys, values)
+
+        if type_str == "Directory" and self.has_focus:
+            self._size_worker = self.calculate_folder_size(location_of_item)
+
+    @work
+    async def calculate_folder_size(self, folder_path: str) -> None:
+        """Calculate the size of a folder and update the metadata."""
+        size_widget = self.query_one("#metadata-size", Static)
+        self.call_later(size_widget.update, "Calculating...")
+
+        total_size = 0
+        try:
+            for dirpath, _, filenames in walk(folder_path):
+                if self._size_worker.is_cancelled:
+                    self.call_later(size_widget.update, "--")
+                    return
+                for f in filenames:
+                    fp = path.join(dirpath, f)
+                    if not path.islink(fp):
+                        try:
+                            total_size += lstat(fp).st_size
+                        except (OSError, FileNotFoundError):
+                            pass  # File might have been removed
+                await asyncio.sleep(0)  # Yield to the event loop
+        except (OSError, FileNotFoundError):
+            self.call_later(size_widget.update, "Error")
+            return
+
+        if not self._size_worker.is_cancelled:
+            self.call_later(size_widget.update, naturalsize(total_size))
+
+    @on(events.Focus)
+    def on_focus(self) -> None:
+        if self.current_path and path.isdir(self.current_path):
+            if self._size_worker:
+                self._size_worker.cancel()
+            self._size_worker = self.calculate_folder_size(self.current_path)
+
+    @on(events.Blur)
+    def on_blur(self) -> None:
+        if self._size_worker:
+            self._size_worker.cancel()
+            self._size_worker = None
+            try:
+                size_widget = self.query_one("#metadata-size", Static)
+                size_widget.update("--")
+            except NoMatches:
+                pass
