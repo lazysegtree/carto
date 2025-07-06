@@ -1,12 +1,13 @@
+import asyncio
 import platform
-from datetime import datetime
 import stat
 import subprocess
-from os import chdir, getcwd, listdir, path, scandir, lstat, walk
+from datetime import datetime
+from os import chdir, getcwd, listdir, lstat, path, scandir
 from os import system as cmd
+from os import walk
 from pathlib import Path
 from typing import ClassVar
-import asyncio
 
 from humanize import naturalsize
 from rich.segment import Segment
@@ -14,7 +15,7 @@ from rich.style import Style
 from textual import events, on, work
 from textual.app import ComposeResult
 from textual.binding import Binding, BindingType
-from textual.containers import Container, VerticalScroll, VerticalGroup
+from textual.containers import Container, VerticalGroup, VerticalScroll
 from textual.content import Content
 from textual.css.query import NoMatches
 from textual.strip import Strip
@@ -167,7 +168,10 @@ def get_cwd_object(cwd: str, sort_order: str, sort_by: str) -> list[dict]:
 class PreviewContainer(Container):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._update_task = False
+        self._update_task = None
+        self._current_content = None
+        self._current_file_path = None
+        self._is_image = False
 
     def compose(self) -> ComposeResult:
         yield TextArea(
@@ -180,13 +184,16 @@ class PreviewContainer(Container):
             compact=True,
         )
 
-    # no clue when we can thread it... :husk:
     @work(exclusive=True)
     async def show_preview(self, file_path: str) -> None:
-        """Show the preview of the file or folder in the preview container."""
-        if self._update_task and self._update_task._active:
+        """Debounce super fast requests, then show preview"""
+        if self._update_task:
             self._update_task.stop()
+
         if path.isdir(file_path):
+            self._current_content = None
+            self._current_file_path = None
+            self._is_image = False
             self._update_task = self.set_timer(
                 0.25, lambda: self.show_folder(file_path)
             )
@@ -194,60 +201,91 @@ class PreviewContainer(Container):
             self._update_task = self.set_timer(0.25, lambda: self.show_file(file_path))
 
     async def show_file(self, file_path: str) -> None:
-        """Show the file in the preview container."""
-        if len(self.children) != 0:
-            await self.remove_children()
+        """Load the file preview"""
+        self._current_file_path = file_path
         if any(file_path.endswith(ext) for ext in PIL_EXTENSIONS):
+            self._is_image = True
+            self._current_content = None
+        else:
+            self._is_image = False
+            try:
+                with open(file_path, "r", encoding="utf-8") as f:
+                    self._current_content = f.read()
+            except UnicodeDecodeError:
+                self._current_content = state.config["interface"]["preview_binary"]
+            except (FileNotFoundError, PermissionError, OSError):
+                self._current_content = state.config["interface"]["preview_error"]
+
+        await self._render_preview()
+
+    async def _render_preview(self) -> None:
+        """Render function"""
+        if self._current_file_path is None:
+            return
+
+        await self.remove_children()
+
+        if self._is_image:
             await self.mount(
-                AutoImage(file_path, id="image_preview", classes="inner_preview")
+                AutoImage(
+                    self._current_file_path, id="image_preview", classes="inner_preview"
+                )
             )
             self.border_title = "Image Preview"
             self.query_one("#image_preview").can_focus = True
-        else:
-            try:
-                with open(file_path, "r", encoding="utf-8") as f:
-                    await self.mount(
-                        TextArea(
-                            id="text_preview",
-                            show_line_numbers=True,
-                            soft_wrap=False,
-                            read_only=True,
-                            text=f.read(),
-                            language=EXT_TO_LANG_MAP.get(
-                                path.splitext(file_path)[1], "markdown"
-                            ),
-                            compact=True,
-                            classes="inner_preview",
-                        )
-                    )
-            except UnicodeDecodeError:
-                await self.mount(
-                    TextArea(
-                        id="text_preview",
-                        show_line_numbers=True,
-                        soft_wrap=False,
-                        read_only=True,
-                        text=state.config["interface"]["preview_binary"],
-                        language="markdown",
-                        compact=True,
-                        classes="inner_preivew",
-                    )
-                )
-            except (FileNotFoundError, PermissionError, OSError):
-                await self.mount(
-                    TextArea(
-                        id="text_preview",
-                        show_line_numbers=True,
-                        soft_wrap=False,
-                        read_only=True,
-                        text=state.config["interface"]["preview_error"],
-                        language="markdown",
-                        compact=True,
-                        classes="inner_preview",
-                    )
-                )
-            finally:
-                self.border_title = "File Preview"
+            return
+
+        if self._current_content is None:
+            return
+
+        preview_full = state.config["settings"]["preview_full"]
+        text_to_display = self._current_content
+
+        if not preview_full:
+            lines = text_to_display.splitlines()
+
+            max_lines = self.size.height
+            if max_lines > 0:
+                if len(lines) > max_lines:
+                    lines = lines[:max_lines]
+            else:
+                lines = []
+
+            # no clue why its 5 lmao
+            max_width = self.size.width - 5
+            if max_width > 0:
+                processed_lines = []
+                for line in lines:
+                    if len(line) > max_width:
+                        processed_lines.append(line[:max_width])
+                    else:
+                        processed_lines.append(line)
+                lines = processed_lines
+
+            text_to_display = "\n".join(lines)
+
+        language = "markdown"
+        if self._current_content not in (
+            state.config["interface"]["preview_binary"],
+            state.config["interface"]["preview_error"],
+        ):
+            language = EXT_TO_LANG_MAP.get(
+                path.splitext(self._current_file_path)[1], "markdown"
+            )
+
+        await self.mount(
+            TextArea(
+                id="text_preview",
+                show_line_numbers=True,
+                soft_wrap=False,  # Per user feedback, disable word wrap
+                read_only=True,
+                text=text_to_display,
+                language=language,
+                compact=preview_full,
+                classes="inner_preview",
+            )
+        )
+        self.border_title = "File Preview"
 
     async def show_folder(self, folder_path: str) -> None:
         """Show the folder in the preview container."""
@@ -270,6 +308,12 @@ class PreviewContainer(Container):
             cwd=folder_path,
         )
         self.border_title = "Folder Preview"
+
+    @on(events.Resize)
+    async def on_resize(self, event: events.Resize) -> None:
+        """Re-render the preview on resize if it's a text file."""
+        if self._current_content is not None:
+            await self._render_preview()
 
 
 class FolderNotFileError(Exception):

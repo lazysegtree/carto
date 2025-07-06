@@ -9,6 +9,7 @@ preview_start = "print(\"Hello, world!\")"
 use_recycle_bin = true
 filelist_sort_by = "name"
 filelist_sort_order = "ascending"
+preview_full = false
 
 [metadata]
 fields = [

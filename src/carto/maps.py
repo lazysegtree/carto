@@ -225,6 +225,7 @@ EXT_TO_LANG_MAP = {
     ".java": "java",
     ".sh": "bash",
     ".xml": "xml",
+    ".lock": "toml",
 }
 
 PIL_EXTENSIONS = [
