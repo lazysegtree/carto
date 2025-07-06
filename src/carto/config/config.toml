@@ -81,7 +81,6 @@ select_page_down = ["shift+pagedown"]
 select_home = ["shift+home"]
 select_end = ["shift+end"]
 
-[plugins]
 [plugins.zoxide]
 enabled = true
 keybinds = ["z"]
@@ -91,4 +90,4 @@ executable = "bat"
 [plugins.editor]
 enabled = true
 executable = "hx"
-keybind = ["e"]
+keybinds = ["e"]

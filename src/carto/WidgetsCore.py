@@ -946,7 +946,7 @@ class FileList(SelectionList, inherit_bindings=False):
                     for index in range(old, new + 1):
                         self.select(self.get_option_at_index(index))
                     return
-            elif event.key in state.config["plugins"]["editor"]["keybind"]:
+            elif event.key in state.config["plugins"]["editor"]["keybinds"]:
                 with self.app.suspend():
                     cmd(
                         f'{state.config["plugins"]["editor"]["executable"]} "{path.join(getcwd(), state.decompress(self.get_option_at_index(self.highlighted).id))}"'
