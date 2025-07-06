@@ -29,10 +29,10 @@ from .themes import get_custom_themes
 from .WidgetsCore import (
     Clipboard,
     FileList,
+    MetadataContainer,
     PathAutoCompleteInput,
     PinnedSidebar,
     PreviewContainer,
-    MetadataContainer,
 )
 
 state.load_config()
@@ -203,7 +203,7 @@ class Application(App):
                     self.query_one("#pinned_sidebar").focus()
                     return
             case "backspace" if (
-                type(self.focused) is Input or "search in self.focused.id"
+                type(self.focused) is Input or "search" in self.focused.id
             ):
                 return
             # focus toggle pinned sidebar
@@ -313,16 +313,17 @@ class Application(App):
                 self.push_screen(ZToDirectory(), on_response)
             case _:
                 if self.query_one("#file_list").has_focus:
-                    if event.key in state.config["keybinds"]["copy"]:
-                        self.query_one("#copy").action_press()
-                    elif event.key in state.config["keybinds"]["cut"]:
-                        self.query_one("#cut").action_press()
-                    elif event.key in state.config["keybinds"]["new"]:
-                        self.query_one("#new").action_press()
-                    elif event.key in state.config["keybinds"]["rename"]:
-                        self.query_one("#rename").action_press()
-                    elif event.key in state.config["keybinds"]["delete"]:
-                        self.query_one("#delete").action_press()
+                    match event.key:
+                        case key if key in state.config["keybinds"]["copy"]:
+                            self.query_one("#copy").action_press()
+                        case key if key in state.config["keybinds"]["cut"]:
+                            self.query_one("#cut").action_press()
+                        case key if key in state.config["keybinds"]["new"]:
+                            self.query_one("#new").action_press()
+                        case key if key in state.config["keybinds"]["rename"]:
+                            self.query_one("#rename").action_press()
+                        case key if key in state.config["keybinds"]["delete"]:
+                            self.query_one("#delete").action_press()
 
 
 state.start_watcher()

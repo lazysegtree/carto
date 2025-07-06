@@ -5,9 +5,9 @@ from textual.app import App, ComposeResult
 from textual.containers import Container, Grid, VerticalGroup
 from textual.content import Content
 from textual.screen import ModalScreen
+from textual.types import DuplicateID
 from textual.widgets import Button, Input, Label, OptionList
 from textual.widgets.option_list import Option
-from textual.types import DuplicateID
 
 from . import state
 

@@ -47,14 +47,15 @@ def open_file(filepath: str) -> None:
     system = platform.system().lower()
 
     try:
-        if system == "windows":
-            from os import startfile
+        match system:
+            case "windows":
+                from os import startfile
 
-            startfile(filepath)
-        elif system == "darwin":  # macOS
-            subprocess.run(["open", filepath], check=True)
-        else:  # Linux and other Unix-like
-            subprocess.run(["xdg-open", filepath], check=True)
+                startfile(filepath)
+            case "darwin":  # macOS
+                subprocess.run(["open", filepath], check=True)
+            case _:  # Linux and other Unix-like
+                subprocess.run(["xdg-open", filepath], check=True)
     except Exception as e:
         print(f"Error opening file: {e}")
 
