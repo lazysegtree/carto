@@ -241,7 +241,7 @@ class DeleteFiles(ModalScreen):
 
 
 class ZToDirectory(ModalScreen):
-    """Screen with a dialog to z to a directory, using zoxide, or other directory management tools."""
+    """Screen with a dialog to z to a directory, using zoxide"""
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -277,18 +277,18 @@ class ZToDirectory(ModalScreen):
             text=True,
         )
         zoxide_options = self.query_one("#zoxide_options")
-        self.app.call_from_thread(zoxide_options.clear_options)
         zoxide_options.add_class("empty")
+        options = []
         try:
             if zoxide_output.stdout:
                 for line in zoxide_output.stdout.splitlines():
-                    self.app.call_from_thread(
-                        zoxide_options.add_option,
-                        Option(Content(" " + line), id=state.compress(line)),
-                    )
+                    options.append(Option(Content(f" {line}"), id=state.compress(line)))
+                self.app.call_from_thread(zoxide_options.clear_options)
+                self.app.call_from_thread(zoxide_options.add_options, options)
                 zoxide_options.remove_class("empty")
                 zoxide_options.highlighted = 0
             else:
+                self.app.call_from_thread(zoxide_options.clear_options)
                 self.app.call_from_thread(
                     zoxide_options.add_option,
                     Option(" No matches found", disabled=True),
