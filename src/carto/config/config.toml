@@ -83,12 +83,13 @@ select_home = ["shift+home"]
 select_end = ["shift+end"]
 
 [plugins.zoxide]
-enabled = true
+enabled = false
 keybinds = ["z"]
 [plugins.bat]
-enabled = true
+enabled = false
 executable = "bat"
+show_line_numbers = true
 [plugins.editor]
-enabled = true
+enabled = false
 executable = "hx"
 keybinds = ["e"]

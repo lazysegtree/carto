@@ -23,9 +23,10 @@ uv run src/main.py
 ### Roadmap
 This is a list of features that I plan to add before releasing the appropriate version and where they are inspired from.
 #### v1
+Status: 19/29
 - [x] Directory Autocompletion (explorer)
 - [x] Button Navigation (explorer)
-- [ ] Keyboard Navigation
+- Keyboard Navigation
   - [x] Directory Navigation (explorer)
   - [ ] Others (superfile)
 - [x] Double Click to enter into directories (explorer)
@@ -39,16 +40,16 @@ This is a list of features that I plan to add before releasing the appropriate v
 - [x] Pinned folder sidebar (superfile)<br><sub>explorer does support pinned sidebar, but it also includes the massive file tree, which I won't add.</sub>
 - [ ] Search Bar (superfile)
 - [x] Metadata
-- [ ] Clipboard (superfile)
+- Clipboard (superfile)
   - [x] Copy files and folders
   - [x] Cut files and folders
   - [ ] Paste files and folders
     - [ ] Warn when overwriting same named files
-- [ ] Multiple File Lists
+- Multiple File Lists
   - [ ] Tabs
   - [ ] VSplit and HSplit
 - [ ] Active and Completed processes (superfile)
-- [ ] Actions bar (explorer)
+- Actions bar (explorer)
   - [ ] Change sort order of files
   - [x] Copy files
   - [x] Cut files
@@ -56,7 +57,7 @@ This is a list of features that I plan to add before releasing the appropriate v
   - [x] Create new files/folders
   - [x] Delete files/folders
   - [x] Rename **a** file/folder
-- [ ] bat as previewer (using `--force-colorization`)
+- [x] bat as previewer
 
 #### v2
 - [ ] Plugins using [pytest-dev/pluggy](https://github.com/pytest-dev/pluggy) or a custom way (i wish not)

@@ -12,6 +12,7 @@ from typing import ClassVar
 from humanize import naturalsize
 from rich.segment import Segment
 from rich.style import Style
+from rich.text import Text
 from textual import events, on, work
 from textual.app import ComposeResult
 from textual.binding import Binding, BindingType
@@ -239,6 +240,76 @@ class PreviewContainer(Container):
         if self._current_content is None:
             return
 
+        use_bat = state.config["plugins"]["bat"]["enabled"]
+        is_special_content = self._current_content in (
+            state.config["interface"]["preview_binary"],
+            state.config["interface"]["preview_error"],
+        )
+
+        bat_output = None
+        bat_failed = False
+        error_message = ""
+
+        if use_bat and not is_special_content:
+            preview_full = state.config["settings"]["preview_full"]
+            bat_executable = state.config["plugins"]["bat"]["executable"]
+
+            command = [
+                bat_executable,
+                "--force-colorization",
+                "--paging=never",
+                "--style=numbers"
+                if state.config["plugins"]["bat"]["show_line_numbers"]
+                else "--style=plain",
+            ]
+
+            if not preview_full:
+                max_lines = self.size.height
+                if max_lines > 0:
+                    command.append(f"--line-range=:{max_lines}")
+
+            command.append(self._current_file_path)
+
+            try:
+                process = await asyncio.create_subprocess_exec(
+                    *command,
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE,
+                )
+                stdout, stderr = await process.communicate()
+
+                if process.returncode == 0:
+                    bat_output = stdout.decode("utf-8", errors="ignore")
+                else:
+                    bat_failed = True
+                    error_message = stderr.decode("utf-8", errors="ignore")
+            except (FileNotFoundError, Exception) as e:
+                bat_failed = True
+                error_message = str(e)
+
+        if bat_output is not None:
+            scrollable_container = VerticalScroll(
+                Static(
+                    Text.from_ansi(bat_output),
+                    id="text_preview",
+                    classes="inner_preview",
+                ),
+                id="previewContainerInnnerForBat",
+            )
+            scrollable_container.can_focus = True
+
+            await self.mount(scrollable_container)
+            self.border_title = "File Preview (bat)"
+            return
+
+        # fallback! this guy doesnt have batcat
+        if bat_failed:
+            self.app.notify(
+                f"bat preview failed: {error_message}",
+                severity="warning",
+                timeout=10,
+            )
+
         preview_full = state.config["settings"]["preview_full"]
         text_to_display = self._current_content
 
@@ -266,10 +337,7 @@ class PreviewContainer(Container):
             text_to_display = "\n".join(lines)
 
         language = "markdown"
-        if self._current_content not in (
-            state.config["interface"]["preview_binary"],
-            state.config["interface"]["preview_error"],
-        ):
+        if not is_special_content:
             language = EXT_TO_LANG_MAP.get(
                 path.splitext(self._current_file_path)[1], "markdown"
             )
@@ -278,7 +346,7 @@ class PreviewContainer(Container):
             TextArea(
                 id="text_preview",
                 show_line_numbers=True,
-                soft_wrap=False,  # Per user feedback, disable word wrap
+                soft_wrap=False,
                 read_only=True,
                 text=text_to_display,
                 language=language,
@@ -315,6 +383,27 @@ class PreviewContainer(Container):
         """Re-render the preview on resize if it's a text file."""
         if self._current_content is not None:
             await self._render_preview()
+
+    @on(events.Key)
+    async def on_key(self, event: events.Key) -> None:
+        """Check for vim keybinds"""
+        if self.border_title == "File Preview (bat)":
+            vscroll = self.query_one(VerticalScroll)
+            match event.key:
+                # the rest still have animation, no clue why as well :husk:
+                case key if key in state.config["keybinds"]["up"]:
+                    vscroll.scroll_up(animate=False)
+                case key if key in state.config["keybinds"]["down"]:
+                    vscroll.scroll_down(animate=False)
+                case key if key in state.config["keybinds"]["page_up"]:
+                    vscroll.scroll_page_up(animate=False)
+                case key if key in state.config["keybinds"]["page_down"]:
+                    vscroll.scroll_page_down(animate=False)
+                case key if key in state.config["keybinds"]["home"]:
+                    # still kidna confused why this still doesnt have an animation
+                    vscroll.scroll_home(animate=False)
+                case key if key in state.config["keybinds"]["end"]:
+                    vscroll.scroll_end(animate=False)
 
 
 class FolderNotFileError(Exception):
@@ -1208,6 +1297,7 @@ class MetadataContainer(VerticalScroll):
         super().__init__(*args, **kwargs)
         self.current_path: str | None = None
         self._size_worker = None
+        self._update_task = None
 
     def info_of_file_path(self, file_path: str) -> str:
         try:
@@ -1250,6 +1340,15 @@ class MetadataContainer(VerticalScroll):
 
     @work(exclusive=True)
     async def update_metadata(self, location_of_item: str) -> None:
+        """Debounce the update, because some people can be speed typers"""
+        if self._update_task:
+            self._update_task.stop()
+        self._update_task = self.set_timer(
+            0.25, lambda: self._perform_update(location_of_item)
+        )
+
+    async def _perform_update(self, location_of_item: str) -> None:
+        """After debouncing"""
         if self._size_worker:
             self._size_worker.cancel()
             self._size_worker = None

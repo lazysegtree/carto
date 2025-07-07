@@ -10,6 +10,7 @@ from textual.containers import (
     Vertical,
     VerticalGroup,
 )
+from textual.css.query import NoMatches
 from textual.validation import Function
 from textual.widgets import Button, Header, Input, RichLog
 
@@ -227,7 +228,10 @@ class Application(App):
                 ):
                     self.query_one("#file_list").focus()
                 else:
-                    self.query_one("#preview_sidebar *").focus()
+                    try:
+                        self.query_one("#preview_sidebar > *").focus()
+                    except NoMatches:
+                        pass
             # focus path switcher
             case key if key in state.config["keybinds"]["focus_toggle_path_switcher"]:
                 self.query_one("#path_switcher").focus()
