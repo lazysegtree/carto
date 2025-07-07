@@ -3,7 +3,7 @@
   <img alt="Static Badge" src="https://img.shields.io/badge/Python-3.13-yellow?style=for-the-badge">
   <img alt="Static Badge" src="https://img.shields.io/badge/made_with-textual-0b171d?style=for-the-badge&logoColor=yellow">
   <!--python -c "import toml;print(len(toml.load('uv.lock')['package']))"-->
-  <img alt="Static Badge" src="https://img.shields.io/badge/Dependencies-105-purple?style=for-the-badge">
+  <img alt="Static Badge" src="https://img.shields.io/badge/Dependencies-72-purple?style=for-the-badge">
 </div>
 
 > [!caution]
@@ -28,7 +28,6 @@ This is a list of features that I plan to add before releasing the appropriate v
 - [ ] Keyboard Navigation
   - [x] Directory Navigation (explorer)
   - [ ] Others (superfile)
-     - There currently is a bug during my refactoring where due to Action Bar Buttons being seperate classes and their keys are in it, Textual doesn't seem to pass the key event to it. Looking into it.
 - [x] Double Click to enter into directories (explorer)
 - Configuration (superfile)
   - [x] Base
