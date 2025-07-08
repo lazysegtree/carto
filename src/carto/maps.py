@@ -29,14 +29,14 @@ ICONS = {
         "right": ["\uf061", "white"],
         "home": ["\uf015", "indigo"],
         "check": ["\uf00c", "green"],
-        "copy": ["\uebcc", "white"],
+        "copy": ["\U000f018f", "white"],
         "paste": ["\uf429", "white"],
-        "cut": ["\uf0c4", "white"],
-        "rename": ["\uf246", "white"],
-        "delete": ["\uf48e", "red"],
+        "cut": ["\U000f0190", "white"],
+        "rename": ["\U000fdde7", "white"],
+        "delete": ["\U000f0190", "red"],
     },
     "folder": {
-        "default": ["\uf07b", "gold"],
+        "default": ["\uf07b", "#DAA520"],
         "open": ["\uf07c", "orange"],
         "empty": ["\uf115", "yellow"],
         "documents": ["\uf02d", "coral"],
@@ -51,44 +51,121 @@ ICONS = {
         "carto": ["\uf14e", "teal"],
         "home": ["\uf015", "cyan"],
     },
+    # shout out to https://github.com/acarl005/ls-go
     "file": {
-        "default": ["\uf4a5", "white"],
-        "text": ["\uf15c", "white"],
-        "image": ["\uf1c5", "purple"],
-        "audio": ["\uf1c7", "pink"],
-        "video": ["\uf1c8", "violet"],
-        "pdf": ["\uf1c1", "red"],
-        "archive": ["\uf1c6", "brown"],
-        "python": ["\ue73c", "#3776AB"],
-        "javascript": ["\ue781", "#F7DF1E"],
-        "html": ["\uf13b", "#E34F26"],
-        "haskell": ["\ue777", "#5D4F85"],
-        "json": ["\ue60b", "gold"],
-        "markdown": ["\ue73e", "white"],
-        "go": ["\uf7b7", "#00ADD8"],
-        "rust": ["\ue7a8", "#DEA584"],
-        "c": ["\uf0c3", "#A8B9CC"],
-        "cs": ["\ue648", "#239120"],
-        "cpp": ["\uf0e3", "#F34B7D"],
-        "css": ["\ue749", "#1572B6"],
-        "yaml": ["\ue8eb", "teal"],
-        "yml": ["\ue6a8", "teal"],
-        "toml": ["\ue6b2", "red"],
-        "swift": ["\ue755", "#F05138"],
-        "java": ["\ue738", "#ED8B00"],
-        "typescript": ["\ue8ca", "#3178C6"],
-        "kotlin": ["\ue81b", "#7F52FF"],
-        "vue": ["\ue6a0", "#4FC08D"],
-        "php": ["\ue73d", "#777BB4"],
-        "tcss": ["\uf37f", "light_blue"],
-        "executable": ["\uf085", "gray"],
-        "config": ["\uf085", "slate"],
-        "binary": ["\uf471", "dark_gray"],
-        "lock": ["\uea75", "red"],
-        "git": ["\uf1d3", "#F05032"],
-        "diff": ["\uf4d2", "green"],
-        "cert": ["\ueb11", "maroon"],
-        "package": ["\uf487", "tan"],
+        "default": ["\uf15b", "#ffffff"],
+        "ai": ["\ue669", "#ce6f14"],
+        "android": ["\uf17b", "#a7c83f"],
+        "apple": ["\ue711", "#78909c"],
+        "asm": ["\U000f061a", "#ff7844"],
+        "audio": ["\uf001", "#ee524f"],
+        "binary": ["\uf471", "#ff7844"],
+        "c": ["\ue649", "#0188d2"],
+        "cfg": ["\ue615", "#8B8B8B"],
+        "clj": ["\ue76a", "#68b338"],
+        "conf": ["\ue615", "#8B8B8B"],
+        "cpp": ["\ue646", "#0188d2"],
+        "css": ["\uf13c", "#2d53e5"],
+        "dart": ["\ue64c", "#03589b"],
+        "db": ["\uf1c0", "#FF8400"],
+        "deb": ["\ue77d", "#ab0836"],
+        "doc": ["\ue6a5", "#295394"],
+        "dockerfile": ["\U000f0868", "#099cec"],
+        "ebook": ["\uf02d", "#67b500"],
+        "env": ["\uf462", "#eed645"],
+        "f": ["\U000f121a", "#8e44ad"],
+        "font": ["\uf031", "#3498db"],
+        "fs": ["\ue7a7", "#2ecc71"],
+        "gb": ["\ue272", "#f1c40f"],
+        "gform": ["\uf298", "#9b59b6"],
+        "git": ["\ue702", "#e67e22"],
+        "go": ["\ue627", "#6ed8e5"],
+        "graphql": ["\ue662", "#e74c3c"],
+        "glp": ["\U000f01a7", "#3498db"],
+        "groovy": ["\ue775", "#2ecc71"],
+        "gruntfile.js": ["\ue74c", "#3498db"],
+        "gulpfile.js": ["\ue610", "#e67e22"],
+        "gv": ["\ue225", "#9b59b6"],
+        "h": ["\uf0fd", "#3498db"],
+        "haml": ["\ue664", "#9b59b6"],
+        "hs": ["\ue777", "#2980b9"],
+        "html": ["\uf13b", "#e67e22"],
+        "hx": ["\ue666", "#e74c3c"],
+        "ics": ["\uf073", "#f1c40f"],
+        "image": ["\uf1c5", "#e74c3c"],
+        "iml": ["\ue7b5", "#3498db"],
+        "ini": ["\U000f016a", "#f1c40f"],
+        "ino": ["\ue255", "#2ecc71"],
+        "iso": ["\U000f02ca", "#f1c40f"],
+        "jade": ["\ue66c", "#9b59b6"],
+        "java": ["\ue738", "#5382a1"],
+        "jenkinsfile": ["\ue767", "#e74c3c"],
+        "jl": ["\ue624", "#2ecc71"],
+        "js": ["\ue781", "#f39c12"],
+        "json": ["\ue60b", "#f1c40f"],
+        "jsx": ["\ue7ba", "#e67e22"],
+        "key": ["\uf43d", "#f1c40f"],
+        "ko": ["\uebc6", "#9b59b6"],
+        "kt": ["\ue634", "#2980b9"],
+        "less": ["\ue758", "#3498db"],
+        "lock": ["\uf023", "#f1c40f"],
+        "log": ["\uf18d", "#7f8c8d"],
+        "lua": ["\ue620", "#e74c3c"],
+        "maintainers": ["\uf0c0", "#7f8c8d"],
+        "makefile": ["\ue20f", "#3498db"],
+        "markdown": ["\uf48a", "#7f8c8d"],
+        "mjs": ["\ue718", "#f39c12"],
+        "ml": ["\U000f0627", "#2ecc71"],
+        "mustache": ["\ue60f", "#e67e22"],
+        "nc": ["\U000f02c1", "#f1c40"],
+        "nim": ["\ue677", "#3498db"],
+        "nix": ["\uf313", "#f39c12"],
+        "npmignore": ["\ue71e", "#e74c3c"],
+        "package": ["\U000f03d7", "#9b59b6"],
+        "passwd": ["\uf023", "#f1c40f"],
+        "patch": ["\uf440", "#e67e22"],
+        "pdf": ["\uf1c1", "#d35400"],
+        "php": ["\ue608", "#9b59b6"],
+        "pl": ["\ue7a1", "#3498db"],
+        "prisma": ["\ue684", "#9b59b6"],
+        "ppt": ["\uf1c4", "#c0392b"],
+        "psd": ["\ue7b8", "#3498db"],
+        "py": ["\ue606", "#FFD43B"],
+        "r": ["\ue68a", "#9b59b6"],
+        "rb": ["\ue21e", "#9b59b6"],
+        "rdb": ["\ue76d", "#9b59b6"],
+        "rpm": ["\uf17c", "#d35400"],
+        "rs": ["\ue7a8", "#f39c12"],
+        "rss": ["\uf09e", "#c0392b"],
+        "rst": ["\U000f016b", "#2ecc71"],
+        "rubydoc": ["\ue73b", "#e67e22"],
+        "sass": ["\ue603", "#e74c3c"],
+        "scala": ["\ue737", "#e67e22"],
+        "shell": ["\uf489", "#2ecc71"],
+        "shp": ["\U000f065e", "#f1c40f"],
+        "sol": ["\U000f086a", "#3498db"],
+        "sqlite": ["\ue7c4", "#27ae60"],
+        "styl": ["\ue600", "#e74c3c"],
+        "svelte": ["\ue697", "#ff3e00"],
+        "swift": ["\ue755", "#ff6f61"],
+        "tex": ["\u222b", "#9b59b6"],
+        "text": ["\uf15c", "ffffff"],
+        "tf": ["\ue69a", "#2ecc71"],
+        "toml": ["\U000f016a", "#f39c12"],
+        "ts": ["\U000f06e6", "#2980b9"],
+        "twig": ["\ue61c", "#9b59b6"],
+        "txt": ["\uf15c", "#7f8c8d"],
+        "vagrantfile": ["\ue21e", "#3498db"],
+        "video": ["\uf03d", "#c0392b"],
+        "vim": ["\ue62b", "#019833"],
+        "vue": ["\ue6a0", "#41b883"],
+        "windows": ["\uf17a", "#4a90e2"],
+        "xls": ["\uf1c3", "#27ae60"],
+        "xml": ["\ue796", "#3498db"],
+        "yml": ["\ue601", "#f39c12"],
+        "yaml": ["\ue8eb", "#f36c62"],
+        "zig": ["\ue6a9", "#9b59b6"],
+        "zip": ["\uf410", "#e74c3c"],
     },
 }
 
@@ -122,10 +199,14 @@ FOLDER_MAP = {
     "home": "home",
 }
 
-FILES_MAP = {
+FILE_EXTENSION_MAP = {
     # Text files
-    ".txt": "text",
-    ".log": "text",
+    ".txt": "txt",
+    ".log": "log",
+    ".md": "markdown",
+    ".markdown": "markdown",
+    ".rst": "rst",
+    ".text": "text",
     # Image files
     ".jpg": "image",
     ".jpeg": "image",
@@ -134,6 +215,8 @@ FILES_MAP = {
     ".bmp": "image",
     ".svg": "image",
     ".webp": "image",
+    ".psd": "psd",
+    ".ai": "ai",
     # Audio files
     ".mp3": "audio",
     ".wav": "audio",
@@ -146,67 +229,132 @@ FILES_MAP = {
     ".mov": "video",
     # Document files
     ".pdf": "pdf",
-    ".md": "markdown",
-    ".markdown": "markdown",
+    ".doc": "doc",
+    ".ppt": "ppt",
+    ".xls": "xls",
+    ".gform": "gform",
+    ".key": "key",
+    ".ics": "ics",
+    # Ebook files
+    ".ebook": "ebook",
     # Archive files
-    ".zip": "archive",
-    ".rar": "archive",
-    ".tar": "archive",
-    ".gz": "archive",
-    ".7z": "archive",
+    ".zip": "zip",
+    ".rar": "zip",
+    ".tar": "zip",
+    ".gz": "zip",
+    ".7z": "zip",
+    ".deb": "deb",
+    ".rpm": "rpm",
+    ".iso": "iso",
     # Programming languages
-    ".py": "python",
-    ".pyc": "python",
-    ".pyw": "python",
-    ".js": "javascript",
-    ".jsx": "javascript",
-    ".ts": "typescript",
-    ".tsx": "typescript",
+    ".py": "py",
+    ".pyc": "py",
+    ".pyw": "py",
+    ".js": "js",
+    ".mjs": "mjs",
+    ".jsx": "jsx",
+    ".ts": "ts",
+    ".tsx": "ts",
     ".html": "html",
     ".htm": "html",
     ".css": "css",
-    ".scss": "css",
-    ".sass": "css",
+    ".tcss": "css",
+    ".scss": "sass",
+    ".sass": "sass",
+    ".less": "less",
+    ".styl": "styl",
     ".json": "json",
     ".go": "go",
-    ".rs": "rust",
-    ".rlib": "rust",
+    ".rs": "rs",
+    ".rlib": "rs",
     ".c": "c",
-    ".cs": "cs",
+    ".h": "h",
+    ".cs": "c",
     ".cpp": "cpp",
     ".cc": "cpp",
-    ".h": "cpp",
     ".hpp": "cpp",
     ".java": "java",
-    ".kt": "kotlin",
-    ".kts": "kotlin",
-    ".hs": "haskell",
-    ".lhs": "haskell",
+    ".jar": "java",
+    ".kt": "kt",
+    ".kts": "kt",
+    ".hs": "hs",
+    ".lhs": "hs",
     ".swift": "swift",
     ".vue": "vue",
     ".php": "php",
-    ".tcss": "tcss",
+    ".rb": "rb",
+    ".pl": "pl",
+    ".lua": "lua",
+    ".clj": "clj",
+    ".groovy": "groovy",
+    ".dart": "dart",
+    ".f": "f",
+    ".fs": "fs",
+    ".r": "r",
+    ".rdb": "rdb",
+    ".scala": "scala",
+    ".sol": "sol",
+    ".svelte": "svelte",
+    ".vim": "vim",
+    ".zig": "zig",
+    ".nim": "nim",
+    ".nix": "nix",
+    ".ml": "ml",
+    ".hx": "hx",
+    ".haml": "haml",
+    ".jade": "jade",
+    ".twig": "twig",
+    ".mustache": "mustache",
+    ".tex": "tex",
+    ".sh": "shell",
+    ".shell": "shell",
+    ".zsh": "shell",
+    ".bash": "shell",
+    ".fish": "shell",
+    ".asm": "asm",
     # Config files
-    ".ini": "config",
-    ".conf": "config",
+    ".ini": "ini",
+    ".conf": "conf",
+    ".cfg": "cfg",
     ".yaml": "yaml",
     ".yml": "yml",
     ".toml": "toml",
     ".lock": "lock",
+    ".env": "env",
+    ".npmrc": "npmignore",
+    ".editorconfig": "conf",
+    # Git
+    ".gitignore": "git",
+    ".gitattributes": "git",
+    ".gitmodules": "git",
     # Binary files
     ".bin": "binary",
-    ".exe": "executable",
+    ".exe": "windows",
+    ".dll": "windows",
+    ".so": "binary",
+    ".o": "binary",
     # Certificates
-    ".crt": "cert",
-    ".pem": "cert",
-    ".cer": "cert",
-    # Other specific files
-    ".diff": "diff",
-    ".patch": "diff",
-    # Specific files
-    "cargo.lock": "package",
-    "package.json": "package",
-    "package-lock.json": "package",
+    ".crt": "key",
+    ".pem": "key",
+    ".cer": "key",
+    # Other
+    ".patch": "patch",
+    ".diff": "patch",
+    ".db": "db",
+    ".sqlite": "sqlite",
+    ".xml": "xml",
+    ".iml": "iml",
+    ".graphql": "graphql",
+    ".prisma": "prisma",
+    ".tf": "tf",
+    ".font": "font",
+    ".gb": "gb",
+    ".glp": "glp",
+    ".gv": "gv",
+    ".ino": "ino",
+    ".ko": "ko",
+    ".nc": "nc",
+    ".shp": "shp",
 }
 
 EXT_TO_LANG_MAP = {
@@ -226,6 +374,27 @@ EXT_TO_LANG_MAP = {
     ".sh": "bash",
     ".xml": "xml",
     ".lock": "toml",
+}
+
+FILES_MAP = {
+    "pyproject.toml": "package",
+    "cargo.lock": "package",
+    "package.json": "package",
+    "package-lock.json": "package",
+    "dockerfile": "dockerfile",
+    "gruntfile.js": "gruntfile.js",
+    "gulpfile.js": "gulpfile.js",
+    "makefile": "makefile",
+    "vagrantfile": "vagrantfile",
+    "jenkinsfile": "jenkinsfile",
+    ".npmignore": "npmignore",
+    "npmignore": "npmignore",
+    "maintainers": "maintainers",
+    "rubydoc": "rubydoc",
+    "gemfile": "rb",
+    "gemfile.lock": "lock",
+    "passwd": "passwd",
+    "py.typed": "py",
 }
 
 PIL_EXTENSIONS = [
@@ -291,21 +460,23 @@ def get_icon_for_file(location: str) -> list:
     Returns:
         list: The icon and color for the file.
     """
-    file_name = location.lower()
-    # Map extensions to icons
-    if file_name.startswith(".git"):
-        return ICONS["file"]["git"]
-    elif file_name in FILES_MAP:
-        return ICONS["file"][FILES_MAP[file_name]]
-    elif "." in file_name:
-        extension = f".{file_name.split('.')[-1]}"
-        if extension in FILES_MAP:
-            return ICONS["file"][FILES_MAP[extension]]
-    if file_name.startswith(".git"):
-        return ICONS["file"]["git"]
-    else:
-        # Default file icon
-        return ICONS["file"]["default"]
+    file_name = path.basename(location).lower()
+
+    # 1. Check for full filename match
+    if file_name in FILES_MAP:
+        icon_key = FILES_MAP[file_name]
+        return ICONS["file"].get(icon_key, ICONS["file"]["default"])
+
+    # 2. Check for extension match
+    if "." in file_name:
+        # this is for hidden files like .gitignore
+        extension = "." + file_name.split(".")[-1]
+        if extension in FILE_EXTENSION_MAP:
+            icon_key = FILE_EXTENSION_MAP[extension]
+            return ICONS["file"].get(icon_key, ICONS["file"]["default"])
+
+    # 3. Default icon
+    return ICONS["file"]["default"]
 
 
 def get_icon_for_folder(location: str) -> list:
@@ -317,10 +488,11 @@ def get_icon_for_folder(location: str) -> list:
     Returns:
         list: The icon and color for the folder.
     """
-    folder_name = location.lower()
+    folder_name = path.basename(location).lower()
     # Check for special folder types
     if folder_name in FOLDER_MAP:
-        return ICONS["folder"][FOLDER_MAP[folder_name]]
+        icon_key = FOLDER_MAP[folder_name]
+        return ICONS["folder"].get(icon_key, ICONS["folder"]["default"])
     else:
         return ICONS["folder"]["default"]
 

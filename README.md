@@ -9,15 +9,9 @@
 > [!caution]
 > This project is in its very early stages. Feedback is appreciated, but this cannot be daily-driven yet.
 
-### Setup
-```py
-git clone https://github.com/NSPC911/carto
-cd carto
-uv sync
-```
-### Run
-```py
-uv run src/main.py
+### Test run with uv
+```pwsh
+uvx --from git+https://github.com/NSPC911/carto.git -q carto --python 3.13
 ```
 
 ### Roadmap
