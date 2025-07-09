@@ -18,7 +18,7 @@ def get_custom_themes():
             Theme(
                 name=theme["name"]
                 .lower()
-                .replace(" ", "-"),  # keep it similar to default textual behaviour
+                .replace(" ", "-"),  # Keep it similar to default textual behaviour
                 primary=theme["primary"],
                 secondary=theme["secondary"],
                 accent=theme["accent"],

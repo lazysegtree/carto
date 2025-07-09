@@ -305,7 +305,7 @@ class ZToDirectory(ModalScreen):
                 zoxide_options.highlighted = 0
             zoxide_options.action_select()
 
-    # you cant manually tab into the option list, but you can click, so i guess
+    # You cant manually tab into the option list, but you can click, so I guess
     @work(exclusive=True)
     async def on_option_list_option_selected(
         self, event: OptionList.OptionSelected

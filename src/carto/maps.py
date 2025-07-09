@@ -469,7 +469,7 @@ def get_icon_for_file(location: str) -> list:
 
     # 2. Check for extension match
     if "." in file_name:
-        # this is for hidden files like .gitignore
+        # This is for hidden files like `.gitignore`
         extension = "." + file_name.split(".")[-1]
         if extension in FILE_EXTENSION_MAP:
             icon_key = FILE_EXTENSION_MAP[extension]

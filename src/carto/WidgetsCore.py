@@ -302,7 +302,7 @@ class PreviewContainer(Container):
             self.border_title = "File Preview (bat)"
             return
 
-        # fallback! this guy doesnt have batcat
+        # Fallback! This guy doesn't have bat
         if bat_failed:
             self.app.notify(
                 f"bat preview failed: {error_message}",
@@ -323,7 +323,7 @@ class PreviewContainer(Container):
             else:
                 lines = []
 
-            # no clue why its 5 lmao
+            # No clue why it's 5 though
             max_width = self.size.width - 5
             if max_width > 0:
                 processed_lines = []
@@ -400,7 +400,7 @@ class PreviewContainer(Container):
                 case key if key in state.config["keybinds"]["page_down"]:
                     vscroll.scroll_page_down(animate=False)
                 case key if key in state.config["keybinds"]["home"]:
-                    # still kidna confused why this still doesnt have an animation
+                    # Still kinda confused why this still doesn't have an animation
                     vscroll.scroll_home(animate=False)
                 case key if key in state.config["keybinds"]["end"]:
                     vscroll.scroll_end(animate=False)
@@ -665,7 +665,7 @@ class FileList(SelectionList, inherit_bindings=False):
         """
         cwd = getcwd().replace(path.sep, "/").replace(path.sep, "/")
         self.clear_options()
-        # seperate folders and files
+        # Separate folders and files
         folders, files = get_cwd_object(cwd, sort_order, sort_by)
         if folders == [PermissionError] or files == [PermissionError]:
             self.add_option(
@@ -709,7 +709,7 @@ class FileList(SelectionList, inherit_bindings=False):
                 }
             )
             if state.sessionLastHighlighted.get(cwd) is None:
-                # hard coding is my passion (referring to the id)
+                # Hard coding is my passion (referring to the id)
                 state.sessionLastHighlighted[cwd] = (
                     self.app.query_one("#file_list").options[0].value
                 )
@@ -752,7 +752,7 @@ class FileList(SelectionList, inherit_bindings=False):
         if cwd == "":
             cwd = getcwd().replace(path.sep, "/")
         self.clear_options()
-        # seperate folders and files
+        # Separate folders and files
         folders, files = get_cwd_object(cwd, sort_order, sort_by)
         if folders == [PermissionError] or files == [PermissionError]:
             self.add_option(
@@ -794,8 +794,8 @@ class FileList(SelectionList, inherit_bindings=False):
             # Get the selected option
             selected_option = self.get_option_at_index(
                 self.highlighted
-            )  # ? trust me bro
-            # Get the file name from the option id
+            )  # ? Trust me bro
+            # Get the filename from the option id
             file_name = state.decompress(selected_option.value)
             # Check if it's a folder or a file
             if path.isdir(path.join(cwd, file_name)):
@@ -803,7 +803,7 @@ class FileList(SelectionList, inherit_bindings=False):
                 try:
                     chdir(path.join(cwd, file_name))
                 except PermissionError:
-                    # cannot access, so dont change anything ig
+                    # Cannot access, so don't change anything I guess
                     return
                 self.app.query_one("#file_list").update_file_list(
                     self.sort_by, self.sort_order
@@ -823,7 +823,7 @@ class FileList(SelectionList, inherit_bindings=False):
                 self.parent, "SELECT", f"{len(self.selected)}/{len(self.options)}", True
             )
 
-    # no clue why im using optionlist in a selectionlist, but it works
+    # No clue why I'm using an OptionList method for SelectionList
     async def on_option_list_option_highlighted(
         self, event: OptionList.OptionHighlighted
     ) -> None:

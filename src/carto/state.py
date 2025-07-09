@@ -18,7 +18,7 @@ from .maps import BORDER_BOTTOM, VAR_TO_DIR
 lzstring = LZString()
 
 
-# what is textual reactive?
+# What is textual reactive?
 sessionDirectories = []
 sessionHistoryIndex = 0
 sessionLastHighlighted = {}
@@ -84,8 +84,6 @@ def load_config() -> None:
     global config
     with open(path.join(path.dirname(__file__), "config/config.toml"), "r") as f:
         config = toml.loads(f.read())
-    # update styles
-    # get vars to replace
 
 
 def load_pins() -> None:

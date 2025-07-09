@@ -14,11 +14,11 @@
 uvx --from git+https://github.com/NSPC911/carto.git -q carto --python 3.13
 ```
 
-### Roadmap
+### Road map
 This is a list of features that I plan to add before releasing the appropriate version and where they are inspired from.
-#### v1
+#### Version 1
 Status: 19/29
-- [x] Directory Autocompletion (explorer)
+- [x] Directory Auto-completion (explorer)
 - [x] Button Navigation (explorer)
 - Keyboard Navigation
   - [x] Directory Navigation (explorer)
@@ -41,7 +41,7 @@ Status: 19/29
     - [ ] Warn when overwriting same named files
 - Multiple File Lists
   - [ ] Tabs
-  - [ ] VSplit and HSplit
+  - [ ] Vertical and Horizontal Splits
 - [ ] Active and Completed processes (superfile)
 - Actions bar (explorer)
   - [ ] Change sort order of files
@@ -53,7 +53,7 @@ Status: 19/29
   - [x] Rename **a** file/folder
 - [x] bat as previewer
 
-#### v2
+#### Version 2
 - [ ] Plugins using [pytest-dev/pluggy](https://github.com/pytest-dev/pluggy) or a custom way (i wish not)
 - [ ] Cross process clipboard sync (two carto instances should have synced clipboards)
 - [ ] Recycle Bin of 1 day when files get overwritten (Currently handled with `sendtotrash` but it doesn't work at times, so not a reliable solution)

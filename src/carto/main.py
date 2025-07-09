@@ -189,7 +189,7 @@ class Application(App):
     async def on_key(self, event: events.Key) -> None:
         if self.focused is None or not self.focused.id:
             return
-        # make sure that keybinds dont break
+        # Make sure that key binds don't break
         match event.key:
             case key if (
                 key in ["enter", "escape"] and self.focused.id == "path_switcher"
@@ -216,10 +216,10 @@ class Application(App):
                     self.query_one("#file_list").focus()
                 else:
                     self.query_one("#pinned_sidebar").focus()
-            # focus file list from anywhere except input
+            # Focus file list from anywhere except input
             case key if key in state.config["keybinds"]["focus_file_list"]:
                 self.query_one("#file_list").focus()
-            # focus toggle preview sidebar
+            # Focus toggle preview sidebar
             case key if key in state.config["keybinds"]["focus_toggle_preview_sidebar"]:
                 if (
                     self.focused.id == "preview_sidebar"
@@ -232,10 +232,10 @@ class Application(App):
                         self.query_one("#preview_sidebar > *").focus()
                     except NoMatches:
                         pass
-            # focus path switcher
+            # Focus path switcher
             case key if key in state.config["keybinds"]["focus_toggle_path_switcher"]:
                 self.query_one("#path_switcher").focus()
-            # focus processes
+            # Focus processes
             case key if key in state.config["keybinds"]["focus_toggle_processes"]:
                 if (
                     self.focused.id == "processes"
@@ -244,19 +244,19 @@ class Application(App):
                     self.query_one("#file_list").focus()
                 else:
                     self.query_one("#processes").focus()
-            # focus metadata
+            # Focus metadata
             case key if key in state.config["keybinds"]["focus_toggle_metadata"]:
                 if self.focused.id == "metadata":
                     self.query_one("#file_list").focus()
                 else:
                     self.query_one("#metadata").focus()
-            # focus clipboard
+            # Focus clipboard
             case key if key in state.config["keybinds"]["focus_toggle_clipboard"]:
                 if self.focused.id == "clipboard":
                     self.query_one("#file_list").focus()
                 else:
                     self.query_one("#clipboard").focus()
-            # navi buttons but keybind
+            # Navigation buttons but with key binds
             case key if key in state.config["keybinds"]["hist_previous"]:
                 if self.query_one("#back").disabled:
                     self.go_up_path(Button.Pressed(self.query_one("#up")))
@@ -273,11 +273,11 @@ class Application(App):
                 self.go_up_path(Button.Pressed(self.query_one("#up")))
             case key if key in state.config["keybinds"]["reload"]:
                 self.reload_file_list(Button.Pressed(self.query_one("#reload")))
-            # toggle pin on current directory
+            # Toggle pin on current directory
             case key if key in state.config["keybinds"]["toggle_pin"]:
                 state.toggle_pin(path.basename(getcwd()), getcwd())
                 self.query_one("#pinned_sidebar").reload_pins()
-            # toggle hiding panels
+            # Toggle hiding panels
             case key if key in state.config["keybinds"]["toggle_pinned_sidebar"]:
                 self.query_one("#file_list").focus()
                 if self.query_one("#pinned_sidebar_container").display:
