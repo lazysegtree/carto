@@ -12,8 +12,42 @@ VAR_TO_DIR = {
     "DESKTOP": dirs.user_desktop_dir.replace("\\", "/"),
     "HOME": path.expanduser("~").replace("\\", "/"),
     "VIDEOS": dirs.user_videos_dir.replace("\\", "/"),
+    "CONFIG": dirs.user_config_dir.replace("\\", "/"),
 }
 
+ASCII_ICONS = {
+    "general": {
+        "new": ["+", "green"],
+        "open": ["O", "blue"],
+        "save": ["S", "cyan"],
+        "search": ["?", "orange"],
+        "refresh": ["R", "teal"],
+        "settings": ["#", "gray"],
+        "close": ["X", "red"],
+        "up": ["^", "white"],
+        "down": ["v", "white"],
+        "left": ["<", "white"],
+        "right": [">", "white"],
+        "home": ["~", "indigo"],
+        "copy": ["C", "white"],
+        "paste": ["P", "white"],
+        "cut": ["X", "white"],
+        "rename": ["R", "white"],
+        "delete": ["D", "red"],
+    },
+    "folder": {
+        "default": ["D", "#DAA520"],
+        "open": ["O", "orange"],
+        "empty": ["E", "yellow"],
+        "home": ["~", "cyan"],
+        ":/drive:": ["D", "white"],
+    },
+    "file": {
+        "default": ["F", "#ffffff"],
+    },
+}
+
+# We are kind of stuck without the ability to use surrogate Unicode characters, because I have no idea how they work...
 ICONS = {
     "general": {
         "new": ["\uea7f", "green"],
@@ -29,11 +63,11 @@ ICONS = {
         "right": ["\uf061", "white"],
         "home": ["\uf015", "indigo"],
         "check": ["\uf00c", "green"],
-        "copy": ["\U000f018f", "white"],
+        "copy": ["\uf0c5", "white"],
         "paste": ["\uf429", "white"],
-        "cut": ["\U000f0190", "white"],
-        "rename": ["\U000fdde7", "white"],
-        "delete": ["\U000f0190", "red"],
+        "cut": ["\uf0c4", "white"],
+        "rename": ["\uf246", "white"],
+        "delete": ["\uf014", "red"],
     },
     "folder": {
         "default": ["\uf07b", "#DAA520"],
@@ -50,6 +84,7 @@ ICONS = {
         "node_modules": ["\ue5fa", "green"],
         "carto": ["\uf14e", "teal"],
         "home": ["\uf015", "cyan"],
+        ":/drive:": ["\uf0a0", "white"],  # literally impossible to name a folder this
     },
     # shout out to https://github.com/acarl005/ls-go
     "file": {
@@ -57,7 +92,7 @@ ICONS = {
         "ai": ["\ue669", "#ce6f14"],
         "android": ["\uf17b", "#a7c83f"],
         "apple": ["\ue711", "#78909c"],
-        "asm": ["\U000f061a", "#ff7844"],
+        "asm": ["\ue6ab", "#ff7844"],
         "audio": ["\uf001", "#ee524f"],
         "binary": ["\uf471", "#ff7844"],
         "c": ["\ue649", "#0188d2"],
@@ -70,10 +105,10 @@ ICONS = {
         "db": ["\uf1c0", "#FF8400"],
         "deb": ["\ue77d", "#ab0836"],
         "doc": ["\ue6a5", "#295394"],
-        "dockerfile": ["\U000f0868", "#099cec"],
+        "dockerfile": ["\uf21f", "#099cec"],
         "ebook": ["\uf02d", "#67b500"],
         "env": ["\uf462", "#eed645"],
-        "f": ["\U000f121a", "#8e44ad"],
+        "f": ["\uf24f", "#8e44ad"],
         "font": ["\uf031", "#3498db"],
         "fs": ["\ue7a7", "#2ecc71"],
         "gb": ["\ue272", "#f1c40f"],
@@ -81,7 +116,6 @@ ICONS = {
         "git": ["\ue702", "#e67e22"],
         "go": ["\ue627", "#6ed8e5"],
         "graphql": ["\ue662", "#e74c3c"],
-        "glp": ["\U000f01a7", "#3498db"],
         "groovy": ["\ue775", "#2ecc71"],
         "gruntfile.js": ["\ue74c", "#3498db"],
         "gulpfile.js": ["\ue610", "#e67e22"],
@@ -94,9 +128,9 @@ ICONS = {
         "ics": ["\uf073", "#f1c40f"],
         "image": ["\uf1c5", "#e74c3c"],
         "iml": ["\ue7b5", "#3498db"],
-        "ini": ["\U000f016a", "#f1c40f"],
+        "ini": ["\ue615", "#f1c40f"],
         "ino": ["\ue255", "#2ecc71"],
-        "iso": ["\U000f02ca", "#f1c40f"],
+        "iso": ["\uede9", "#f1c40f"],
         "jade": ["\ue66c", "#9b59b6"],
         "java": ["\ue738", "#5382a1"],
         "jenkinsfile": ["\ue767", "#e74c3c"],
@@ -115,7 +149,7 @@ ICONS = {
         "makefile": ["\ue20f", "#3498db"],
         "markdown": ["\uf48a", "#7f8c8d"],
         "mjs": ["\ue718", "#f39c12"],
-        "ml": ["\U000f0627", "#2ecc71"],
+        "ml": ["\ue82d", "#2ecc71"],
         "mustache": ["\ue60f", "#e67e22"],
         "nc": ["\U000f02c1", "#f1c40"],
         "nim": ["\ue677", "#3498db"],
@@ -199,7 +233,7 @@ FOLDER_MAP = {
     "home": "home",
 }
 
-FILE_EXTENSION_MAP = {
+FILE_MAP = {
     # Text files
     ".txt": "txt",
     ".log": "log",
@@ -451,57 +485,18 @@ PIL_EXTENSIONS = [
 ]
 
 
-def get_icon_for_file(location: str) -> list:
-    """Get the icon and color for a file based on its name or extension.
-
-    Args:
-        location (str): The name or path of the file.
-
-    Returns:
-        list: The icon and color for the file.
-    """
-    file_name = path.basename(location).lower()
-
-    # 1. Check for full filename match
-    if file_name in FILES_MAP:
-        icon_key = FILES_MAP[file_name]
-        return ICONS["file"].get(icon_key, ICONS["file"]["default"])
-
-    # 2. Check for extension match
-    if "." in file_name:
-        # This is for hidden files like `.gitignore`
-        extension = "." + file_name.split(".")[-1]
-        if extension in FILE_EXTENSION_MAP:
-            icon_key = FILE_EXTENSION_MAP[extension]
-            return ICONS["file"].get(icon_key, ICONS["file"]["default"])
-
-    # 3. Default icon
-    return ICONS["file"]["default"]
-
-
-def get_icon_for_folder(location: str) -> list:
-    """Get the icon and color for a folder based on its name.
-
-    Args:
-        location (str): The name or path of the folder.
-
-    Returns:
-        list: The icon and color for the folder.
-    """
-    folder_name = path.basename(location).lower()
-    # Check for special folder types
-    if folder_name in FOLDER_MAP:
-        icon_key = FOLDER_MAP[folder_name]
-        return ICONS["folder"].get(icon_key, ICONS["folder"]["default"])
-    else:
-        return ICONS["folder"]["default"]
-
-
 TOGGLE_BUTTON_ICONS = {
     "left": " ",
     "right": "",
     "inner": "\ue640",
     "inner_filled": "\uf4a7",
+}
+
+ASCII_TOGGLE_BUTTON_ICONS = {
+    "left": " ",
+    "right": "",
+    "inner": "O",
+    "inner_fillex": "X",
 }
 
 BORDER_BOTTOM = {

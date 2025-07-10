@@ -27,13 +27,12 @@ from textual_autocomplete import DropdownItem, PathAutoComplete, TargetState
 from textual_image.widget import AutoImage
 
 from . import state
-from .maps import (
-    EXT_TO_LANG_MAP,
-    ICONS,
-    PIL_EXTENSIONS,
-    TOGGLE_BUTTON_ICONS,
+from .maps import EXT_TO_LANG_MAP, PIL_EXTENSIONS
+from .state import (
+    get_icon,
     get_icon_for_file,
     get_icon_for_folder,
+    get_toggle_button_icon,
 )
 
 state.load_config()
@@ -524,7 +523,7 @@ class PinnedSidebar(OptionList, inherit_bindings=False):
         for drive in self.drives:
             self.add_option(
                 Option(
-                    f" \uf0a0 {drive}",
+                    f" {get_icon('folder', ':/drive:')[0]} {drive}",
                     id=f"{state.compress(drive)}-drives",
                 )
             )
@@ -857,7 +856,7 @@ class FileList(SelectionList, inherit_bindings=False):
             state.sessionHistoryIndex,
             state.sessionLastHighlighted,
         )
-        # Get the file name from the option id
+        # Get the filename from the option id
         file_name = state.decompress(highlighted_option.value)
         # total files as footer
         if self.highlighted is None:
@@ -883,9 +882,9 @@ class FileList(SelectionList, inherit_bindings=False):
             return 0
         else:
             return len(
-                TOGGLE_BUTTON_ICONS["left"]
-                + TOGGLE_BUTTON_ICONS["inner"]
-                + TOGGLE_BUTTON_ICONS["right"]
+                get_toggle_button_icon("left")
+                + get_toggle_button_icon("inner")
+                + get_toggle_button_icon("right")
                 + " "
             )
 
@@ -928,14 +927,14 @@ class FileList(SelectionList, inherit_bindings=False):
 
         return Strip(
             [
-                Segment(TOGGLE_BUTTON_ICONS["left"], style=side_style),
+                Segment(get_toggle_button_icon("left"), style=side_style),
                 Segment(
-                    TOGGLE_BUTTON_ICONS["inner_filled"]
+                    get_toggle_button_icon("inner_filled")
                     if selection.value in self._selected
-                    else TOGGLE_BUTTON_ICONS["inner"],
+                    else get_toggle_button_icon("inner"),
                     style=button_style,
                 ),
-                Segment(TOGGLE_BUTTON_ICONS["right"], style=side_style),
+                Segment(get_toggle_button_icon("right"), style=side_style),
                 Segment(" ", style=underlying_style),
                 *line,
             ]
@@ -1139,7 +1138,7 @@ class Clipboard(SelectionList, inherit_bindings=False):
         for item in items[::-1]:
             self.insert_selection_at_beginning(
                 Selection(
-                    Content(f"{ICONS['general']['copy'][0]} {item}"),
+                    Content(f"{get_icon('general', 'copy')[0]} {item}"),
                     value=state.compress(f"{item}-copy"),
                     id=state.compress(item),
                 )
@@ -1154,7 +1153,7 @@ class Clipboard(SelectionList, inherit_bindings=False):
             if isinstance(item, str):
                 self.insert_selection_at_beginning(
                     Selection(
-                        Content(f"{ICONS['general']['cut'][0]} {item}"),
+                        Content(f"{get_icon('general', 'cut')[0]} {item}"),
                         value=state.compress(f"{item}-cut"),
                         id=state.compress(item),
                     )
@@ -1174,9 +1173,9 @@ class Clipboard(SelectionList, inherit_bindings=False):
             The width of the left gutter.
         """
         return len(
-            TOGGLE_BUTTON_ICONS["left"]
-            + TOGGLE_BUTTON_ICONS["inner"]
-            + TOGGLE_BUTTON_ICONS["right"]
+            get_toggle_button_icon("left")
+            + get_toggle_button_icon("inner")
+            + get_toggle_button_icon("right")
             + " "
         )
 
@@ -1216,14 +1215,14 @@ class Clipboard(SelectionList, inherit_bindings=False):
 
         return Strip(
             [
-                Segment(TOGGLE_BUTTON_ICONS["left"], style=side_style),
+                Segment(get_toggle_button_icon("left"), style=side_style),
                 Segment(
-                    TOGGLE_BUTTON_ICONS["inner_filled"]
+                    get_toggle_button_icon("inner_filled")
                     if selection.value in self._selected
-                    else TOGGLE_BUTTON_ICONS["inner"],
+                    else get_toggle_button_icon("inner"),
                     style=button_style,
                 ),
-                Segment(TOGGLE_BUTTON_ICONS["right"], style=side_style),
+                Segment(get_toggle_button_icon("right"), style=side_style),
                 Segment(" ", style=underlying_style),
                 *line,
             ]

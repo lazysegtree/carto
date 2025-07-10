@@ -13,7 +13,17 @@ from textual.widget import Widget
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
-from .maps import BORDER_BOTTOM, VAR_TO_DIR
+from .maps import (
+    ASCII_ICONS,
+    ASCII_TOGGLE_BUTTON_ICONS,
+    BORDER_BOTTOM,
+    FILE_MAP,
+    FILES_MAP,
+    FOLDER_MAP,
+    ICONS,
+    TOGGLE_BUTTON_ICONS,
+    VAR_TO_DIR,
+)
 
 lzstring = LZString()
 
@@ -34,26 +44,76 @@ def decompress(text: str) -> str:
     return lzstring.decompressFromEncodedURIComponent(text)
 
 
-def get_nested_value(dictionary, keys_list):
-    """
-    Get a value from a nested dictionary using a list of keys.
+def get_icon_for_file(location: str) -> list:
+    """Get the icon and color for a file based on its name or extension.
 
     Args:
-        dictionary (dict): The dictionary to traverse
-        keys_list (list): List of keys to navigate the dictionary
-        default: Value to return if the path doesn't exist (default: None)
+        location (str): The name or path of the file.
 
     Returns:
-        The value at the specified path or default if not found
+        list: The icon and color for the file.
     """
-    current = dictionary
+    if not config["interface"]["nerd_font"]:
+        return ASCII_ICONS["file"]["default"]
+    file_name = path.basename(location).lower()
 
-    try:
-        for key in keys_list:
-            current = current[key]
-        return current
-    except (KeyError, TypeError):
-        return None
+    # 1. Check for full filename match
+    if file_name in FILES_MAP:
+        icon_key = FILES_MAP[file_name]
+        return ICONS["file"].get(icon_key, ICONS["file"]["default"])
+
+    # 2. Check for extension match
+    if "." in file_name:
+        # This is for hidden files like `.gitignore`
+        extension = "." + file_name.split(".")[-1]
+        if extension in FILE_MAP:
+            icon_key = FILE_MAP[extension]
+            return ICONS["file"].get(icon_key, ICONS["file"]["default"])
+
+    # 3. Default icon
+    return ICONS["file"]["default"]
+
+
+def get_icon_for_folder(location: str) -> list:
+    """Get the icon and color for a folder based on its name.
+
+    Args:
+        location (str): The name or path of the folder.
+
+    Returns:
+        list: The icon and color for the folder.
+    """
+    folder_name = path.basename(location).lower()
+    if not config["interface"]["nerd_font"]:
+        return ASCII_ICONS["folder"].get(folder_name, ASCII_ICONS["folder"]["default"])
+    # Check for special folder types
+    if folder_name in FOLDER_MAP:
+        icon_key = FOLDER_MAP[folder_name]
+        return ICONS["folder"].get(icon_key, ICONS["folder"]["default"])
+    else:
+        return ICONS["folder"]["default"]
+
+
+def get_icon(outer_key: str, inner_key: str) -> list:
+    """
+    Get an icon from double keys.
+    Args:
+        outer_key (str): The category name (general/folder/file)
+        inner_key (str): The icon's name
+    Returns:
+        list[str,str]: The icon and color for the icon
+    """
+    if not config["interface"]["nerd_font"]:
+        return ASCII_ICONS.get(outer_key, {"empty": None}).get(inner_key, " ")
+    else:
+        return ICONS[outer_key][inner_key]
+
+
+def get_toggle_button_icon(key: str) -> str:
+    if not config["interface"]["nerd_font"]:
+        return ASCII_TOGGLE_BUTTON_ICONS[key]
+    else:
+        return TOGGLE_BUTTON_ICONS[key]
 
 
 def update_session_state(directories, index, lastHighlighted={}) -> None:

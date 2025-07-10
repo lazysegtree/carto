@@ -1,5 +1,6 @@
 [interface]
 tooltips = true
+nerd_font = false
 
 preview_error = "Hmm, I think this file got corrupted (or maybe not?)"
 preview_binary = "This file is not UTF-8 encoded, so I decline to read it."
@@ -23,6 +24,9 @@ fields = [
 datetime_format = "%Y-%m-%d %H:%M"
 
 [theme]
+transparent = false
+# if you are using transparent theme, the default theme, or any other custom themes are not used at all
+# this is a textual limitation, and the only way you can solve it is by editing the css file
 default = "nord"
 
 [[custom_theme]]

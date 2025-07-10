@@ -24,8 +24,8 @@ from .ActionButtons import (
     RenameItemButton,
     SortOrderButton,
 )
-from .maps import ICONS
 from .ScreensCore import ZToDirectory
+from .state import get_icon
 from .themes import get_custom_themes
 from .WidgetsCore import (
     Clipboard,
@@ -58,7 +58,11 @@ class Application(App):
             validators=[Function(lambda x: path.exists(x), "Path does not exist")],
         )
         path_switcher.ALLOW_MAXIMIZE = False
-        yield Header(name="carto", show_clock=True, icon="📁")
+        yield Header(
+            name="carto",
+            show_clock=True,
+            icon="📁" if state.config["interface"]["nerd_font"] else "fs",
+        )
         with Vertical(id="root"):
             with HorizontalScroll(id="menu"):
                 yield SortOrderButton()
@@ -70,16 +74,16 @@ class Application(App):
                 yield DeleteButton()
             with VerticalGroup(id="below_menu"):
                 with HorizontalGroup():
-                    yield Button(ICONS["general"]["left"][0], id="back")
-                    yield Button(ICONS["general"]["right"][0], id="forward")
-                    yield Button(ICONS["general"]["up"][0], id="up")
-                    yield Button(ICONS["general"]["refresh"][0], id="reload")
+                    yield Button(get_icon("general", "left")[0], id="back")
+                    yield Button(get_icon("general", "right")[0], id="forward")
+                    yield Button(get_icon("general", "up")[0], id="up")
+                    yield Button(get_icon("general", "refresh")[0], id="reload")
                     yield path_switcher
                 yield PathAutoCompleteInput(
                     target=path_switcher,
                     path=getcwd().split(path.sep)[0],
-                    folder_prefix=ICONS["folder"]["default"][0] + " ",
-                    file_prefix=ICONS["file"]["default"][0] + " ",
+                    folder_prefix=get_icon("folder", "default")[0] + " ",
+                    file_prefix=get_icon("file", "default")[0] + " ",
                     id="path_autocomplete",
                 )
             with HorizontalGroup(id="main"):
@@ -115,7 +119,10 @@ class Application(App):
         # themes
         for theme in get_custom_themes():
             self.register_theme(theme)
-        self.theme = state.config["theme"]["default"]
+        if not state.config["theme"]["transparent"]:
+            self.theme = state.config["theme"]["default"]
+        else:
+            self.ansi_color = True
         # tooltips
         if state.config["interface"]["tooltips"]:
             self.query_one("#back").tooltip = "Go back in history"

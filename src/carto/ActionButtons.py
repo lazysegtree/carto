@@ -4,8 +4,8 @@ from textual.widgets import Button
 
 from . import state
 from .Actions import create_new_item, remove_files, rename_object
-from .maps import ICONS
 from .ScreensCore import DeleteFiles, ModalInput
+from .state import get_icon
 
 
 class SortOrderButton(Button):
@@ -13,7 +13,7 @@ class SortOrderButton(Button):
 
     def __init__(self, *args, **kwargs):
         super().__init__(
-            ICONS["general"]["up"][0],
+            get_icon("general", "up")[0],
             classes="option",
             id="sort_order",
             *args,
@@ -32,7 +32,7 @@ class CopyButton(Button):
 
     def __init__(self, *args, **kwargs):
         super().__init__(
-            ICONS["general"]["copy"][0], classes="option", id="copy", *args, **kwargs
+            get_icon("general", "copy")[0], classes="option", id="copy", *args, **kwargs
         )
 
     def on_mount(self):
@@ -53,7 +53,7 @@ class CutButton(Button):
 
     def __init__(self, *args, **kwargs):
         super().__init__(
-            ICONS["general"]["cut"][0], classes="option", id="cut", *args, **kwargs
+            get_icon("general", "cut")[0], classes="option", id="cut", *args, **kwargs
         )
 
     def on_mount(self):
@@ -74,7 +74,11 @@ class PasteButton(Button):
 
     def __init__(self, *args, **kwargs):
         super().__init__(
-            ICONS["general"]["paste"][0], classes="option", id="paste", *args, **kwargs
+            get_icon("general", "paste")[0],
+            classes="option",
+            id="paste",
+            *args,
+            **kwargs,
         )
 
     def on_mount(self):
@@ -87,7 +91,7 @@ class NewItemButton(Button):
 
     def __init__(self, *args, **kwargs):
         super().__init__(
-            ICONS["general"]["new"][0], classes="option", id="new", *args, **kwargs
+            get_icon("general", "new")[0], classes="option", id="new", *args, **kwargs
         )
 
     def on_mount(self):
@@ -109,7 +113,7 @@ class RenameItemButton(Button):
 
     def __init__(self, *args, **kwargs):
         super().__init__(
-            ICONS["general"]["rename"][0],
+            get_icon("general", "rename")[0],
             classes="option",
             id="rename",
             *args,
@@ -148,7 +152,7 @@ class DeleteButton(Button):
 
     def __init__(self, *args, **kwargs):
         super().__init__(
-            ICONS["general"]["delete"][0],
+            get_icon("general", "delete")[0],
             classes="option",
             id="delete",
             *args,
