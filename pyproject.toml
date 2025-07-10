@@ -34,6 +34,7 @@ carto = "carto.__main__:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/carto"]
+include = ["src/carto/config"]
 
 [tool.hatch.build.targets.sdist]
 packages = ["src/carto"]
