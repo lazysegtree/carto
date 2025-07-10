@@ -24,6 +24,7 @@ from .ActionButtons import (
     RenameItemButton,
     SortOrderButton,
 )
+from .maps import VAR_TO_DIR
 from .ScreensCore import ZToDirectory
 from .state import get_icon
 from .themes import get_custom_themes
@@ -41,7 +42,7 @@ state.load_pins()
 
 
 class Application(App):
-    CSS_PATH = "style.tcss"
+    CSS_PATH = ["style.tcss", path.join(VAR_TO_DIR["CONFIG"], "style.tcss")]
 
     HORIZONTAL_BREAKPOINTS = [(0, "-filelistonly"), (60, "-nopreview"), (90, "-all")]
 

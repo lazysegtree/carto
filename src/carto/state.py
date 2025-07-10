@@ -1,5 +1,6 @@
 """Module that holds variable states + other functions"""
 
+import os
 import platform
 from os import path
 from threading import Thread
@@ -341,6 +342,17 @@ def set_scuffed_subtitle(element: Widget, mode: str, frac: str, hover: bool) -> 
     element.border_subtitle = (
         f"{mode} [{border_color} on $background]{border_bottom}[/] {frac}"
     )
+
+
+# check config folder
+if not path.exists(VAR_TO_DIR["CONFIG"]):
+    os.makedirs(VAR_TO_DIR["CONFIG"])
+if not path.exists(path.join(VAR_TO_DIR["CONFIG"], "config.toml")):
+    with open(path.join(VAR_TO_DIR["CONFIG"], "config.toml"), "w") as file:
+        pass
+if not path.exists(path.join(VAR_TO_DIR["CONFIG"], "style.tcss")):
+    with open(path.join(VAR_TO_DIR["CONFIG"], "style.tcss"), "a") as file:
+        pass
 
 
 class FileEventHandler(FileSystemEventHandler):

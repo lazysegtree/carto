@@ -2,7 +2,7 @@ from os import path
 
 from platformdirs import PlatformDirs
 
-dirs = PlatformDirs("NSPC911", "carto")
+dirs = PlatformDirs("carto", ".")  # Ah yes, my name is "."
 
 VAR_TO_DIR = {
     "DOCUMENTS": dirs.user_documents_dir.replace("\\", "/"),
