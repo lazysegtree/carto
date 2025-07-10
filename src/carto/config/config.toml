@@ -72,10 +72,10 @@ up_tree = ["left", "h"]
 down_tree = ["right", "l", "enter"]
 page_up = ["pageup", "ctrl+b"]
 page_down = ["pagedown", "ctrl+f"]
-home = ["home", "g g"]
+home = ["home", "g"]
 end = ["end", "G"]
 hist_previous = ["backspace", "u"]
-hist_next = ["space", "ctrl+r"]
+hist_next = ["space", "o"]
 reload = ["ctrl+r", "f5"]
 
 toggle_visual = ["v"]
@@ -95,5 +95,5 @@ executable = "bat"
 show_line_numbers = true
 [plugins.editor]
 enabled = false
-executable = "hx"
+executable = "nano"
 keybinds = ["e"]
