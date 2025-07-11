@@ -5,9 +5,9 @@ from send2trash import send2trash
 from textual.app import App
 from textual.content import Content
 
-from . import state
+from . import utils
 
-state.load_config()
+utils.load_config()
 
 
 async def remove_files(
@@ -26,11 +26,11 @@ async def remove_files(
     """
     for file in files:
         if compressed:
-            file = state.decompress(file)
+            file = utils.decompress(file)
         file = path.realpath(file)
         try:
             if path.exists(file):
-                if state.config["settings"]["use_recycle_bin"] and not ignore_trash:
+                if utils.config["settings"]["use_recycle_bin"] and not ignore_trash:
                     try:
                         send2trash(file)
                     except Exception as e:

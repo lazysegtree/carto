@@ -1,8 +1,8 @@
 from textual.theme import Theme
 
-from . import state
+from . import utils
 
-state.load_config()
+utils.load_config()
 
 
 def get_custom_themes():
@@ -13,7 +13,7 @@ def get_custom_themes():
         dict: A dictionary of custom themes.
     """
     custom_themes = []
-    for theme in state.config["custom_theme"]:
+    for theme in utils.config["custom_theme"]:
         custom_themes.append(
             Theme(
                 name=theme["name"]

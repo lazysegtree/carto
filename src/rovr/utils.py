@@ -1,5 +1,3 @@
-"""Module that holds variable states + other functions"""
-
 import os
 import platform
 from os import path
@@ -30,9 +28,15 @@ lzstring = LZString()
 
 
 # What is textual reactive?
-sessionDirectories = []
-sessionHistoryIndex = 0
-sessionLastHighlighted = {}
+class SessionManager:
+    def __init__(self):
+        self.sessionDirectories = []
+        self.sessionHistoryIndex = 0
+        self.sessionLastHighlighted = {}
+
+
+state = SessionManager()
+
 config = {}
 pins = {}
 
@@ -123,9 +127,9 @@ def get_toggle_button_icon(key: str) -> str:
         return TOGGLE_BUTTON_ICONS[key]
 
 
-def update_session_state(directories, index, lastHighlighted={}) -> None:
+def update_session_utils(directories, index, lastHighlighted={}) -> None:
     """
-    Update the session state with the given directories and index.
+    Update the session utils with the given directories and index.
 
     Args:
         directories (list): List of directories in the session.
@@ -187,9 +191,11 @@ def load_config() -> None:
     config = deep_merge(template_config, user_config)
 
 
-def load_pins() -> None:
+def load_pins() -> dict:
     """
     Load the pinned files from a JSON file in the user's config directory.
+    Returns:
+        dict: A dictionary with the default values, and the custom added pins.
     """
     global pins
     user_pins_file_path = path.join(VAR_TO_DIR["CONFIG"], "pins.json")
@@ -215,11 +221,10 @@ def load_pins() -> None:
                 ujson.dump(pins, f, escape_forward_slashes=False, indent=2)
         except IOError:
             pass
-        return
 
     try:
         with open(user_pins_file_path, "r") as f:
-            loaded_data = ujson.load(f)
+            pins = ujson.load(f)
     except (IOError, ValueError):
         # Reset pins on corrupt or smth idk
         pins = {
@@ -234,11 +239,10 @@ def load_pins() -> None:
             ],
             "pins": [],
         }
-        return
 
     # If list died
-    if "default" not in loaded_data or not isinstance(loaded_data["default"], list):
-        loaded_data["default"] = [
+    if "default" not in pins or not isinstance(pins["default"], list):
+        pins["default"] = [
             {"name": "Home", "path": "$HOME"},
             {"name": "Downloads", "path": "$DOWNLOADS"},
             {"name": "Documents", "path": "$DOCUMENTS"},
@@ -247,11 +251,11 @@ def load_pins() -> None:
             {"name": "Videos", "path": "$VIDEOS"},
             {"name": "Music", "path": "$MUSIC"},
         ]
-    if "pins" not in loaded_data or not isinstance(loaded_data["pins"], list):
-        loaded_data["pins"] = []
+    if "pins" not in pins or not isinstance(pins["pins"], list):
+        pins["pins"] = []
 
     for section_key in ["default", "pins"]:
-        for item in loaded_data[section_key]:
+        for item in pins[section_key]:
             if (
                 isinstance(item, dict)
                 and "path" in item
@@ -262,7 +266,7 @@ def load_pins() -> None:
                     item["path"] = item["path"].replace(f"${var}", dir_path_val)
                 # Normalize to forward slashes
                 item["path"] = item["path"].replace("\\", "/")
-    pins = loaded_data
+    return pins
 
 
 def add_pin(pin_name: str, pin_path: str) -> None:
@@ -414,7 +418,7 @@ def set_scuffed_subtitle(element: Widget, mode: str, frac: str, hover: bool) -> 
         element (Widget): The element containing style information.
         mode (str): The mode of the subtitle.
         frac (str): The fraction to display.
-        hover (bool): Whether the widget is in hover state.
+        hover (bool): Whether the widget is in hover utils.
     """
     border_bottom = BORDER_BOTTOM.get(
         element.styles.border_bottom[0], BORDER_BOTTOM["blank"]

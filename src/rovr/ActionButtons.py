@@ -2,10 +2,10 @@ from os import path
 
 from textual.widgets import Button
 
-from . import state
+from . import utils
 from .Actions import create_new_item, remove_files, rename_object
 from .ScreensCore import DeleteFiles, ModalInput
-from .state import get_icon
+from .utils import get_icon
 
 
 class SortOrderButton(Button):
@@ -23,7 +23,7 @@ class SortOrderButton(Button):
     #  actions soon :tm:
 
     def on_mount(self):
-        if state.config["interface"]["tooltips"]:
+        if utils.config["interface"]["tooltips"]:
             self.tooltip = "Lists are in ascending order"
 
 
@@ -36,7 +36,7 @@ class CopyButton(Button):
         )
 
     def on_mount(self):
-        if state.config["interface"]["tooltips"]:
+        if utils.config["interface"]["tooltips"]:
             self.tooltip = "Copy selected files"
 
     async def on_button_pressed(self, event: Button.Pressed) -> None:
@@ -57,7 +57,7 @@ class CutButton(Button):
         )
 
     def on_mount(self):
-        if state.config["interface"]["tooltips"]:
+        if utils.config["interface"]["tooltips"]:
             self.tooltip = "Cut selected files"
 
     async def on_button_pressed(self, event: Button.Pressed) -> None:
@@ -82,7 +82,7 @@ class PasteButton(Button):
         )
 
     def on_mount(self):
-        if state.config["interface"]["tooltips"]:
+        if utils.config["interface"]["tooltips"]:
             self.tooltip = "Paste files from clipboard"
 
 
@@ -95,7 +95,7 @@ class NewItemButton(Button):
         )
 
     def on_mount(self):
-        if state.config["interface"]["tooltips"]:
+        if utils.config["interface"]["tooltips"]:
             self.tooltip = "Create a new file or directory"
 
     async def on_button_pressed(self, event: Button.Pressed) -> None:
@@ -121,7 +121,7 @@ class RenameItemButton(Button):
         )
 
     def on_mount(self):
-        if state.config["interface"]["tooltips"]:
+        if utils.config["interface"]["tooltips"]:
             self.tooltip = "Rename selected files"
 
     async def on_button_pressed(self, event: Button.Pressed):
@@ -160,7 +160,7 @@ class DeleteButton(Button):
         )
 
     def on_mount(self):
-        if state.config["interface"]["tooltips"]:
+        if utils.config["interface"]["tooltips"]:
             self.tooltip = "Delete selected files"
 
     async def on_button_pressed(self, event: Button.Pressed) -> None:

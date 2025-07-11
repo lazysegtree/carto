@@ -25,16 +25,23 @@ from textual.widgets.selection_list import Selection
 from textual_autocomplete import DropdownItem, PathAutoComplete, TargetState
 from textual_image.widget import AutoImage
 
-from . import state
 from .maps import EXT_TO_LANG_MAP, PIL_EXTENSIONS
-from .state import (
+from .utils import (
+    compress,
+    config,
+    decompress,
     get_icon,
     get_icon_for_file,
     get_icon_for_folder,
+    get_mounted_drives,
     get_toggle_button_icon,
+    load_config,
+    load_pins,
+    set_scuffed_subtitle,
+    state,
 )
 
-state.load_config()
+load_config()
 
 
 def open_file(filepath: str) -> None:
@@ -179,7 +186,7 @@ class PreviewContainer(Container):
             show_line_numbers=True,
             soft_wrap=False,
             read_only=True,
-            text=state.config["interface"]["preview_start"],
+            text=config["interface"]["preview_start"],
             language="markdown",
             compact=True,
         )
@@ -212,9 +219,9 @@ class PreviewContainer(Container):
                 with open(file_path, "r", encoding="utf-8") as f:
                     self._current_content = f.read()
             except UnicodeDecodeError:
-                self._current_content = state.config["interface"]["preview_binary"]
+                self._current_content = config["interface"]["preview_binary"]
             except (FileNotFoundError, PermissionError, OSError):
-                self._current_content = state.config["interface"]["preview_error"]
+                self._current_content = config["interface"]["preview_error"]
 
         await self._render_preview()
 
@@ -238,10 +245,10 @@ class PreviewContainer(Container):
         if self._current_content is None:
             return
 
-        use_bat = state.config["plugins"]["bat"]["enabled"]
+        use_bat = config["plugins"]["bat"]["enabled"]
         is_special_content = self._current_content in (
-            state.config["interface"]["preview_binary"],
-            state.config["interface"]["preview_error"],
+            config["interface"]["preview_binary"],
+            config["interface"]["preview_error"],
         )
 
         bat_output = None
@@ -249,15 +256,15 @@ class PreviewContainer(Container):
         error_message = ""
 
         if use_bat and not is_special_content:
-            preview_full = state.config["settings"]["preview_full"]
-            bat_executable = state.config["plugins"]["bat"]["executable"]
+            preview_full = config["settings"]["preview_full"]
+            bat_executable = config["plugins"]["bat"]["executable"]
 
             command = [
                 bat_executable,
                 "--force-colorization",
                 "--paging=never",
                 "--style=numbers"
-                if state.config["plugins"]["bat"]["show_line_numbers"]
+                if config["plugins"]["bat"]["show_line_numbers"]
                 else "--style=plain",
             ]
 
@@ -308,7 +315,7 @@ class PreviewContainer(Container):
                 timeout=10,
             )
 
-        preview_full = state.config["settings"]["preview_full"]
+        preview_full = config["settings"]["preview_full"]
         text_to_display = self._current_content
 
         if not preview_full:
@@ -386,21 +393,21 @@ class PreviewContainer(Container):
     async def on_key(self, event: events.Key) -> None:
         """Check for vim keybinds"""
         if self.border_title == "File Preview (bat)":
-            vscroll = self.query_one(VerticalScroll)
+            vscroll = self.query_one("VerticalScroll")
             match event.key:
                 # the rest still have animation, no clue why as well :husk:
-                case key if key in state.config["keybinds"]["up"]:
+                case key if key in config["keybinds"]["up"]:
                     vscroll.scroll_up(animate=False)
-                case key if key in state.config["keybinds"]["down"]:
+                case key if key in config["keybinds"]["down"]:
                     vscroll.scroll_down(animate=False)
-                case key if key in state.config["keybinds"]["page_up"]:
+                case key if key in config["keybinds"]["page_up"]:
                     vscroll.scroll_page_up(animate=False)
-                case key if key in state.config["keybinds"]["page_down"]:
+                case key if key in config["keybinds"]["page_down"]:
                     vscroll.scroll_page_down(animate=False)
-                case key if key in state.config["keybinds"]["home"]:
+                case key if key in config["keybinds"]["home"]:
                     # Still kinda confused why this still doesn't have an animation
                     vscroll.scroll_home(animate=False)
-                case key if key in state.config["keybinds"]["end"]:
+                case key if key in config["keybinds"]["end"]:
                     vscroll.scroll_end(animate=False)
 
 
@@ -416,42 +423,36 @@ class PinnedSidebar(OptionList, inherit_bindings=False):
     BINDINGS: ClassVar[list[BindingType]] = (
         [
             Binding(bind, "cursor_down", "Down", show=False)
-            for bind in state.config["keybinds"]["down"]
+            for bind in config["keybinds"]["down"]
         ]
         + [
             Binding(bind, "last", "Last", show=False)
-            for bind in state.config["keybinds"]["end"]
+            for bind in config["keybinds"]["end"]
         ]
         + [
             Binding(bind, "select", "Select", show=False)
-            for bind in state.config["keybinds"]["down_tree"]
+            for bind in config["keybinds"]["down_tree"]
         ]
         + [
             Binding(bind, "first", "First", show=False)
-            for bind in state.config["keybinds"]["home"]
+            for bind in config["keybinds"]["home"]
         ]
         + [
             Binding(bind, "page_down", "Page Down", show=False)
-            for bind in state.config["keybinds"]["page_down"]
+            for bind in config["keybinds"]["page_down"]
         ]
         + [
             Binding(bind, "page_up", "Page Up", show=False)
-            for bind in state.config["keybinds"]["page_up"]
+            for bind in config["keybinds"]["page_up"]
         ]
         + [
             Binding(bind, "cursor_up", "Up", show=False)
-            for bind in state.config["keybinds"]["up"]
+            for bind in config["keybinds"]["up"]
         ]
     )
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.default = state.pins["default"]
-        print(self.default)
-        self.pins = state.pins["pins"]
-        print(self.pins)
-        self.drives = state.get_mounted_drives()
-        print(f"Detected drives: {self.drives}")
 
     def compose(self) -> ComposeResult:
         yield Static()
@@ -459,14 +460,14 @@ class PinnedSidebar(OptionList, inherit_bindings=False):
     @work(exclusive=True)
     async def reload_pins(self):
         # be extra sure
-        state.load_pins()
-        self.pins = state.pins["pins"]
-        self.default = state.pins["default"]
-        print(f"Reloading pins: {self.pins}")
+        available_pins = load_pins()
+        pins = available_pins["pins"]
+        default = available_pins["default"]
+        print(f"Reloading pins: {available_pins}")
         await self.remove_children()
-        print(f"Reloading default folders: {self.default}")
+        print(f"Reloading default folders: {default}")
         self.clear_options()
-        for default_folder in self.default:
+        for default_folder in default:
             if not path.isdir(default_folder["path"]):
                 if path.exists(default_folder["path"]):
                     raise FolderNotFileError(
@@ -486,11 +487,11 @@ class PinnedSidebar(OptionList, inherit_bindings=False):
                         f" [{icon[1]}]{icon[0]}[/{icon[1]}] $name",
                         name=default_folder["name"],
                     ),
-                    id=f"{state.compress(default_folder['path'])}-default",
+                    id=f"{compress(default_folder['path'])}-default",
                 )
             )
         self.add_option(Option("Pinned", id="pinned-header"))
-        for pin in self.pins:
+        for pin in pins:
             try:
                 pin["path"]
             except KeyError:
@@ -514,16 +515,16 @@ class PinnedSidebar(OptionList, inherit_bindings=False):
                         f" [{icon[1]}]{icon[0]}[/{icon[1]}] $name",
                         name=pin["name"],
                     ),
-                    id=f"{state.compress(pin['path'])}-pinned",
+                    id=f"{compress(pin['path'])}-pinned",
                 )
             )
         self.add_option(Option("Drives", id="drives-header"))
-        self.drives = state.get_mounted_drives()
-        for drive in self.drives:
+        drives = get_mounted_drives()
+        for drive in drives:
             self.add_option(
                 Option(
                     f" {get_icon('folder', ':/drive:')[0]} {drive}",
-                    id=f"{state.compress(drive)}-drives",
+                    id=f"{compress(drive)}-drives",
                 )
             )
         self.disable_option("pinned-header")
@@ -531,8 +532,6 @@ class PinnedSidebar(OptionList, inherit_bindings=False):
 
     async def on_mount(self):
         """Reload the pinned files from the config."""
-        state.load_pins()
-        self.pins = state.pins["pins"]
         self.reload_pins()
 
     async def on_option_list_option_selected(
@@ -541,7 +540,7 @@ class PinnedSidebar(OptionList, inherit_bindings=False):
         """Handle the selection of an option in the pinned sidebar."""
         selected_option = event.option
         # Get the file path from the option id
-        file_path = state.decompress(selected_option.id.split("-")[0])
+        file_path = decompress(selected_option.id.split("-")[0])
         if not path.isdir(file_path):
             if path.exists(file_path):
                 raise FolderNotFileError(
@@ -562,31 +561,31 @@ class FileList(SelectionList, inherit_bindings=False):
     BINDINGS: ClassVar[list[BindingType]] = (
         [
             Binding(bind, "cursor_down", "Down", show=False)
-            for bind in state.config["keybinds"]["down"]
+            for bind in config["keybinds"]["down"]
         ]
         + [
             Binding(bind, "last", "Last", show=False)
-            for bind in state.config["keybinds"]["end"]
+            for bind in config["keybinds"]["end"]
         ]
         + [
             Binding(bind, "select", "Select", show=False)
-            for bind in state.config["keybinds"]["down_tree"]
+            for bind in config["keybinds"]["down_tree"]
         ]
         + [
             Binding(bind, "first", "First", show=False)
-            for bind in state.config["keybinds"]["home"]
+            for bind in config["keybinds"]["home"]
         ]
         + [
             Binding(bind, "page_down", "Page Down", show=False)
-            for bind in state.config["keybinds"]["page_down"]
+            for bind in config["keybinds"]["page_down"]
         ]
         + [
             Binding(bind, "page_up", "Page Up", show=False)
-            for bind in state.config["keybinds"]["page_up"]
+            for bind in config["keybinds"]["page_up"]
         ]
         + [
             Binding(bind, "cursor_up", "Up", show=False)
-            for bind in state.config["keybinds"]["up"]
+            for bind in config["keybinds"]["up"]
         ]
     )
 
@@ -677,7 +676,7 @@ class FileList(SelectionList, inherit_bindings=False):
             file_list_options = [".."]
         elif folders == [] and files == []:
             self.add_option(Selection("  --no-files--", value="", id="", disabled=True))
-            self.app.query_one(PreviewContainer).remove_children()
+            self.app.query_one("PreviewContainer").remove_children()
             # nothing inside
         else:
             file_list_options = (
@@ -690,8 +689,8 @@ class FileList(SelectionList, inherit_bindings=False):
                             f" [{item['icon'][1]}]{item['icon'][0]}[/{item['icon'][1]}] $name",
                             name=item["name"],
                         ),
-                        value=state.compress(item["name"]),
-                        id=state.compress(item["name"]),
+                        value=compress(item["name"]),
+                        id=compress(item["name"]),
                     )
                 )
         # session handler
@@ -712,11 +711,6 @@ class FileList(SelectionList, inherit_bindings=False):
                     self.app.query_one("#file_list").options[0].value
                 )
             state.sessionHistoryIndex = len(state.sessionDirectories) - 1
-            self.app.update_session_dicts(
-                state.sessionDirectories,
-                state.sessionHistoryIndex,
-                state.sessionLastHighlighted,
-            )
         self.app.query_one("Button#back").disabled = (
             True if state.sessionHistoryIndex == 0 else False
         )
@@ -775,7 +769,7 @@ class FileList(SelectionList, inherit_bindings=False):
                         f" [{item['icon'][1]}]{item['icon'][0]}[/{item['icon'][1]}] $name",
                         name=item["name"],
                     ),
-                    value=state.compress(item["name"]),
+                    value=compress(item["name"]),
                 )
             )
         # somehow prevents more debouncing, ill take it
@@ -794,7 +788,7 @@ class FileList(SelectionList, inherit_bindings=False):
                 self.highlighted
             )  # ? Trust me bro
             # Get the filename from the option id
-            file_name = state.decompress(selected_option.value)
+            file_name = decompress(selected_option.value)
             # Check if it's a folder or a file
             if path.isdir(path.join(cwd, file_name)):
                 # If it's a folder, navigate into it
@@ -810,14 +804,14 @@ class FileList(SelectionList, inherit_bindings=False):
                 open_file(path.join(cwd, file_name))
             if self.highlighted is None:
                 self.highlighted = 0
-            state.set_scuffed_subtitle(
+            set_scuffed_subtitle(
                 self.parent,
                 "NORMAL",
                 f"{self.highlighted + 1}/{self.option_count}",
                 True,
             )
         else:
-            state.set_scuffed_subtitle(
+            set_scuffed_subtitle(
                 self.parent, "SELECT", f"{len(self.selected)}/{len(self.options)}", True
             )
 
@@ -825,21 +819,21 @@ class FileList(SelectionList, inherit_bindings=False):
     async def on_option_list_option_highlighted(
         self, event: OptionList.OptionHighlighted
     ) -> None:
-        global state
+        global utils
         if self.dummy:
             return
         elif event.option.value == "HTI":
             self.app.query_one("#preview_sidebar").remove_children()
             return  # ignore folders that go to prev dir
         if self.select_mode_enabled:
-            state.set_scuffed_subtitle(
+            set_scuffed_subtitle(
                 self.parent,
                 "SELECT",
                 f"{len(self.selected)}/{len(self.options)}",
                 True,
             )
         else:
-            state.set_scuffed_subtitle(
+            set_scuffed_subtitle(
                 self.parent,
                 "NORMAL",
                 f"{self.highlighted + 1}/{self.option_count}",
@@ -850,13 +844,8 @@ class FileList(SelectionList, inherit_bindings=False):
         state.sessionLastHighlighted[getcwd().replace(path.sep, "/")] = (
             highlighted_option.value
         )
-        self.app.update_session_dicts(
-            state.sessionDirectories,
-            state.sessionHistoryIndex,
-            state.sessionLastHighlighted,
-        )
         # Get the filename from the option id
-        file_name = state.decompress(highlighted_option.value)
+        file_name = decompress(highlighted_option.value)
         # total files as footer
         if self.highlighted is None:
             self.highlighted = 0
@@ -864,7 +853,7 @@ class FileList(SelectionList, inherit_bindings=False):
         self.app.query_one("#preview_sidebar").show_preview(
             path.join(getcwd(), file_name).replace(path.sep, "/")
         )
-        self.app.query_one(MetadataContainer).update_metadata(
+        self.app.query_one("MetadataContainer").update_metadata(
             path.join(getcwd(), file_name).replace(path.sep, "/")
         )
 
@@ -953,13 +942,13 @@ class FileList(SelectionList, inherit_bindings=False):
         if self.dummy:
             return
         elif self.select_mode_enabled:
-            state.set_scuffed_subtitle(
+            set_scuffed_subtitle(
                 self.parent, "SELECT", f"{len(self.selected)}/{len(self.options)}", True
             )
         else:
             if self.highlighted is None:
                 self.highlighted = 0
-            state.set_scuffed_subtitle(
+            set_scuffed_subtitle(
                 self.parent,
                 "NORMAL",
                 f"{self.highlighted + 1}/{self.option_count}",
@@ -973,7 +962,7 @@ class FileList(SelectionList, inherit_bindings=False):
         if self.dummy:
             return
         if self.select_mode_enabled:
-            state.set_scuffed_subtitle(
+            set_scuffed_subtitle(
                 self.parent,
                 "SELECT",
                 f"{len(self.selected)}/{len(self.options)}",
@@ -982,7 +971,7 @@ class FileList(SelectionList, inherit_bindings=False):
         else:
             if self.highlighted is None:
                 self.highlighted = 0
-            state.set_scuffed_subtitle(
+            set_scuffed_subtitle(
                 self.parent,
                 "NORMAL",
                 f"{self.highlighted + 1}/{self.option_count}",
@@ -998,19 +987,19 @@ class FileList(SelectionList, inherit_bindings=False):
             return [
                 path.join(
                     cwd,
-                    state.decompress(self.get_option_at_index(self.highlighted).value),
+                    decompress(self.get_option_at_index(self.highlighted).value),
                 ).replace(path.sep, "/")
             ]
         else:
             return [
-                path.join(cwd, state.decompress(option)).replace(path.sep, "/")
+                path.join(cwd, decompress(option)).replace(path.sep, "/")
                 for option in self.selected
             ]
 
     async def on_key(self, event: events.Key) -> None:
         """Handle key events for the file list."""
         if not self.dummy:
-            if event.key in state.config["keybinds"]["toggle_all"]:
+            if event.key in config["keybinds"]["toggle_all"]:
                 if not self.select_mode_enabled:
                     await self.toggle_mode()
                 if len(self.selected) == len(self.options):
@@ -1018,7 +1007,7 @@ class FileList(SelectionList, inherit_bindings=False):
                 else:
                     self.select_all()
             elif self.select_mode_enabled:
-                if event.key in state.config["keybinds"]["select_up"]:
+                if event.key in config["keybinds"]["select_up"]:
                     """Select the current and previous file."""
                     if self.highlighted == 0:
                         self.select(self.get_option_at_index(0))
@@ -1027,7 +1016,7 @@ class FileList(SelectionList, inherit_bindings=False):
                         self.action_cursor_up()
                         self.select(self.get_option_at_index(self.highlighted))
                     return
-                elif event.key in state.config["keybinds"]["select_down"]:
+                elif event.key in config["keybinds"]["select_down"]:
                     """Select the current and next file."""
                     if self.highlighted == len(self.options) - 1:
                         self.select(self.get_option_at_index(self.option_count - 1))
@@ -1036,7 +1025,7 @@ class FileList(SelectionList, inherit_bindings=False):
                         self.action_cursor_down()
                         self.select(self.get_option_at_index(self.highlighted))
                     return
-                elif event.key in state.config["keybinds"]["select_page_up"]:
+                elif event.key in config["keybinds"]["select_page_up"]:
                     """Select the options between the current and the previous 'page'."""
                     old = self.highlighted
                     self.action_page_up()
@@ -1048,7 +1037,7 @@ class FileList(SelectionList, inherit_bindings=False):
                     for index in range(new, old + 1):
                         self.select(self.get_option_at_index(index))
                     return
-                elif event.key in state.config["keybinds"]["select_page_down"]:
+                elif event.key in config["keybinds"]["select_page_down"]:
                     """Select the options between the current and the next 'page'."""
                     old = self.highlighted
                     self.action_page_down()
@@ -1060,7 +1049,7 @@ class FileList(SelectionList, inherit_bindings=False):
                     for index in range(old, new + 1):
                         self.select(self.get_option_at_index(index))
                     return
-                elif event.key in state.config["keybinds"]["select_home"]:
+                elif event.key in config["keybinds"]["select_home"]:
                     old = self.highlighted
                     self.action_first()
                     new = self.highlighted
@@ -1069,7 +1058,7 @@ class FileList(SelectionList, inherit_bindings=False):
                     for index in range(new, old + 1):
                         self.select(self.get_option_at_index(index))
                     return
-                elif event.key in state.config["keybinds"]["select_end"]:
+                elif event.key in config["keybinds"]["select_end"]:
                     old = self.highlighted
                     self.action_last()
                     new = self.highlighted
@@ -1078,10 +1067,10 @@ class FileList(SelectionList, inherit_bindings=False):
                     for index in range(old, new + 1):
                         self.select(self.get_option_at_index(index))
                     return
-            elif event.key in state.config["plugins"]["editor"]["keybinds"]:
+            elif event.key in config["plugins"]["editor"]["keybinds"]:
                 with self.app.suspend():
                     cmd(
-                        f'{state.config["plugins"]["editor"]["executable"]} "{path.join(getcwd(), state.decompress(self.get_option_at_index(self.highlighted).id))}"'
+                        f'{config["plugins"]["editor"]["executable"]} "{path.join(getcwd(), decompress(self.get_option_at_index(self.highlighted).id))}"'
                     )
 
 
@@ -1091,31 +1080,31 @@ class Clipboard(SelectionList, inherit_bindings=False):
     BINDINGS: ClassVar[list[BindingType]] = (
         [
             Binding(bind, "cursor_down", "Down", show=False)
-            for bind in state.config["keybinds"]["down"]
+            for bind in config["keybinds"]["down"]
         ]
         + [
             Binding(bind, "last", "Last", show=False)
-            for bind in state.config["keybinds"]["end"]
+            for bind in config["keybinds"]["end"]
         ]
         + [
             Binding(bind, "select", "Select", show=False)
-            for bind in state.config["keybinds"]["down_tree"]
+            for bind in config["keybinds"]["down_tree"]
         ]
         + [
             Binding(bind, "first", "First", show=False)
-            for bind in state.config["keybinds"]["home"]
+            for bind in config["keybinds"]["home"]
         ]
         + [
             Binding(bind, "page_down", "Page Down", show=False)
-            for bind in state.config["keybinds"]["page_down"]
+            for bind in config["keybinds"]["page_down"]
         ]
         + [
             Binding(bind, "page_up", "Page Up", show=False)
-            for bind in state.config["keybinds"]["page_up"]
+            for bind in config["keybinds"]["page_up"]
         ]
         + [
             Binding(bind, "cursor_up", "Up", show=False)
-            for bind in state.config["keybinds"]["up"]
+            for bind in config["keybinds"]["up"]
         ]
     )
 
@@ -1130,7 +1119,7 @@ class Clipboard(SelectionList, inherit_bindings=False):
         """Initialize the clipboard contents."""
         await self.remove_children()
         for item in self.clipboard_contents:
-            self.add_option(Selection(Content(item), value=state.compress(item)))
+            self.add_option(Selection(Content(item), value=compress(item)))
 
     async def copy_to_clipboard(self, items: list[str]) -> None:
         """Copy the selected files to the clipboard"""
@@ -1138,8 +1127,8 @@ class Clipboard(SelectionList, inherit_bindings=False):
             self.insert_selection_at_beginning(
                 Selection(
                     Content(f"{get_icon('general', 'copy')[0]} {item}"),
-                    value=state.compress(f"{item}-copy"),
-                    id=state.compress(item),
+                    value=compress(f"{item}-copy"),
+                    id=compress(item),
                 )
             )
         self.deselect_all()
@@ -1153,8 +1142,8 @@ class Clipboard(SelectionList, inherit_bindings=False):
                 self.insert_selection_at_beginning(
                     Selection(
                         Content(f"{get_icon('general', 'cut')[0]} {item}"),
-                        value=state.compress(f"{item}-cut"),
-                        id=state.compress(item),
+                        value=compress(f"{item}-cut"),
+                        id=compress(item),
                     )
                 )
         self.deselect_all()
@@ -1272,7 +1261,7 @@ class Clipboard(SelectionList, inherit_bindings=False):
     @work
     async def on_key(self, event: events.Key):
         if self.has_focus:
-            if event.key in state.config["keybinds"]["delete"]:
+            if event.key in config["keybinds"]["delete"]:
                 """Delete the selected files from the clipboard."""
                 if not self.selected:
                     self.app.notify(
@@ -1282,7 +1271,7 @@ class Clipboard(SelectionList, inherit_bindings=False):
                     )
                     return
                 self.remove_option_at_index(self.highlighted)
-            elif event.key in state.config["keybinds"]["toggle_all"]:
+            elif event.key in config["keybinds"]["toggle_all"]:
                 """Select all items in the clipboard."""
                 if len(self.selected) == len(self.options):
                     self.deselect_all()
@@ -1371,7 +1360,7 @@ class MetadataContainer(VerticalScroll):
         # got the type, now we follow
         file_stat = lstat(path.realpath(location_of_item))
         values_list = []
-        for field in state.config["metadata"]["fields"]:
+        for field in config["metadata"]["fields"]:
             match field:
                 case "type":
                     values_list.append(Static(type_str))
@@ -1390,7 +1379,7 @@ class MetadataContainer(VerticalScroll):
                     values_list.append(
                         Static(
                             datetime.fromtimestamp(file_stat.st_mtime).strftime(
-                                state.config["metadata"]["datetime_format"]
+                                config["metadata"]["datetime_format"]
                             )
                         )
                     )
@@ -1398,7 +1387,7 @@ class MetadataContainer(VerticalScroll):
                     values_list.append(
                         Static(
                             datetime.fromtimestamp(file_stat.st_atime).strftime(
-                                state.config["metadata"]["datetime_format"]
+                                config["metadata"]["datetime_format"]
                             )
                         )
                     )
@@ -1406,7 +1395,7 @@ class MetadataContainer(VerticalScroll):
                     values_list.append(
                         Static(
                             datetime.fromtimestamp(file_stat.st_ctime).strftime(
-                                state.config["metadata"]["datetime_format"]
+                                config["metadata"]["datetime_format"]
                             )
                         )
                     )
@@ -1419,7 +1408,7 @@ class MetadataContainer(VerticalScroll):
         except NoMatches:
             await self.remove_children()
             keys_list = []
-            for field in state.config["metadata"]["fields"]:
+            for field in config["metadata"]["fields"]:
                 if field == "type":
                     keys_list.append(Static("Type"))
                 elif field == "permissions":

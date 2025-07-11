@@ -9,7 +9,7 @@ from textual.types import DuplicateID
 from textual.widgets import Button, Input, Label, OptionList
 from textual.widgets.option_list import Option
 
-from . import state
+from . import utils
 
 
 class Dismissable(ModalScreen):
@@ -282,7 +282,7 @@ class ZToDirectory(ModalScreen):
         try:
             if zoxide_output.stdout:
                 for line in zoxide_output.stdout.splitlines():
-                    options.append(Option(Content(f" {line}"), id=state.compress(line)))
+                    options.append(Option(Content(f" {line}"), id=utils.compress(line)))
                 self.app.call_from_thread(zoxide_options.clear_options)
                 self.app.call_from_thread(zoxide_options.add_options, options)
                 zoxide_options.remove_class("empty")
@@ -313,7 +313,7 @@ class ZToDirectory(ModalScreen):
         """Handle option selection."""
         selected_value = event.option.id
         run(
-            ["zoxide", "add", state.decompress(selected_value)],
+            ["zoxide", "add", utils.decompress(selected_value)],
             capture_output=True,
             text=True,
         )
@@ -400,7 +400,7 @@ class ModalInput(ModalScreen):
 
 
 if __name__ == "__main__":
-    state.load_config()
+    utils.load_config()
 
     class TestApp(App):
         CSS_PATH = "style.tcss"
@@ -489,11 +489,11 @@ if __name__ == "__main__":
 
             def on_response(response: str) -> None:
                 if response:
-                    self.mount(Label(f"User selected: {state.decompress(response)}"))
+                    self.mount(Label(f"User selected: {utils.decompress(response)}"))
                 else:
                     self.mount(Label("No directory selected."))
 
             self.push_screen(ZToDirectory(), on_response)
 
-    state.start_watcher()
+    utils.start_watcher()
     TestApp().run()
