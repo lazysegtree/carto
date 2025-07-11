@@ -53,14 +53,14 @@ class Application(App):
         self.main_sort_order = state.config["settings"]["filelist_sort_order"]
 
     def compose(self) -> ComposeResult:
-        print("Starting Carto...")
+        print("Starting Rovr...")
         path_switcher = Input(
             id="path_switcher",
             validators=[Function(lambda x: path.exists(x), "Path does not exist")],
         )
         path_switcher.ALLOW_MAXIMIZE = False
         yield Header(
-            name="carto",
+            name="rovr",
             show_clock=True,
             icon="📁" if state.config["interface"]["nerd_font"] else "fs",
         )
@@ -116,7 +116,7 @@ class Application(App):
         self.query_one("#processes").border_title = "Processes"
         self.query_one("#metadata").border_title = "Metadata"
         self.query_one("#clipboard").border_title = "Clipboard"
-        self.title = "Carto - " + getcwd().replace(path.sep, "/")
+        self.title = "Rovr - " + getcwd().replace(path.sep, "/")
         # themes
         for theme in get_custom_themes():
             self.register_theme(theme)

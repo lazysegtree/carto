@@ -1,5 +1,5 @@
 [project]
-name = "carto"
+name = "rovr"
 version = "0.1.0"
 description = "A post-modern terminal file explorer"
 readme = "README.md"
@@ -43,18 +43,18 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project.scripts]
-carto = "carto:main"
+rovr = "rovr:main"
 
 [project.urls]
-Source = "https://github.com/NSPC911/carto"
-Issues = "https://github.com/NSPC911/carto/issues"
+Source = "https://github.com/NSPC911/rovr"
+Issues = "https://github.com/NSPC911/rovr/issues"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/carto"]
-include = ["src/carto/config"]
+packages = ["src/rovr"]
+include = ["src/rovr/config"]
 
 [tool.hatch.build.targets.sdist]
-packages = ["src/carto"]
+packages = ["src/rovr"]
 
 [tool.ruff.lint]
 select = [
@@ -83,5 +83,5 @@ update_changelog_on_bump = true
 major_version_zero = false
 
 [tool.poe.tasks]
-dev = "textual run --dev carto.app:Application"
-run = "carto.__init__:main"
+dev = "textual run --dev rovr.app:Application"
+run = "rovr.__init__:main"

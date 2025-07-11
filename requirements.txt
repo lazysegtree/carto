@@ -4,7 +4,6 @@ aiohttp-jinja2==1.6
 aiosignal==1.4.0
 argcomplete==3.6.2
 attrs==25.3.0
--e file:///C:/Users/notso/Git/NSPC911/carto
 charset-normalizer==3.4.2
 click==8.2.1
 colorama==0.4.6
