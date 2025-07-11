@@ -10,14 +10,19 @@
 > This project is in its very early stages. Feedback is appreciated, but this cannot be daily-driven yet.
 
 ### Test run with uv
+
 ```pwsh
 uvx --from git+https://github.com/NSPC911/rovr.git -q rovr --python 3.13
 ```
 
 ### Road map
+
 This is a list of features that I plan to add before releasing the appropriate version and where they are inspired from.
+
 #### Version 1
+
 Status: 19/29
+
 - [x] Directory Auto-completion (explorer)
 - [x] Button Navigation (explorer)
 - Keyboard Navigation
@@ -54,6 +59,7 @@ Status: 19/29
 - [x] bat as previewer
 
 #### Version 2
+
 - [ ] Plugins using [pytest-dev/pluggy](https://github.com/pytest-dev/pluggy) or a custom way (i wish not)
 - [ ] Cross process clipboard sync (two rovr instances should have synced clipboards)
 - [ ] Recycle Bin of 1 day when files get overwritten (Currently handled with `sendtotrash` but it doesn't work at times, so not a reliable solution)

@@ -36,25 +36,34 @@ classifiers = [
 ]
 
 [dependency-groups]
-dev = ["commitizen>=4.8.3", "isort>=6.0.1", "ruff>=0.11.12"]
+dev = [
+    "commitizen>=4.8.3",
+    "ruff>=0.11.12",
+]
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project.scripts]
-rovr = "rovr:main"
+rovr = "rovr.__main__:main"
 
 [project.urls]
 Source = "https://github.com/NSPC911/rovr"
 Issues = "https://github.com/NSPC911/rovr/issues"
 
-[tool.hatch.build.targets.wheel]
-packages = ["src/rovr"]
-include = ["src/rovr/config"]
+# [tool.hatch.build.targets.wheel]
+# # This wouldn't be something you see in every UV based
+# # project. I need two packages, the first for hatch,
+# # and the second for uv. I'm not entirely sure why this
+# # happens, but if it ain't broke, dont fix it :shrug:
+# packages = [
+#   "rovr",
+#   "src/rovr"
+# ]
 
-[tool.hatch.build.targets.sdist]
-packages = ["src/rovr"]
+# [tool.hatch.build.targets.sdist]
+# packages = ["src/rovr"]
 
 [tool.ruff.lint]
 select = [

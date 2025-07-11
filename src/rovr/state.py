@@ -37,6 +37,12 @@ config = {}
 pins = {}
 
 
+# okay so the reason why I have wrapper functions is
+# I was messing around with different lzstring options
+# and encodeduricomponent seems to best option. ive just
+# left it here, in case we can switch to something like
+# base 64 because encodeduricomponent can get quite long
+# very fast, which isnt really the purpose of lzstring
 def compress(text: str) -> str:
     return lzstring.compressToEncodedURIComponent(text)
 
@@ -134,55 +140,128 @@ def update_session_state(directories, index, lastHighlighted={}) -> None:
     sessionLastHighlighted = lastHighlighted
 
 
+def deep_merge(d, u) -> dict:
+    """
+    Mini lodash merge
+    Args:
+        d (dict): old dictionary
+        u (dict): new dictionary, to merge on top of d
+    Returns:
+        dict
+    """
+    for k, v in u.items():
+        if isinstance(v, dict):
+            d[k] = deep_merge(d.get(k, {}), v)
+        else:
+            d[k] = v
+    return d
+
+
 def load_config() -> None:
     """
-    Load the configuration from a TOML file.
-
-    Args:
-        config_path (str): Path to the configuration file.
+    Load both the template config and the user config
     """
 
     global config
+
+    if not path.exists(VAR_TO_DIR["CONFIG"]):
+        os.makedirs(VAR_TO_DIR["CONFIG"])
+    if not path.exists(path.join(VAR_TO_DIR["CONFIG"], "config.toml")):
+        with open(path.join(VAR_TO_DIR["CONFIG"], "config.toml"), "w") as _:
+            pass
+
     with open(path.join(path.dirname(__file__), "config/config.toml"), "r") as f:
-        config = toml.loads(f.read())
+        template_config = toml.loads(f.read())
+
+    user_config_path = path.join(VAR_TO_DIR["CONFIG"], "config.toml")
+    user_config = {}
+    if path.exists(user_config_path):
+        try:
+            with open(user_config_path, "r") as f:
+                user_config_content = f.read()
+                if user_config_content:
+                    user_config = toml.loads(user_config_content)
+        except (IOError, toml.TomlDecodeError):
+            pass
+    # dont really have to consider the else part, because it's created further down
+    config = deep_merge(template_config, user_config)
 
 
 def load_pins() -> None:
     """
-    Load the pinned files from a JSON file.
+    Load the pinned files from a JSON file in the user's config directory.
     """
     global pins
-    pins_file_path = path.join(path.dirname(__file__), "config/pins.json")
+    user_pins_file_path = path.join(VAR_TO_DIR["CONFIG"], "pins.json")
 
-    if not path.exists(pins_file_path):
-        pins = {"default": [], "pins": []}
+    # Ensure the user's config directory exists
+    if not path.exists(VAR_TO_DIR["CONFIG"]):
+        os.makedirs(VAR_TO_DIR["CONFIG"])
+    if not path.exists(user_pins_file_path):
+        pins = {
+            "default": [
+                {"name": "Home", "path": "$HOME"},
+                {"name": "Downloads", "path": "$DOWNLOADS"},
+                {"name": "Documents", "path": "$DOCUMENTS"},
+                {"name": "Desktop", "path": "$DESKTOP"},
+                {"name": "Pictures", "path": "$PICTURES"},
+                {"name": "Videos", "path": "$VIDEOS"},
+                {"name": "Music", "path": "$MUSIC"},
+            ],
+            "pins": [],
+        }
         try:
-            with open(pins_file_path, "w") as f:
+            with open(user_pins_file_path, "w") as f:
                 ujson.dump(pins, f, escape_forward_slashes=False, indent=2)
         except IOError:
             pass
         return
 
     try:
-        with open(pins_file_path, "r") as f:
+        with open(user_pins_file_path, "r") as f:
             loaded_data = ujson.load(f)
     except (IOError, ValueError):
-        pins = {"default": [], "pins": []}
+        # Reset pins on corrupt or smth idk
+        pins = {
+            "default": [
+                {"name": "Home", "path": "$HOME"},
+                {"name": "Downloads", "path": "$DOWNLOADS"},
+                {"name": "Documents", "path": "$DOCUMENTS"},
+                {"name": "Desktop", "path": "$DESKTOP"},
+                {"name": "Pictures", "path": "$PICTURES"},
+                {"name": "Videos", "path": "$VIDEOS"},
+                {"name": "Music", "path": "$MUSIC"},
+            ],
+            "pins": [],
+        }
         return
 
+    # If list died
+    if "default" not in loaded_data or not isinstance(loaded_data["default"], list):
+        loaded_data["default"] = [
+            {"name": "Home", "path": "$HOME"},
+            {"name": "Downloads", "path": "$DOWNLOADS"},
+            {"name": "Documents", "path": "$DOCUMENTS"},
+            {"name": "Desktop", "path": "$DESKTOP"},
+            {"name": "Pictures", "path": "$PICTURES"},
+            {"name": "Videos", "path": "$VIDEOS"},
+            {"name": "Music", "path": "$MUSIC"},
+        ]
+    if "pins" not in loaded_data or not isinstance(loaded_data["pins"], list):
+        loaded_data["pins"] = []
+
     for section_key in ["default", "pins"]:
-        if section_key in loaded_data:
-            for item in loaded_data[section_key]:
-                if (
-                    isinstance(item, dict)
-                    and "path" in item
-                    and isinstance(item["path"], str)
-                ):
-                    # Expand variables
-                    for var, dir_path_val in VAR_TO_DIR.items():
-                        item["path"] = item["path"].replace(f"${var}", dir_path_val)
-                    # Normalize to forward slashes
-                    item["path"] = item["path"].replace("\\", "/")
+        for item in loaded_data[section_key]:
+            if (
+                isinstance(item, dict)
+                and "path" in item
+                and isinstance(item["path"], str)
+            ):
+                # Expand variables
+                for var, dir_path_val in VAR_TO_DIR.items():
+                    item["path"] = item["path"].replace(f"${var}", dir_path_val)
+                # Normalize to forward slashes
+                item["path"] = item["path"].replace("\\", "/")
     pins = loaded_data
 
 
@@ -219,7 +298,8 @@ def add_pin(pin_name: str, pin_path: str) -> None:
                         item["path"] = item["path"].replace(dir_path_val, f"${var}")
 
     try:
-        with open(path.join(path.dirname(__file__), "config/pins.json"), "w") as f:
+        user_pins_file_path = path.join(VAR_TO_DIR["CONFIG"], "pins.json")
+        with open(user_pins_file_path, "w") as f:
             ujson.dump(pins_to_write, f, escape_forward_slashes=False, indent=2)
     except IOError:
         pass
@@ -259,7 +339,8 @@ def remove_pin(pin_path: str) -> None:
                         item["path"] = item["path"].replace(dir_path_val, f"${var}")
 
     try:
-        with open(path.join(path.dirname(__file__), "config/pins.json"), "w") as f:
+        user_pins_file_path = path.join(VAR_TO_DIR["CONFIG"], "pins.json")
+        with open(user_pins_file_path, "w") as f:
             ujson.dump(pins_to_write, f, escape_forward_slashes=False, indent=2)
     except IOError:
         pass
@@ -347,11 +428,12 @@ def set_scuffed_subtitle(element: Widget, mode: str, frac: str, hover: bool) -> 
 # check config folder
 if not path.exists(VAR_TO_DIR["CONFIG"]):
     os.makedirs(VAR_TO_DIR["CONFIG"])
-if not path.exists(path.join(VAR_TO_DIR["CONFIG"], "config.toml")):
-    with open(path.join(VAR_TO_DIR["CONFIG"], "config.toml"), "w") as file:
-        pass
+# Textual doesnt seem to have a way to check whether the
+# css file exists while it is in operation, but textual
+# only craps itself when it can't find it as the app starts
+# so no issues
 if not path.exists(path.join(VAR_TO_DIR["CONFIG"], "style.tcss")):
-    with open(path.join(VAR_TO_DIR["CONFIG"], "style.tcss"), "a") as file:
+    with open(path.join(VAR_TO_DIR["CONFIG"], "style.tcss"), "a") as _:
         pass
 
 
@@ -361,10 +443,10 @@ class FileEventHandler(FileSystemEventHandler):
         if event.is_directory:
             return
         src_path_basename = path.basename(event.src_path)
-        if src_path_basename in ["config.toml", "template_style.tcss"]:
+        if src_path_basename == "config.toml":
             load_config()
         elif src_path_basename == "pins.json":
-            pass
+            load_pins()
 
 
 def watch_config_file() -> None:
@@ -373,6 +455,9 @@ def watch_config_file() -> None:
     observer.schedule(
         event_handler, path=path.join(path.dirname(__file__), "config"), recursive=False
     )
+    user_config_dir = VAR_TO_DIR["CONFIG"]
+    if path.exists(user_config_dir):
+        observer.schedule(event_handler, path=user_config_dir, recursive=False)
     observer.start()
     try:
         while True:
