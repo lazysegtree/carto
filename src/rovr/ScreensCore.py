@@ -87,26 +87,39 @@ class YesOrNo(ModalScreen):
         max-height: 13;
         border: round $primary-lighten-3;
     }
-    #question {
+    #question_container {
         column-span: 2;
         height: 1fr;
         width: 1fr;
         content-align: center middle;
+    }
+    .question {
+        content-align: center middle;
+        width: 1fr;
     }
     Button {
         width: 100%;
     }
     """
 
-    def __init__(self, message: str, **kwargs):
+    def __init__(self, message: str, reverse_color: bool = False, **kwargs):
         super().__init__(**kwargs)
         self.message = message
+        self.reverse_color = reverse_color
 
     def compose(self) -> ComposeResult:
         with Grid(id="dialog"):
-            yield Label(self.message, id="question")
-            yield Button("\\[Y]es", variant="error", id="yes")
-            yield Button("\\[N]o", variant="primary", id="no")
+            with VerticalGroup(id="question_container"):
+                for message in self.message.splitlines():
+                    yield Label(message, classes="question")
+            yield Button(
+                "\\[Y]es",
+                variant="error" if self.reverse_color else "primary",
+                id="yes",
+            )
+            yield Button(
+                "\\[N]o", variant="primary" if self.reverse_color else "error", id="no"
+            )
 
     def on_key(self, event) -> None:
         """Handle key presses."""

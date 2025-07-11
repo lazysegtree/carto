@@ -24,7 +24,7 @@ from .ActionButtons import (
     SortOrderButton,
 )
 from .maps import VAR_TO_DIR
-from .ScreensCore import ZToDirectory
+from .ScreensCore import YesOrNo, ZToDirectory
 from .themes import get_custom_themes
 from .utils import (
     config,
@@ -113,7 +113,21 @@ class Application(App):
                 yield MetadataContainer(id="metadata")
                 yield Clipboard(id="clipboard")
 
-    def on_mount(self):
+    def on_mount(self) -> None:
+        def warning(response: bool) -> None:
+            match response:
+                case True:
+                    pass
+                case False:
+                    self.app.exit(message="Bye! Hope to see you soon!")
+
+        self.push_screen(
+            YesOrNo(
+                "This is a pre-alpha application.\nUse at your own risk.\nContinue?",
+                reverse_color=True,
+            ),
+            warning,
+        )
         # border titles
         self.query_one("#menu").border_title = "Options"
         self.query_one("#below_menu").border_title = "Directory Actions"
@@ -208,7 +222,7 @@ class Application(App):
                 match self.focused.id:
                     case "search_file_list":
                         self.query_one("#file_list").focus()
-                    case"search_pinned_sidebar":
+                    case "search_pinned_sidebar":
                         self.query_one("#pinned_sidebar").focus()
                 return
             case "backspace" if (
