@@ -84,4 +84,4 @@ major_version_zero = false
 
 [tool.poe.tasks]
 dev = "textual run --dev rovr.app:Application"
-run = "rovr.__init__:main"
+run = "rovr.__main__:main"
