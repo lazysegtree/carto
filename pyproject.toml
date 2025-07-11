@@ -43,7 +43,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project.scripts]
-carto = "carto.__main__:main"
+carto = "carto:main"
 
 [project.urls]
 Source = "https://github.com/NSPC911/carto"
@@ -83,5 +83,5 @@ update_changelog_on_bump = true
 major_version_zero = false
 
 [tool.poe.tasks]
-dev = "textual run --dev carto.main:Application"
-run = "carto.main:Application"
+dev = "textual run --dev carto.app:Application"
+run = "carto.__init__:main"
