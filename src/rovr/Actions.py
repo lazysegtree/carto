@@ -44,7 +44,7 @@ async def remove_files(
             appInstance.notify(
                 message=Content(f"Error removing file {file}: {e}"), severity="error"
             )
-    appInstance.query_one("#reload").action_press()
+    appInstance.query_one("#refresh").action_press()
     appInstance.query_one("#file_list").focus()
 
 
@@ -91,7 +91,7 @@ async def create_new_item(appInstance: App, location: str):
                 message=Content(f"Error creating file '{location}': {e}"),
                 severity="error",
             )
-    appInstance.query_one("#reload").action_press()
+    appInstance.query_one("#refresh").action_press()
     appInstance.query_one("#file_list").focus()
 
 
@@ -122,5 +122,5 @@ async def rename_object(appInstance: App, old_name: str, new_name: str):
             severity="error",
         )
 
-    appInstance.query_one("#reload").action_press()
+    appInstance.query_one("#refresh").action_press()
     appInstance.query_one("#file_list").focus()
