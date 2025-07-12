@@ -112,7 +112,6 @@ class PreviewContainer(Container):
         if self._current_content is None:
             return
 
-        use_bat = config["plugins"]["bat"]["enabled"]
         is_special_content = self._current_content in (
             config["interface"]["preview_binary"],
             config["interface"]["preview_error"],
@@ -122,7 +121,7 @@ class PreviewContainer(Container):
         bat_failed = False
         error_message = ""
 
-        if use_bat and not is_special_content:
+        if config["plugins"]["bat"]["enabled"] and not is_special_content:
             preview_full = config["settings"]["preview_full"]
             bat_executable = config["plugins"]["bat"]["executable"]
 
@@ -182,10 +181,9 @@ class PreviewContainer(Container):
                 timeout=10,
             )
 
-        preview_full = config["settings"]["preview_full"]
         text_to_display = self._current_content
 
-        if not preview_full:
+        if not config["settings"]["preview_full"]:
             lines = text_to_display.splitlines()
 
             max_lines = self.size.height
@@ -222,7 +220,6 @@ class PreviewContainer(Container):
                 read_only=True,
                 text=text_to_display,
                 language=language,
-                compact=preview_full,
                 classes="inner_preview",
             )
         )

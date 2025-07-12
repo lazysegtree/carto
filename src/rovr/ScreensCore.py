@@ -323,13 +323,10 @@ class ZToDirectory(ModalScreen):
             return
 
     def on_input_submitted(self, event: Input.Submitted) -> None:
-        if event.input.value.strip() == "" or "empty" in event.input.classes:
-            pass
-        else:
-            zoxide_options = self.query_one("#zoxide_options")
-            if zoxide_options.highlighted is None:
-                zoxide_options.highlighted = 0
-            zoxide_options.action_select()
+        zoxide_options = self.query_one("#zoxide_options")
+        if zoxide_options.highlighted is None:
+            zoxide_options.highlighted = 0
+        zoxide_options.action_select()
 
     # You cant manually tab into the option list, but you can click, so I guess
     @work(exclusive=True)

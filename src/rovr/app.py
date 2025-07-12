@@ -271,8 +271,9 @@ class Application(App):
                 def on_response(response: str) -> None:
                     """Handle the response from the ZToDirectory dialog."""
                     if response:
-                        self.switch_to_path(Namespace(value=decompress(response)))
-
+                        pathinput = self.query_one(PathInput)
+                        pathinput.value = decompress(response).replace(path.sep, "/")
+                        pathinput.on_input_submitted(Namespace(value=pathinput.value))
                 self.push_screen(ZToDirectory(), on_response)
             case _:
                 if self.query_one("#file_list").has_focus:
