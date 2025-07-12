@@ -1,6 +1,6 @@
 [project]
 name = "rovr"
-version = "0.0.0.3"
+version = "0.0.0.4"
 description = "A post-modern terminal file explorer"
 readme = "README.md"
 requires-python = ">= 3.13"
@@ -18,13 +18,12 @@ dependencies = [
     "psutil>=7.0.0",
     "send2trash>=1.8.3",
     "textual-autocomplete>=4.0.4",
-    "textual-dev>=1.7.0",
     "textual-image[textual]>=0.8.2",
     "textual[syntax]>=3.3.0",
     "thefuzz>=0.22.1",
     "toml>=0.10.2",
     "ujson>=5.10.0",
-    "watchdog>=6.0.0"
+    "watchdog>=6.0.0",
 ]
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
@@ -39,6 +38,7 @@ classifiers = [
 dev = [
     "commitizen>=4.8.3",
     "ruff>=0.11.12",
+    "textual-dev>=1.7.0",
 ]
 
 [build-system]
