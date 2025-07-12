@@ -1,5 +1,6 @@
 import os
 import platform
+import subprocess
 from os import path
 from threading import Thread
 from time import sleep
@@ -29,6 +30,17 @@ lzstring = LZString()
 
 # What is textual reactive?
 class SessionManager:
+    """Manages session-related variables.
+
+    Attributes:
+        sessionDirectories (list[dict]): A list of dictionaries that contain a directory's name within.
+            The closer it is to index 0, the older it is.
+        sessionHistoryIndex (int): The index of the session in the sessionDirectories.
+            This can be a number between 0 and the length of the list - 1, inclusive.
+        sessionLastHighlighted (dict[str, int]): A dictionary mapping directory paths to the index of the
+            last highlighted item. If a directory is not in the dictionary, the default is 0.
+    """
+
     def __init__(self):
         self.sessionDirectories = []
         self.sessionHistoryIndex = 0
@@ -53,6 +65,52 @@ def compress(text: str) -> str:
 
 def decompress(text: str) -> str:
     return lzstring.decompressFromEncodedURIComponent(text)
+
+
+def open_file(filepath: str) -> None:
+    """Cross-platform function to open files with their default application.
+
+    Args:
+        filepath (str): Path to the file to open
+    """
+    system = platform.system().lower()
+
+    try:
+        match system:
+            case "windows":
+                from os import startfile
+
+                startfile(filepath)
+            case "darwin":  # macOS
+                subprocess.run(["open", filepath], check=True)
+            case _:  # Linux and other Unix-like
+                subprocess.run(["xdg-open", filepath], check=True)
+    except Exception as e:
+        print(f"Error opening file: {e}")
+
+
+def get_cwd_object(cwd: str, sort_order: str, sort_by: str) -> list[dict]:
+    folders, files = [], []
+    try:
+        listed_dir = os.listdir(cwd)
+    except (PermissionError, FileNotFoundError, OSError):
+        print(f"PermissionError: Unable to access {cwd}")
+        return [PermissionError], [PermissionError]
+    for item in listed_dir:
+        if path.isdir(path.join(cwd, item)):
+            folders.append(
+                {
+                    "name": f"{item}",
+                    "icon": get_icon_for_folder(item),
+                }
+            )
+        else:
+            files.append({"name": item, "icon": get_icon_for_file(item)})
+    # Sort folders and files properly
+    folders.sort(key=lambda x: x["name"].lower(), reverse=(sort_order == "descending"))
+    files.sort(key=lambda x: x["name"].lower(), reverse=(sort_order == "descending"))
+    print(f"Found {len(folders)} folders and {len(files)} files in {cwd}")
+    return folders, files
 
 
 def get_icon_for_file(location: str) -> list:

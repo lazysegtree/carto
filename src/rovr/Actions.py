@@ -82,7 +82,7 @@ async def create_new_item(appInstance: App, location: str):
                 severity="error",
             )
     else:
-        # normal file creation i hope
+        # normal file creation I hope
         try:
             with open(location, "w") as f:
                 f.write("")  # Create an empty file

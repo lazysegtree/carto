@@ -76,7 +76,7 @@ home = ["home", "g"]
 end = ["end", "G"]
 hist_previous = ["backspace", "u"]
 hist_next = ["space", "o"]
-reload = ["ctrl+r", "f5"]
+refresh = ["ctrl+r", "f5"]
 
 toggle_visual = ["v"]
 select_up = ["shift+up", "K"]

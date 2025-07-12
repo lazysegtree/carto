@@ -1,8 +1,8 @@
 import shutil
-from os import chdir, getcwd, path
+from os import getcwd, path
 from types import SimpleNamespace as Namespace
 
-from textual import events, on, work
+from textual import events, work
 from textual.app import App, ComposeResult
 from textual.containers import (
     HorizontalGroup,
@@ -11,8 +11,7 @@ from textual.containers import (
     VerticalGroup,
 )
 from textual.css.query import NoMatches
-from textual.validation import Function
-from textual.widgets import Button, Header, Input, RichLog
+from textual.widgets import Header, Input, RichLog
 
 from .ActionButtons import (
     CopyButton,
@@ -23,23 +22,30 @@ from .ActionButtons import (
     RenameItemButton,
     SortOrderButton,
 )
+from .FooterWidgets import (
+    Clipboard,
+    MetadataContainer,
+)
 from .maps import VAR_TO_DIR
+from .NavigationWidgets import (
+    BackButton,
+    ForwardButton,
+    PathAutoCompleteInput,
+    PathInput,
+    RefreshButton,
+    UpButton,
+)
 from .ScreensCore import YesOrNo, ZToDirectory
 from .themes import get_custom_themes
 from .utils import (
     config,
     decompress,
-    get_icon,
     load_config,
     start_watcher,
-    state,
     toggle_pin,
 )
 from .WidgetsCore import (
-    Clipboard,
     FileList,
-    MetadataContainer,
-    PathAutoCompleteInput,
     PinnedSidebar,
     PreviewContainer,
 )
@@ -60,11 +66,6 @@ class Application(App):
 
     def compose(self) -> ComposeResult:
         print("Starting Rovr...")
-        path_switcher = Input(
-            id="path_switcher",
-            validators=[Function(lambda x: path.exists(x), "Path does not exist")],
-        )
-        path_switcher.ALLOW_MAXIMIZE = False
         yield Header(
             name="rovr",
             show_clock=True,
@@ -81,17 +82,14 @@ class Application(App):
                 yield DeleteButton()
             with VerticalGroup(id="below_menu"):
                 with HorizontalGroup():
-                    yield Button(get_icon("general", "left")[0], id="back")
-                    yield Button(get_icon("general", "right")[0], id="forward")
-                    yield Button(get_icon("general", "up")[0], id="up")
-                    yield Button(get_icon("general", "refresh")[0], id="reload")
+                    yield BackButton()
+                    yield ForwardButton()
+                    yield UpButton()
+                    yield RefreshButton()
+                    path_switcher = PathInput()
                     yield path_switcher
                 yield PathAutoCompleteInput(
                     target=path_switcher,
-                    path=getcwd().split(path.sep)[0],
-                    folder_prefix=get_icon("folder", "default")[0] + " ",
-                    file_prefix=get_icon("file", "default")[0] + " ",
-                    id="path_autocomplete",
                 )
             with HorizontalGroup(id="main"):
                 with VerticalGroup(id="pinned_sidebar_container"):
@@ -149,62 +147,7 @@ class Application(App):
             self.query_one("#back").tooltip = "Go back in history"
             self.query_one("#forward").tooltip = "Go forward in history"
             self.query_one("#up").tooltip = "Go up the directory tree"
-            self.query_one("#reload").tooltip = "Reload the file list"
-
-    @on(Button.Pressed, "#back")
-    def go_back_in_history(self, event: Button.Pressed) -> None:
-        """Go back in the session's history or go up the directory tree"""
-        state.sessionHistoryIndex = state.sessionHistoryIndex - 1
-        #! reminder to add a check for path
-        chdir(state.sessionDirectories[state.sessionHistoryIndex]["path"])
-        self.query_one("#file_list").update_file_list(
-            self.main_sort_by,
-            self.main_sort_order,
-            add_to_session=False,
-        )
-
-    @on(Button.Pressed, "#forward")
-    def go_forward_in_history(self, event: Button.Pressed) -> None:
-        """Go forward in the session's history"""
-        state.sessionHistoryIndex = state.sessionHistoryIndex + 1
-        #! reminder to add a check for path
-        chdir(state.sessionDirectories[state.sessionHistoryIndex]["path"])
-        self.query_one("#file_list").update_file_list(
-            self.main_sort_by,
-            self.main_sort_order,
-            add_to_session=False,
-        )
-
-    @on(Button.Pressed, "#up")
-    def go_up_path(self, event: Button.Pressed) -> None:
-        """Go up the current location's directory"""
-        #! on the off chance that parent's parent got nuked, might need to check if the parent exists
-        chdir(path.sep.join(getcwd().split(path.sep)[:-1]))
-        self.query_one("#file_list").update_file_list(
-            self.main_sort_by, self.main_sort_order
-        )
-
-    @on(Input.Submitted, "#path_switcher")
-    def switch_to_path(self, event: Input.Submitted) -> None:
-        """Use a custom path entered as the current workind directory"""
-        if path.exists(event.value):
-            chdir(event.value)
-        #! at least try to alert user
-        self.query_one("#file_list").update_file_list(
-            self.main_sort_by, self.main_sort_order
-        )
-
-    @on(Button.Pressed, "#reload")
-    async def reload_file_list(self, event: Button.Pressed) -> None:
-        """Reload the file list"""
-        self.query_one("#file_list").update_file_list(
-            self.main_sort_by,
-            self.main_sort_order,
-            add_to_session=False,
-        )
-        file_list = self.query_one("#file_list")
-        cd_into = file_list.get_option_at_index(file_list.highlighted).value
-        self.query_one("#preview_sidebar").show_preview(cd_into)
+            self.query_one("#refresh").tooltip = "Refresh the file list"
 
     @work
     async def on_key(self, event: events.Key) -> None:
@@ -281,20 +224,16 @@ class Application(App):
             # Navigation buttons but with key binds
             case key if key in config["keybinds"]["hist_previous"]:
                 if self.query_one("#back").disabled:
-                    self.go_up_path(Button.Pressed(self.query_one("#up")))
+                    self.query_one("#up").action_press()
                 else:
-                    self.go_back_in_history(Button.Pressed(self.query_one("#back")))
+                    self.query_one("#back").action_press()
             case key if key in config["keybinds"]["hist_next"]:
                 if not self.query_one("#forward").disabled:
-                    self.go_forward_in_history(
-                        Button.Pressed(
-                            self.query_one("#forward"),
-                        )
-                    )
+                    self.query_one("#forward").action_press()
             case key if key in config["keybinds"]["up_tree"]:
-                self.go_up_path(Button.Pressed(self.query_one("#up")))
-            case key if key in config["keybinds"]["reload"]:
-                self.reload_file_list(Button.Pressed(self.query_one("#reload")))
+                self.query_one("#up").action_press()
+            case key if key in config["keybinds"]["refresh"]:
+                self.query_one("#refresh").action_press()
             # Toggle pin on current directory
             case key if key in config["keybinds"]["toggle_pin"]:
                 toggle_pin(path.basename(getcwd()), getcwd())

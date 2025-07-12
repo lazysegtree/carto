@@ -56,13 +56,15 @@ class Dismissable(ModalScreen):
         self.query_one("#ok").focus()
 
     def on_key(self, event: events.Key) -> None:
-        event.stop()
         """Handle key presses."""
         if event.key in ["escape", "enter"]:
+            event.stop()
             self.dismiss()
         elif event.key == "tab":
+            event.stop()
             self.focus_next()
         elif event.key == "shift+tab":
+            event.stop()
             self.focus_previous()
 
     @on(Button.Pressed, "#ok")
@@ -85,7 +87,7 @@ class YesOrNo(ModalScreen):
         padding: 1 3;
         width: 50vw;
         max-height: 13;
-        border: round $primary-lighten-3;
+        border: panel $primary-lighten-3;
     }
     #question_container {
         column-span: 2;
@@ -121,11 +123,13 @@ class YesOrNo(ModalScreen):
                 "\\[N]o", variant="primary" if self.reverse_color else "error", id="no"
             )
 
-    def on_key(self, event) -> None:
+    def on_key(self, event: events.Key) -> None:
         """Handle key presses."""
         if event.key == "y":
+            event.stop()
             self.dismiss(True)
         elif event.key in ["n", "escape"]:
+            event.stop()
             self.dismiss(False)
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
@@ -177,12 +181,16 @@ class CopyOverwrite(ModalScreen):
     def on_key(self, event) -> None:
         """Handle key presses."""
         if event.key == "o":
+            event.stop()
             self.dismiss("overwrite")
         elif event.key == "r":
+            event.stop()
             self.dismiss("rename")
         elif event.key == "s":
+            event.stop()
             self.dismiss("skip")
         elif event.key in ["c", "escape"]:
+            event.stop()
             self.dismiss("cancel")
 
 
@@ -237,19 +245,24 @@ class DeleteFiles(ModalScreen):
         self.dismiss(event.button.id)
 
     def on_key(self, event) -> None:
-        event.stop()
         """Handle key presses."""
         if event.key == "d":
+            event.stop()
             self.dismiss("delete")
         elif event.key in ["c", "escape"]:
+            event.stop()
             self.dismiss("cancel")
         elif event.key == "t":
+            event.stop()
             self.dismiss("trash")
         elif event.key == "tab":
+            event.stop()
             self.focus_next()
         elif event.key == "shift+tab":
+            event.stop()
             self.focus_previous()
         elif event.key == "enter":
+            event.stop()
             self.query_one(f"#{self.focused.id}").action_press()
 
 
@@ -407,8 +420,9 @@ class ModalInput(ModalScreen):
         self.dismiss(event.input.value)
 
     def on_key(self, event: events.Key) -> None:
+        """Handle escape key to dismiss the dialog."""
         if event.key == "escape":
-            """Handle escape key to dismiss the dialog."""
+            event.stop()
             self.dismiss("")
 
 

@@ -3,7 +3,7 @@
   <img alt="Static Badge" src="https://img.shields.io/badge/Python-3.13-yellow?style=for-the-badge">
   <img alt="Static Badge" src="https://img.shields.io/badge/made_with-textual-0b171d?style=for-the-badge&logoColor=yellow">
   <!--python -c "import toml;print(len(toml.load('uv.lock')['package']))"-->
-  <img alt="Static Badge" src="https://img.shields.io/badge/Dependencies-72-purple?style=for-the-badge">
+  <img alt="Static Badge" src="https://img.shields.io/badge/Dependencies-73-purple?style=for-the-badge">
 </div>
 
 > [!caution]
@@ -13,6 +13,17 @@
 
 ```pwsh
 uvx --from git+https://github.com/NSPC911/rovr.git -q rovr --python 3.13
+```
+
+### Install from PyPI's test server
+
+```pwsh
+# uv (my fav)
+uv tool install -i https://test.pypi.org/simple/ rovr
+# or pipx
+pipx install -i https://test.pypi.org/simple rovr
+# or plain old pip
+pip install -i https://test.pypi.org/simple/ rovr
 ```
 
 ### Road map
