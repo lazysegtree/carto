@@ -27,9 +27,7 @@ fields = [
 datetime_format = "%Y-%m-%d %H:%M"
 
 [theme]
-transparent = false
-# if you are using transparent theme, the default theme, or any other custom themes are not used at all
-# this is a textual limitation, and the only way you can solve it is by editing the css file
+# transparency will not be supported. using transparency scuffes up the entire ui.
 default = "nord"
 
 [[custom_theme]]

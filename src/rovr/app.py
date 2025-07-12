@@ -139,10 +139,7 @@ class Application(App):
         # themes
         for theme in get_custom_themes():
             self.register_theme(theme)
-        if not config["theme"]["transparent"]:
-            self.theme = config["theme"]["default"]
-        else:
-            self.ansi_color = True
+        self.theme = config["theme"]["default"]
         # tooltips
         if config["interface"]["tooltips"]:
             self.query_one("#back").tooltip = "Go back in history"
