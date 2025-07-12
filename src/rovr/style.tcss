@@ -24,10 +24,6 @@ $footer_focus_height: 10;
   margin: 0 0 0 1;
 }
 
-Footer {
-  height: 1;
-}
-
 #file_list_container {
   height: 1fr;
   border: none;
@@ -219,7 +215,7 @@ Screen.-nopreview {
 
 #footer {
   height: $footer_unfocus_height;
-  margin: 0 0 0 1;
+  margin: 0 1;
 }
 
 #footer:focus-within {
@@ -327,5 +323,11 @@ CommandInput {
   &>VerticalGroup>Static {
     text-wrap: nowrap;
     text-overflow: ellipsis;
+  }
+}
+BetterProgressBar {
+  height: 2;
+  Bar {
+    width: 1fr;
   }
 }

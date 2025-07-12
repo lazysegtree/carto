@@ -11,7 +11,7 @@ from textual.containers import (
     VerticalGroup,
 )
 from textual.css.query import NoMatches
-from textual.widgets import Header, Input, RichLog
+from textual.widgets import Header, Input
 
 from .ActionButtons import (
     CopyButton,
@@ -25,6 +25,7 @@ from .ActionButtons import (
 from .FooterWidgets import (
     Clipboard,
     MetadataContainer,
+    ProcessContainer,
 )
 from .maps import VAR_TO_DIR
 from .NavigationWidgets import (
@@ -107,7 +108,7 @@ class Application(App):
                 )
             with HorizontalGroup(id="footer"):
                 # ? should we switch to a vertical scroll for richlog?
-                yield RichLog(id="processes", highlight=True, markup=True, wrap=True)
+                yield ProcessContainer()
                 yield MetadataContainer(id="metadata")
                 yield Clipboard(id="clipboard")
 

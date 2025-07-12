@@ -11,11 +11,13 @@ from rich.style import Style
 from textual import events, on, work
 from textual.app import ComposeResult
 from textual.binding import Binding, BindingType
-from textual.containers import VerticalGroup, VerticalScroll
+from textual.containers import HorizontalGroup, VerticalGroup, VerticalScroll
 from textual.content import Content
 from textual.css.query import NoMatches
 from textual.strip import Strip
-from textual.widgets import SelectionList, Static
+from textual.types import UnusedParameter
+from textual.widgets import Label, ProgressBar, SelectionList, Static
+from textual.widgets._progress_bar import Bar, ETAStatus, PercentageStatus
 from textual.widgets.option_list import OptionDoesNotExist
 from textual.widgets.selection_list import Selection
 
@@ -419,3 +421,54 @@ class MetadataContainer(VerticalScroll):
                 size_widget.update("--")
             except NoMatches:
                 pass
+
+
+class BetterProgressBar(ProgressBar):
+    def __init__(self, total: int | None = None, *args, **kwargs):
+        super().__init__(
+            total=total, show_percentage=True, show_eta=True, *args, **kwargs
+        )
+        self.label = Label()
+
+    def compose(self) -> ComposeResult:
+        with VerticalGroup():
+            with HorizontalGroup():
+                yield self.label
+                if config["interface"]["show_progress_percentage"]:
+                    yield PercentageStatus(id="percentage").data_bind(
+                        BetterProgressBar.percentage
+                    )
+                if config["interface"]["show_progress_eta"]:
+                    yield ETAStatus(id="eta").data_bind(
+                        eta=BetterProgressBar._display_eta
+                    )
+            yield (
+                Bar(id="bar", clock=self._clock)
+                .data_bind(BetterProgressBar.percentage)
+                .data_bind(BetterProgressBar.gradient)
+            )
+
+    def update_label(self, label: str, step: bool = True) -> None:
+        self.label.update(label)
+        if step:
+            self.advance(1)
+
+    def update_progress(
+        self,
+        total: None | float | UnusedParameter = UnusedParameter,
+        progress: float | UnusedParameter = UnusedParameter,
+        advance: float | UnusedParameter = UnusedParameter,
+    ):
+        self.update(total=total, progress=progress, advance=advance)
+
+
+class ProcessContainer(VerticalScroll):
+    def __init__(self, *args, **kwargs):
+        super().__init__(id="processes", *args, **kwargs)
+
+    async def new_process_bar(
+        self, max: int | None = None, id: str | None = None, classes: str | None = None
+    ):
+        new_bar = BetterProgressBar(total=max, id=id, classes=classes)
+        await self.mount(new_bar)
+        return new_bar
