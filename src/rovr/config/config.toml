@@ -31,17 +31,17 @@ datetime_format = "%Y-%m-%d %H:%M"
 default = "nord"
 
 [[custom_theme]]
-name = "High Contrast Dark"
-primary = "#ffffff"
-secondary = "#cccccc"
-accent = "#00ff00"
-foreground = "#ffffff"
-background = "#000000"
-success = "#00ff00"
-warning = "#ffff00"
-error = "#ff0000"
-surface = "#1a1a1a"
-panel = "#0d0d0d"
+name = "Solarized Dark"
+primary = "#93A1A1"
+secondary = "#839496"
+warning = "#B58900"
+error = "#DC322F"
+success = "#859900"
+accent = "#D33682"
+foreground = "#EEE8D5"
+background = "#073642"
+surface = "#284149"
+panel = "#657B83"
 is_dark = true
 
 [keybinds]
