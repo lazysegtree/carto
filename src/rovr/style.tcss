@@ -86,7 +86,6 @@ $footer_focus_height: 10;
 #below_menu PathAutoCompleteInput {
   padding: 0 2 1 2;
   margin: -1 1 0 33;
-  max-height: 9;
   overlay: screen;
   width: 1fr;
   border: $border-style $accent;
@@ -95,7 +94,7 @@ $footer_focus_height: 10;
 
   AutoCompleteList {
     width: 1fr;
-    scrollbar-size: 0 2;
+    max-height: 4
   }
 
   Option {

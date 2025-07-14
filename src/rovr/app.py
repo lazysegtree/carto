@@ -255,8 +255,6 @@ class Application(App):
                     self.query_one("#footer").add_class("hide")
                 else:
                     self.query_one("#footer").remove_class("hide")
-            case key if key in config["keybinds"]["toggle_visual"]:
-                await self.query_one("#file_list").toggle_mode()
             case key if (
                 event.key in config["plugins"]["zoxide"]["keybinds"]
                 and config["plugins"]["zoxide"]["enabled"]
@@ -288,6 +286,8 @@ class Application(App):
                             self.query_one("#rename").action_press()
                         case key if key in config["keybinds"]["delete"]:
                             self.query_one("#delete").action_press()
+                        case key if key in config["keybinds"]["toggle_visual"]:
+                            await self.query_one("#file_list").toggle_mode()
 
 
 start_watcher()

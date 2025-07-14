@@ -1,6 +1,7 @@
 from os import chdir, getcwd, path, scandir
 from pathlib import Path
 
+from textual import events
 from textual.validation import Function
 from textual.widgets import Button, Input
 from textual_autocomplete import DropdownItem, PathAutoComplete, TargetState
@@ -117,7 +118,10 @@ class PathInput(Input):
             self.app.query_one("#file_list").update_file_list(
                 self.app.main_sort_by, self.app.main_sort_order
             )
-
+    def on_key(self, event:events.Key):
+        if event.key == "backspace":
+            event.stop()
+            self.action_delete_left()
 
 class BackButton(Button):
     def __init__(self, *args, **kwargs):

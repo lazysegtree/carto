@@ -432,6 +432,7 @@ FILES_MAP = {
 }
 
 PIL_EXTENSIONS = [
+# reminder that stuff can also not work, just remove it if it doesnt work
     ".avif",
     ".bmp",
     ".dds",
@@ -477,7 +478,6 @@ PIL_EXTENSIONS = [
     ".mim",
     ".mpo",
     ".psd",
-    ".svg",
     ".palm",
     ".pxr",
     ".qoi",
