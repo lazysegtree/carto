@@ -100,11 +100,25 @@ class PreviewContainer(Container):
         await self.remove_children()
 
         if self._is_image:
-            await self.mount(
-                AutoImage(
-                    self._current_file_path, id="image_preview", classes="inner_preview"
+            try:
+                await self.mount(
+                    AutoImage(
+                        self._current_file_path, id="image_preview", classes="inner_preview"
+                    )
                 )
-            )
+            # at times, when travelling too fast, this can happen
+            except FileNotFoundError:
+                await self.mount(
+                    TextArea(
+                        id="text_preview",
+                        show_line_numbers=True,
+                        soft_wrap=False,
+                        read_only=True,
+                        text=config["interface"]["preview_error"],
+                        language="markdown",
+                        compact=True
+                    )
+                )
             self.border_title = "Image Preview"
             self.query_one("#image_preview").can_focus = True
             return
