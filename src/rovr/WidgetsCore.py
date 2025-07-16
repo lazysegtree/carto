@@ -945,8 +945,13 @@ class FileList(SelectionList, inherit_bindings=False):
                     for index in range(old, new + 1):
                         self.select(self.get_option_at_index(index))
                     return
-            elif event.key in config["plugins"]["editor"]["keybinds"]:
+            elif event.key in config["plugins"]["file_editor"]["keybinds"]:
                 with self.app.suspend():
                     cmd(
-                        f'{config["plugins"]["editor"]["executable"]} "{path.join(getcwd(), decompress(self.get_option_at_index(self.highlighted).id))}"'
+                        f'{config["plugins"]["file_editor"]["executable"]} "{path.join(getcwd(), decompress(self.get_option_at_index(self.highlighted).id))}"'
+                    )
+            elif event.key in config["plugins"]["folder_editor"]["keybinds"]:
+                with self.app.suspend():
+                    cmd(
+                        f'{config["plugins"]["folder_editor"]["executable"]} "{getcwd()}"'
                     )

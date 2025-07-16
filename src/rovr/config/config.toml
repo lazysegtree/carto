@@ -108,7 +108,11 @@ keybinds = ["z"]
 enabled = false
 executable = "bat"
 show_line_numbers = true
-[plugins.editor]
+[plugins.file_editor]
 enabled = false
 executable = "nano"
 keybinds = ["e"]
+[plugins.folder_editor]
+enabled = false
+executable = "code"
+keybinds = ["E"]
