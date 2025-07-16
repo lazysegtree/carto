@@ -424,11 +424,11 @@ class MetadataContainer(VerticalScroll):
 
 
 class BetterProgressBar(ProgressBar):
-    def __init__(self, total: int | None = None, *args, **kwargs):
+    def __init__(self, total: int | None = None, label: str = "", *args, **kwargs):
         super().__init__(
             total=total, show_percentage=True, show_eta=True, *args, **kwargs
         )
-        self.label = Label()
+        self.label = Label(label)
 
     def compose(self) -> ComposeResult:
         with VerticalGroup():

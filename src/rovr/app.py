@@ -147,7 +147,6 @@ class Application(App):
             self.query_one("#up").tooltip = "Go up the directory tree"
             self.query_one("#refresh").tooltip = "Refresh the file list"
 
-    @work
     async def on_key(self, event: events.Key) -> None:
         if self.focused is None or not self.focused.id:
             return
@@ -219,16 +218,56 @@ class Application(App):
                     self.query_one("#file_list").focus()
                 else:
                     self.query_one("#clipboard").focus()
+            # file list keybind stuff
+            case key if (
+                key in config["keybinds"]["copy"]
+                and self.query_one("#file_list").has_focus
+            ):
+                self.query_one("#copy").action_press()
+            case key if (
+                key in config["keybinds"]["cut"]
+                and self.query_one("#file_list").has_focus
+            ):
+                self.query_one("#cut").action_press()
+            case key if (
+                key in config["keybinds"]["new"]
+                and self.query_one("#file_list").has_focus
+            ):
+                self.query_one("#new").action_press()
+            case key if (
+                key in config["keybinds"]["rename"]
+                and self.query_one("#file_list").has_focus
+            ):
+                self.query_one("#rename").action_press()
+            case key if (
+                key in config["keybinds"]["delete"]
+                and self.query_one("#file_list").has_focus
+            ):
+                self.query_one("#delete").action_press()
+            case key if (
+                key in config["keybinds"]["toggle_visual"]
+                and self.query_one("#file_list").has_focus
+            ):
+                await self.query_one("#file_list").toggle_mode()
             # Navigation buttons but with key binds
-            case key if key in config["keybinds"]["hist_previous"]:
+            case key if (
+                key in config["keybinds"]["hist_previous"]
+                and not self.query_one("#file_list").select_mode_enabled
+            ):
                 if self.query_one("#back").disabled:
                     self.query_one("#up").action_press()
                 else:
                     self.query_one("#back").action_press()
-            case key if key in config["keybinds"]["hist_next"]:
+            case key if (
+                key in config["keybinds"]["hist_next"]
+                and not self.query_one("#file_list").select_mode_enabled
+            ):
                 if not self.query_one("#forward").disabled:
                     self.query_one("#forward").action_press()
-            case key if key in config["keybinds"]["up_tree"]:
+            case key if (
+                key in config["keybinds"]["up_tree"]
+                and not self.query_one("#file_list").select_mode_enabled
+            ):
                 self.query_one("#up").action_press()
             case key if key in config["keybinds"]["refresh"]:
                 self.query_one("#refresh").action_press()
@@ -272,22 +311,8 @@ class Application(App):
                         pathinput = self.query_one(PathInput)
                         pathinput.value = decompress(response).replace(path.sep, "/")
                         pathinput.on_input_submitted(Namespace(value=pathinput.value))
+
                 self.push_screen(ZToDirectory(), on_response)
-            case _:
-                if self.query_one("#file_list").has_focus:
-                    match event.key:
-                        case key if key in config["keybinds"]["copy"]:
-                            self.query_one("#copy").action_press()
-                        case key if key in config["keybinds"]["cut"]:
-                            self.query_one("#cut").action_press()
-                        case key if key in config["keybinds"]["new"]:
-                            self.query_one("#new").action_press()
-                        case key if key in config["keybinds"]["rename"]:
-                            self.query_one("#rename").action_press()
-                        case key if key in config["keybinds"]["delete"]:
-                            self.query_one("#delete").action_press()
-                        case key if key in config["keybinds"]["toggle_visual"]:
-                            await self.query_one("#file_list").toggle_mode()
 
 
 start_watcher()

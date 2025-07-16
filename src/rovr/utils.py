@@ -114,7 +114,8 @@ def get_cwd_object(cwd: str, sort_order: str, sort_by: str) -> list[dict]:
 
 
 def get_icon_for_file(location: str) -> list:
-    """Get the icon and color for a file based on its name or extension.
+    """
+    Get the icon and color for a file based on its name or extension.
 
     Args:
         location (str): The name or path of the file.

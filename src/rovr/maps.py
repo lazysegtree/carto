@@ -432,7 +432,7 @@ FILES_MAP = {
 }
 
 PIL_EXTENSIONS = [
-# reminder that stuff can also not work, just remove it if it doesnt work
+    # reminder that stuff can also not work, just remove it if it doesnt work
     ".avif",
     ".bmp",
     ".dds",
