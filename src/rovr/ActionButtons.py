@@ -41,7 +41,7 @@ class CopyButton(Button):
 
     async def on_button_pressed(self, event: Button.Pressed) -> None:
         """Copy selected files to the clipboard"""
-        if self.app.highlighted.id == "#file_list":
+        if self.app.focused.id == "file_list":
             selected_files = await self.app.query_one(
                 "#file_list"
             ).get_selected_objects()
@@ -65,7 +65,7 @@ class CutButton(Button):
 
     async def on_button_pressed(self, event: Button.Pressed) -> None:
         """Cut selected files to the clipboard"""
-        if self.app.highlighted.id == "#file_list":
+        if self.app.focused.id == "file_list":
             selected_files = await self.app.query_one(
                 "#file_list"
             ).get_selected_objects()
@@ -105,7 +105,7 @@ class NewItemButton(Button):
             self.tooltip = "Create a new file or directory"
 
     async def on_button_pressed(self, event: Button.Pressed) -> None:
-        if self.app.highlighted.id == "#file_list":
+        if self.app.focused.id == "file_list":
             self.app.push_screen(
                 ModalInput(
                     border_title="Create New Item",
@@ -132,7 +132,7 @@ class RenameItemButton(Button):
             self.tooltip = "Rename selected files"
 
     async def on_button_pressed(self, event: Button.Pressed):
-        if self.app.highlighted.id == "#file_list":
+        if self.app.focused.id == "file_list":
             selected_files = await self.app.query_one(
                 "#file_list"
             ).get_selected_objects()
@@ -175,7 +175,7 @@ class DeleteButton(Button):
 
     async def on_button_pressed(self, event: Button.Pressed) -> None:
         """Delete selected files or directories"""
-        if self.app.highlighted.id == "#file_list":
+        if self.app.focused.id == "file_list":
             file_list = self.app.query_one("#file_list")
             selected_files = await file_list.get_selected_objects()
             if selected_files:
