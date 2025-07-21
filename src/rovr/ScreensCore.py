@@ -125,10 +125,10 @@ class YesOrNo(ModalScreen):
 
     def on_key(self, event: events.Key) -> None:
         """Handle key presses."""
-        if event.key == "y":
+        if event.key.lower() == "y":
             event.stop()
             self.dismiss(True)
-        elif event.key in ["n", "escape"]:
+        elif event.key.lower() in ["n", "escape"]:
             event.stop()
             self.dismiss(False)
 
@@ -180,16 +180,16 @@ class CopyOverwrite(ModalScreen):
 
     def on_key(self, event) -> None:
         """Handle key presses."""
-        if event.key == "o":
+        if event.key.lower() == "o":
             event.stop()
             self.dismiss("overwrite")
-        elif event.key == "r":
+        elif event.key.lower() == "r":
             event.stop()
             self.dismiss("rename")
-        elif event.key == "s":
+        elif event.key.lower() == "s":
             event.stop()
             self.dismiss("skip")
-        elif event.key in ["c", "escape"]:
+        elif event.key.lower() in ["c", "escape"]:
             event.stop()
             self.dismiss("cancel")
 
@@ -246,13 +246,13 @@ class DeleteFiles(ModalScreen):
 
     def on_key(self, event) -> None:
         """Handle key presses."""
-        if event.key == "d":
+        if event.key.lower() == "d":
             event.stop()
             self.dismiss("delete")
-        elif event.key in ["c", "escape"]:
+        elif event.key.lower() in ["c", "escape"]:
             event.stop()
             self.dismiss("cancel")
-        elif event.key == "t":
+        elif event.key.lower() == "t":
             event.stop()
             self.dismiss("trash")
         elif event.key == "tab":
@@ -347,7 +347,7 @@ class ZToDirectory(ModalScreen):
 
     def on_key(self, event: events.Key) -> None:
         """Handle key presses."""
-        if event.key in ["escape"]:
+        if event.key == ["escape"]:
             event.stop()
             self.dismiss(None)
         elif event.key == "down":
