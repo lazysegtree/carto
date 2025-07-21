@@ -1,8 +1,7 @@
 import shutil
 from os import getcwd, path
-from types import SimpleNamespace as Namespace
 
-from textual import events, work
+from textual import events
 from textual.app import App, ComposeResult
 from textual.containers import (
     HorizontalGroup,
@@ -156,7 +155,7 @@ class Application(App):
                 key in ["enter", "escape"] and self.focused.id == "path_switcher"
             ):
                 self.query_one("#file_list").focus()
-                await self.query_one("#path_switcher").action_submit()
+                await self.query_one(PathInput).action_submit()
                 return
             case "escape" if "search" in self.focused.id:
                 match self.focused.id:
@@ -223,58 +222,58 @@ class Application(App):
                 key in config["keybinds"]["copy"]
                 and self.query_one("#file_list").has_focus
             ):
-                self.query_one("#copy").action_press()
+                self.query_one(CopyButton).action_press()
             case key if (
                 key in config["keybinds"]["cut"]
                 and self.query_one("#file_list").has_focus
             ):
-                self.query_one("#cut").action_press()
+                self.query_one(CutButton).action_press()
             case key if (
                 key in config["keybinds"]["new"]
                 and self.query_one("#file_list").has_focus
             ):
-                self.query_one("#new").action_press()
+                self.query_one(NewItemButton).action_press()
             case key if (
                 key in config["keybinds"]["rename"]
                 and self.query_one("#file_list").has_focus
             ):
-                self.query_one("#rename").action_press()
+                self.query_one(RenameItemButton).action_press()
             case key if (
                 key in config["keybinds"]["delete"]
                 and self.query_one("#file_list").has_focus
             ):
-                self.query_one("#delete").action_press()
+                self.query_one(DeleteButton).action_press()
             case key if (
                 key in config["keybinds"]["toggle_visual"]
                 and self.query_one("#file_list").has_focus
             ):
-                await self.query_one("#file_list").toggle_mode()
+                await self.query_one("#file_list", FileList).toggle_mode()
             # Navigation buttons but with key binds
             case key if (
                 key in config["keybinds"]["hist_previous"]
-                and not self.query_one("#file_list").select_mode_enabled
+                and not self.query_one("#file_list", FileList).select_mode_enabled
             ):
                 if self.query_one("#back").disabled:
-                    self.query_one("#up").action_press()
+                    self.query_one(UpButton).action_press()
                 else:
-                    self.query_one("#back").action_press()
+                    self.query_one(BackButton).action_press()
             case key if (
                 key in config["keybinds"]["hist_next"]
-                and not self.query_one("#file_list").select_mode_enabled
+                and not self.query_one("#file_list", FileList).select_mode_enabled
             ):
                 if not self.query_one("#forward").disabled:
-                    self.query_one("#forward").action_press()
+                    self.query_one(ForwardButton).action_press()
             case key if (
                 key in config["keybinds"]["up_tree"]
-                and not self.query_one("#file_list").select_mode_enabled
+                and not self.query_one("#file_list", FileList).select_mode_enabled
             ):
-                self.query_one("#up").action_press()
+                self.query_one(UpButton).action_press()
             case key if key in config["keybinds"]["refresh"]:
-                self.query_one("#refresh").action_press()
+                self.query_one(RefreshButton).action_press()
             # Toggle pin on current directory
             case key if key in config["keybinds"]["toggle_pin"]:
                 toggle_pin(path.basename(getcwd()), getcwd())
-                self.query_one("#pinned_sidebar").reload_pins()
+                self.query_one(PinnedSidebar).reload_pins()
             # Toggle hiding panels
             case key if key in config["keybinds"]["toggle_pinned_sidebar"]:
                 self.query_one("#file_list").focus()
@@ -310,7 +309,7 @@ class Application(App):
                     if response:
                         pathinput = self.query_one(PathInput)
                         pathinput.value = decompress(response).replace(path.sep, "/")
-                        pathinput.on_input_submitted(Namespace(value=pathinput.value))
+                        pathinput.action_submit()
 
                 self.push_screen(ZToDirectory(), on_response)
 
