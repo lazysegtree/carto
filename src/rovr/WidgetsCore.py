@@ -886,74 +886,75 @@ class FileList(SelectionList, inherit_bindings=False):
                     self.deselect_all()
                 else:
                     self.select_all()
-            elif self.select_mode_enabled:
-                if event.key in config["keybinds"]["select_up"]:
-                    """Select the current and previous file."""
-                    if self.highlighted == 0:
-                        self.select(self.get_option_at_index(0))
-                    else:
-                        self.select(self.get_option_at_index(self.highlighted))
-                        self.action_cursor_up()
-                        self.select(self.get_option_at_index(self.highlighted))
-                    return
-                elif event.key in config["keybinds"]["select_down"]:
-                    """Select the current and next file."""
-                    if self.highlighted == len(self.options) - 1:
-                        self.select(self.get_option_at_index(self.option_count - 1))
-                    else:
-                        self.select(self.get_option_at_index(self.highlighted))
-                        self.action_cursor_down()
-                        self.select(self.get_option_at_index(self.highlighted))
-                    return
-                elif event.key in config["keybinds"]["select_page_up"]:
-                    """Select the options between the current and the previous 'page'."""
-                    old = self.highlighted
-                    self.action_page_up()
-                    new = self.highlighted
-                    if old is None:
-                        old = 0
-                    if new is None:
-                        new = 0
-                    for index in range(new, old + 1):
-                        self.select(self.get_option_at_index(index))
-                    return
-                elif event.key in config["keybinds"]["select_page_down"]:
-                    """Select the options between the current and the next 'page'."""
-                    old = self.highlighted
-                    self.action_page_down()
-                    new = self.highlighted
-                    if old is None:
-                        old = 0
-                    if new is None:
-                        new = 0
-                    for index in range(old, new + 1):
-                        self.select(self.get_option_at_index(index))
-                    return
-                elif event.key in config["keybinds"]["select_home"]:
-                    old = self.highlighted
-                    self.action_first()
-                    new = self.highlighted
-                    if old is None:
-                        old = 0
-                    for index in range(new, old + 1):
-                        self.select(self.get_option_at_index(index))
-                    return
-                elif event.key in config["keybinds"]["select_end"]:
-                    old = self.highlighted
-                    self.action_last()
-                    new = self.highlighted
-                    if old is None:
-                        old = 0
-                    for index in range(old, new + 1):
-                        self.select(self.get_option_at_index(index))
-                    return
-            elif event.key in config["plugins"]["file_editor"]["keybinds"]:
-                with self.app.suspend():
-                    cmd(
-                        f'{config["plugins"]["file_editor"]["executable"]} "{path.join(getcwd(), decompress(self.get_option_at_index(self.highlighted).id))}"'
-                    )
-            elif event.key in config["plugins"]["folder_editor"]["keybinds"]:
-                with self.app.suspend():
-                    cmd(
-                        f'{config["plugins"]["folder_editor"]["executable"]} "{getcwd()}"'
-                    )
+            elif self.select_mode_enabled and event.key in config["keybinds"]["select_up"]:
+                """Select the current and previous file."""
+                if self.highlighted == 0:
+                    self.select(self.get_option_at_index(0))
+                else:
+                    self.select(self.get_option_at_index(self.highlighted))
+                    self.action_cursor_up()
+                    self.select(self.get_option_at_index(self.highlighted))
+                return
+            elif self.select_mode_enabled and event.key in config["keybinds"]["select_down"]:
+                """Select the current and next file."""
+                if self.highlighted == len(self.options) - 1:
+                    self.select(self.get_option_at_index(self.option_count - 1))
+                else:
+                    self.select(self.get_option_at_index(self.highlighted))
+                    self.action_cursor_down()
+                    self.select(self.get_option_at_index(self.highlighted))
+                return
+            elif self.select_mode_enabled and event.key in config["keybinds"]["select_page_up"]:
+                """Select the options between the current and the previous 'page'."""
+                old = self.highlighted
+                self.action_page_up()
+                new = self.highlighted
+                if old is None:
+                    old = 0
+                if new is None:
+                    new = 0
+                for index in range(new, old + 1):
+                    self.select(self.get_option_at_index(index))
+                return
+            elif self.select_mode_enabled and event.key in config["keybinds"]["select_page_down"]:
+                """Select the options between the current and the next 'page'."""
+                old = self.highlighted
+                self.action_page_down()
+                new = self.highlighted
+                if old is None:
+                    old = 0
+                if new is None:
+                    new = 0
+                for index in range(old, new + 1):
+                    self.select(self.get_option_at_index(index))
+                return
+            elif self.select_mode_enabled and event.key in config["keybinds"]["select_home"]:
+                old = self.highlighted
+                self.action_first()
+                new = self.highlighted
+                if old is None:
+                    old = 0
+                for index in range(new, old + 1):
+                    self.select(self.get_option_at_index(index))
+                return
+            elif self.select_mode_enabled and event.key in config["keybinds"]["select_end"]:
+                old = self.highlighted
+                self.action_last()
+                new = self.highlighted
+                if old is None:
+                    old = 0
+                for index in range(old, new + 1):
+                    self.select(self.get_option_at_index(index))
+                return
+            elif config["plugins"]["editor"]["enabled"] and event.key in config["plugins"]["editor"]["keybinds"]:
+                print(path.isdir(path.join(getcwd(), decompress(self.get_option_at_index(self.highlighted).id))))
+                if path.isdir(path.join(getcwd(), decompress(self.get_option_at_index(self.highlighted).id))):
+                    with self.app.suspend():
+                        cmd(
+                            f'{config["plugins"]["editor"]["folder_executable"]} "{getcwd()}"'
+                        )
+                else:
+                    with self.app.suspend():
+                        cmd(
+                            f'{config["plugins"]["editor"]["file_executable"]} "{path.join(getcwd(), decompress(self.get_option_at_index(self.highlighted).id))}"'
+                        )

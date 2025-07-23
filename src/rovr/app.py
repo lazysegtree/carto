@@ -4,6 +4,7 @@ from types import SimpleNamespace
 
 from textual import events
 from textual.app import App, ComposeResult
+from textual.binding import Binding
 from textual.containers import (
     HorizontalGroup,
     HorizontalScroll,
@@ -54,7 +55,17 @@ from .WidgetsCore import (
 load_config()
 
 
-class Application(App):
+class Application(App, inherit_bindings=False):
+    BINDINGS = [
+        Binding(
+            "ctrl+q",
+            "quit",
+            "Quit",
+            tooltip="Quit the app and return to the command prompt.",
+            show=False,
+            priority=True,
+        )
+    ]
     CSS_PATH = ["style.tcss", path.join(VAR_TO_DIR["CONFIG"], "style.tcss")]
 
     HORIZONTAL_BREAKPOINTS = [(0, "-filelistonly"), (60, "-nopreview"), (90, "-all")]
@@ -177,8 +188,6 @@ class Application(App):
                 ):
                     self.query_one("#file_list").focus()
                 elif self.query_one("#pinned_sidebar_container").display:
-                    self.notify(str(self.query_one("#pinned_sidebar")))
-                    self.notify(str(self.query_exactly_one("#pinned_sidebar")))
                     self.query_one("#pinned_sidebar").focus()
             # Focus file list from anywhere except input
             case key if key in config["keybinds"]["focus_file_list"]:
@@ -225,29 +234,29 @@ class Application(App):
                 key in config["keybinds"]["copy"]
                 and self.query_one("#file_list").has_focus
             ):
-                self.query_one(CopyButton).on_button_pressed(CopyButton.Pressed)
+                 await self.query_one(CopyButton).on_button_pressed(CopyButton.Pressed)
             case key if (
                 key in config["keybinds"]["cut"]
                 and self.query_one("#file_list").has_focus
             ):
-                self.query_one(CutButton).on_button_pressed(CutButton.Pressed)
+                 await self.query_one(CutButton).on_button_pressed(CutButton.Pressed)
             case key if (
                 key in config["keybinds"]["new"]
                 and self.query_one("#file_list").has_focus
             ):
-                self.query_one(NewItemButton).on_button_pressed(NewItemButton.Pressed)
+                 await self.query_one(NewItemButton).on_button_pressed(NewItemButton.Pressed)
             case key if (
                 key in config["keybinds"]["rename"]
                 and self.query_one("#file_list").has_focus
             ):
-                self.query_one(RenameItemButton).on_button_pressed(
+                 await self.query_one(RenameItemButton).on_button_pressed(
                     RenameItemButton.Pressed
                 )
             case key if (
                 key in config["keybinds"]["delete"]
                 and self.query_one("#file_list").has_focus
             ):
-                self.query_one(DeleteButton).on_button_pressed(DeleteButton.Pressed)
+                 await self.query_one(DeleteButton).on_button_pressed(DeleteButton.Pressed)
             case key if (
                 key in config["keybinds"]["toggle_visual"]
                 and self.query_one("#file_list").has_focus
@@ -259,20 +268,20 @@ class Application(App):
                 and not self.query_one("#file_list", FileList).select_mode_enabled
             ):
                 if self.query_one("#back").disabled:
-                    self.query_one(UpButton).action_press(UpButton.Pressed)
+                    self.query_one(UpButton).on_button_pressed(UpButton.Pressed)
                 else:
-                    self.query_one(BackButton).action_press(BackButton.Pressed)
+                    self.query_one(BackButton).on_button_pressed(BackButton.Pressed)
             case key if (
                 key in config["keybinds"]["hist_next"]
                 and not self.query_one("#file_list", FileList).select_mode_enabled
                 and not self.query_one("#forward").disabled
             ):
-                self.query_one(ForwardButton).action_press(ForwardButton.Pressed)
+                self.query_one(ForwardButton).on_button_pressed(ForwardButton.Pressed)
             case key if (
                 key in config["keybinds"]["up_tree"]
                 and not self.query_one("#file_list", FileList).select_mode_enabled
             ):
-                self.query_one(UpButton).on_button_pressed(UpButton.Pressed)
+                 self.query_one(UpButton).on_button_pressed(UpButton.Pressed)
             case key if key in config["keybinds"]["refresh"]:
                 self.query_one(RefreshButton).action_press()
             # Toggle pin on current directory

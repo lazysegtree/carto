@@ -108,14 +108,12 @@ keybinds = ["z"]
 enabled = false
 executable = "bat"
 show_line_numbers = true
-[plugins.file_editor]
-enabled = false
-executable = "nano"
+[plugins.editor]
+enabled = true
+file_executable = "nano"
+folder_executable = "code"
 keybinds = ["e"]
-[plugins.folder_editor]
 enabled = false
-executable = "code"
-keybinds = ["E"]
 [plugins.zen_mode]
 enabled = true
 keybinds = ["Z"]

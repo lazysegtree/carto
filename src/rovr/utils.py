@@ -79,9 +79,7 @@ def open_file(filepath: str) -> None:
     try:
         match system:
             case "windows":
-                from os import startfile
-
-                startfile(filepath)
+                os.startfile(filepath)
             case "darwin":  # macOS
                 subprocess.run(["open", filepath], check=True)
             case _:  # Linux and other Unix-like
