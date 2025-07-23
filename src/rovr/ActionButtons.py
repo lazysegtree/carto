@@ -3,7 +3,7 @@ from os import path
 from textual.widgets import Button
 
 from . import utils
-from .Actions import create_new_item, remove_files, rename_object
+from .Actions import create_new_item, rename_object
 from .ScreensCore import DeleteFiles, ModalInput
 from .utils import get_icon
 
@@ -183,18 +183,14 @@ class DeleteButton(Button):
                 async def callback(response: str) -> None:
                     """Callback to remove files after confirmation"""
                     if response == "delete":
-                        await remove_files(
-                            self.app,
-                            selected_files,
-                            ignore_trash=True,
-                            compressed=False,
+                        self.app.query_one("ProcessContainer").delete_files(
+                            selected_files, compressed=False, ignore_trash=True
                         )
                     elif response == "trash":
-                        await remove_files(
-                            self.app,
+                        self.app.query_one("ProcessContainer").delete_files(
                             selected_files,
-                            ignore_trash=False,
                             compressed=False,
+                            ignore_trash=False,
                         )
                     else:
                         self.app.notify(
@@ -203,7 +199,7 @@ class DeleteButton(Button):
 
                 self.app.push_screen(
                     DeleteFiles(
-                        message=f"Are you sure you want to delete {len(selected_files)} files?",
+                        message=f"Are you sure you want to delete {len(selected_files)} file{'s' if len(selected_files) != 1 else ''}?",
                     ),
                     callback=callback,
                 )

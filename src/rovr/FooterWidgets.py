@@ -1,27 +1,37 @@
-import asyncio
 import platform
 import stat
 from datetime import datetime
-from os import lstat, path, walk
+from os import lstat, path, remove, walk
+from shutil import rmtree
 from typing import ClassVar
 
 from humanize import naturalsize
 from rich.segment import Segment
 from rich.style import Style
+from send2trash import send2trash
 from textual import events, on, work
 from textual.app import ComposeResult
 from textual.binding import Binding, BindingType
-from textual.containers import HorizontalGroup, VerticalGroup, VerticalScroll
+from textual.color import Gradient
+from textual.containers import VerticalGroup, VerticalScroll
 from textual.content import Content
 from textual.css.query import NoMatches
 from textual.strip import Strip
 from textual.types import UnusedParameter
 from textual.widgets import Label, ProgressBar, SelectionList, Static
-from textual.widgets._progress_bar import Bar, ETAStatus, PercentageStatus
 from textual.widgets.option_list import OptionDoesNotExist
 from textual.widgets.selection_list import Selection
 
-from .utils import compress, config, get_icon, get_toggle_button_icon
+from .ScreensCore import Dismissable, YesOrNo
+from .utils import (
+    compress,
+    config,
+    decompress,
+    file_is_type,
+    get_icon,
+    get_recursive_files,
+    get_toggle_button_icon,
+)
 
 
 class Clipboard(SelectionList, inherit_bindings=False):
@@ -176,7 +186,6 @@ class Clipboard(SelectionList, inherit_bindings=False):
         # Check for duplicate ID
         if content.id is not None and content.id in self._id_to_option:
             self.remove_option(content.id)
-            # raise DuplicateID(f"An option with ID {content.id} already exists.")
 
         # insert
         self._options.insert(0, content)
@@ -244,23 +253,16 @@ class MetadataContainer(VerticalScroll):
         mode = file_stat.st_mode
 
         permission_string = ""
-
-        if stat.S_ISLNK(mode):
-            permission_string = "l"
-        elif platform.system() == "Windows":
-            if (
-                hasattr(file_stat, "st_file_attributes")
-                and file_stat.st_file_attributes & stat.FILE_ATTRIBUTE_REPARSE_POINT
-            ):
-                permission_string = "j"
-            elif stat.S_ISDIR(mode):
+        file_type = file_is_type(file_path)
+        match file_type:
+            case "symlink":
+                permission_string = "l"
+            case "directory":
                 permission_string = "d"
-            else:
+            case "junction":
+                permission_string = "j"
+            case "file":
                 permission_string = "-"
-        elif stat.S_ISDIR(mode):
-            permission_string = "d"
-        else:
-            permission_string = "-"
 
         permission_string += "r" if mode & stat.S_IRUSR else "-"
         permission_string += "w" if mode & stat.S_IWUSR else "-"
@@ -396,7 +398,6 @@ class MetadataContainer(VerticalScroll):
                             total_size += lstat(fp).st_size
                         except (OSError, FileNotFoundError):
                             pass  # File might have been removed
-                await asyncio.sleep(0)  # Yield to the event loop
         except (OSError, FileNotFoundError):
             self.call_later(size_widget.update, "Error")
             return
@@ -423,43 +424,42 @@ class MetadataContainer(VerticalScroll):
                 pass
 
 
-class BetterProgressBar(ProgressBar):
-    def __init__(self, total: int | None = None, label: str = "", *args, **kwargs):
-        super().__init__(
-            total=total, show_percentage=True, show_eta=True, *args, **kwargs
+class ProgressBarContainer(VerticalGroup):
+    def __init__(
+        self,
+        total: int | None = None,
+        label: str = "",
+        gradient: Gradient | None = None,
+        *args,
+        **kwargs,
+    ):
+        super().__init__(*args, **kwargs)
+        self.progress_bar = ProgressBar(
+            total=total, show_percentage=False, show_eta=True, gradient=gradient
         )
         self.label = Label(label)
 
-    def compose(self) -> ComposeResult:
-        with VerticalGroup():
-            with HorizontalGroup():
-                yield self.label
-                if config["interface"]["show_progress_percentage"]:
-                    yield PercentageStatus(id="percentage").data_bind(
-                        BetterProgressBar.percentage
-                    )
-                if config["interface"]["show_progress_eta"]:
-                    yield ETAStatus(id="eta").data_bind(
-                        eta=BetterProgressBar._display_eta
-                    )
-            yield (
-                Bar(id="bar", clock=self._clock)
-                .data_bind(BetterProgressBar.percentage)
-                .data_bind(BetterProgressBar.gradient)
-            )
+    async def on_mount(self) -> None:
+        await self.mount_all([self.label, self.progress_bar])
 
     def update_label(self, label: str, step: bool = True) -> None:
+        """
+        Updates the label, and optionally steps it
+        Args:
+            label(str): The new label
+            step(bool): Whether or not to increase the progress by 1
+        """
         self.label.update(label)
         if step:
-            self.advance(1)
+            self.progress_bar.advance(1)
 
     def update_progress(
         self,
-        total: None | float | UnusedParameter = UnusedParameter,
-        progress: float | UnusedParameter = UnusedParameter,
-        advance: float | UnusedParameter = UnusedParameter,
+        total: None | float | UnusedParameter = UnusedParameter(),
+        progress: float | UnusedParameter = UnusedParameter(),
+        advance: float | UnusedParameter = UnusedParameter(),
     ):
-        self.update(total=total, progress=progress, advance=advance)
+        self.progress_bar.update(total=total, progress=progress, advance=advance)
 
 
 class ProcessContainer(VerticalScroll):
@@ -469,6 +469,115 @@ class ProcessContainer(VerticalScroll):
     async def new_process_bar(
         self, max: int | None = None, id: str | None = None, classes: str | None = None
     ):
-        new_bar = BetterProgressBar(total=max, id=id, classes=classes)
+        new_bar = ProgressBarContainer(total=max, id=id, classes=classes)
         await self.mount(new_bar)
         return new_bar
+
+    @work(thread=True)
+    def delete_files(
+        self, files: list[str], compressed: bool = True, ignore_trash: bool = False
+    ) -> None:
+        """
+        Remove files from the filesystem.
+
+        Args:
+            files (list[str]): List of file paths to remove.
+            compressed (bool): Whether the file paths are compressed. Defaults to True.
+            ignore_trash (bool): If True, files will be permanently deleted instead of sent to the recycle bin. Defaults to False.
+        """
+        # Create progress/process bar (why have I set names as such...)
+        bar = self.app.call_from_thread(self.new_process_bar, classes="active")
+        self.app.call_from_thread(
+            bar.update_label,
+            f"{get_icon('general', 'delete')[0]} Getting files to delete...",
+            step=False,
+        )
+        # get files to delete
+        files_to_delete = []
+        folders_to_delete = []
+        for file in files:
+            if compressed:
+                file = decompress(file)
+            if path.isdir(file):
+                folders_to_delete.append(file)
+            files_to_delete.extend(get_recursive_files(file))
+        self.app.call_from_thread(bar.update_progress, total=len(files_to_delete))
+        for file_dict in files_to_delete:
+            self.app.call_from_thread(
+                bar.update_label,
+                f"{get_icon('general', 'delete')[0]} {file_dict['relative_loc']}",
+            )
+            if path.exists(file):
+                # I know that it `path.exists` prevents issues, but on the
+                # off chance that anything happens, this should help
+                try:
+                    print(file_dict["path"])
+                    if config["settings"]["use_recycle_bin"] and not ignore_trash:
+                        try:
+                            path_to_trash = file_dict["path"]
+                            self.app.notify(
+                                f"Windows: {platform.system() == 'Windows'}\nhas nonsense: {path_to_trash.startswith('\\\\\\\\?\\\\')}\ncheck start: {path_to_trash.split('?')[0]}"
+                            )
+                            if (
+                                platform.system() == "Windows"
+                                and path_to_trash.startswith("\\\\\\\\?\\\\")
+                            ):
+                                # An inherent issue with long paths on windows
+                                path_to_trash = path_to_trash[6:]
+                            send2trash(path_to_trash)
+                        except FileNotFoundError:
+                            pass
+                        except Exception as e:
+                            perma_delete = self.app.call_from_thread(
+                                self.app.push_screen_wait,
+                                YesOrNo(
+                                    f"Trashing failed due to\n{e}\nDo Permenant Deletion?"
+                                ),
+                            )
+                            if perma_delete:
+                                ignore_trash = True
+                            else:
+                                self.app.call_from_thread(
+                                    bar.update_label,
+                                    f"{get_icon('general', 'close')[0]} Process Interrupted",
+                                )
+                                return
+                    else:
+                        remove(file_dict["path"])
+                except FileNotFoundError:
+                    pass
+                except PermissionError:
+                    do_continue = self.app.call_from_thread(
+                        self.app.push_screen_wait,
+                        YesOrNo(
+                            f"{file_dict['path']} could not be deleted due to PermissionError.\nContinue?"
+                        ),
+                    )
+                    if not do_continue:
+                        return
+                except Exception as e:
+                    self.app.call_from_thread(
+                        bar.update_label,
+                        f"{get_icon('general', 'close')[0]} Unhandled Error.",
+                    )
+                    self.app.call_from_thread(
+                        self.app.push_screen_wait,
+                        Dismissable(f"Deleting failed due to\n{e}\nProcess Aborted."),
+                    )
+                    return
+        for folder in folders_to_delete:
+            try:
+                rmtree(folder)
+            except PermissionError:
+                self.app.notify(
+                    f"Certain files in {folder} could not be deleted.", severity="error"
+                )
+        self.app.call_from_thread(
+            bar.update_label,
+            f"{get_icon('general', 'close')[0]} {path.basename(files[-1])}",
+        )
+
+    async def on_key(self, event: events.Key):
+        if event.key in config["keybinds"]["delete"]:
+            await self.remove_children(".done")
+            await self.remove_children(".error")

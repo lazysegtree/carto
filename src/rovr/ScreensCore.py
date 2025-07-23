@@ -1,7 +1,7 @@
 from subprocess import run
 
 from textual import events, on, work
-from textual.app import App, ComposeResult
+from textual.app import ComposeResult
 from textual.containers import Container, Grid, VerticalGroup
 from textual.content import Content
 from textual.screen import ModalScreen
@@ -33,6 +33,7 @@ class Dismissable(ModalScreen):
         height: 1fr;
         width: 1fr;
         content-align: center middle;
+        text-align: center
     }
     Container {
         align: center middle;
@@ -74,7 +75,7 @@ class Dismissable(ModalScreen):
 
 
 class YesOrNo(ModalScreen):
-    """Screen with a dialog to quit."""
+    """Screen with a dialog that asks whether you accept or deny"""
 
     DEFAULT_CSS = """
     YesOrNo {
@@ -98,6 +99,7 @@ class YesOrNo(ModalScreen):
     .question {
         content-align: center middle;
         width: 1fr;
+        text-align: center
     }
     Button {
         width: 100%;
@@ -347,7 +349,7 @@ class ZToDirectory(ModalScreen):
 
     def on_key(self, event: events.Key) -> None:
         """Handle key presses."""
-        if event.key == ["escape"]:
+        if event.key in ["escape"]:
             event.stop()
             self.dismiss(None)
         elif event.key == "down":
@@ -421,103 +423,3 @@ class ModalInput(ModalScreen):
         if event.key == "escape":
             event.stop()
             self.dismiss("")
-
-
-if __name__ == "__main__":
-    utils.load_config()
-
-    class TestApp(App):
-        CSS_PATH = "style.tcss"
-
-        def compose(self) -> ComposeResult:
-            with VerticalGroup():
-                yield Button("Open Dismissable Dialog", id="open_dismissable")
-                yield Button("Open Yes/No Dialog", id="open_dialog")
-                yield Button("Open Delete Files Dialog", id="open_delete_files")
-                yield Button("Open Input Dialog", id="open_input_dialog")
-                yield (
-                    Button(
-                        "Open Copy/Overwrite Dialog", id="open_copy_overwrite_dialog"
-                    ),
-                )
-                yield Button(
-                    "Open ZToDirectory Dialog", id="open_zoxide_to_directory_dialog"
-                )
-
-        @on(Button.Pressed, "#open_dismissable")
-        def open_dismissable(self, event: Button.Pressed) -> None:
-            """Open the Dismissable dialog."""
-
-            def on_receive_response(response) -> None:
-                self.mount(Label("Dismissable dialog closed."))
-
-            self.push_screen(
-                Dismissable("This is a dismissable dialog."), on_receive_response
-            )
-
-        @on(Button.Pressed, "#open_dialog")
-        def open_dialog(self, event: Button.Pressed) -> None:
-            """Open the Yes/No dialog."""
-
-            def on_receive_response(response: bool) -> None:
-                if response:
-                    self.mount(Label("User chose to proceed."))
-                else:
-                    self.mount(Label("User chose not to proceed."))
-
-            self.push_screen(YesOrNo("Do you want to proceed?"), on_receive_response)
-
-        @on(Button.Pressed, "#open_input_dialog")
-        def open_input_dialog(self, event: Button.Pressed) -> None:
-            """Open the Input dialog."""
-
-            def on_input_received(input_value: str) -> None:
-                self.mount(Label(f"User input: {input_value}"))
-
-            self.push_screen(
-                ModalInput("Test the modal input", border_subtitle="subtitle"),
-                on_input_received,
-            )
-
-        @on(Button.Pressed, "#open_delete_files")
-        def open_delete_files(self, event: Button.Pressed) -> None:
-            """Open the DeleteFiles dialog."""
-
-            def on_response(response: str) -> None:
-                if response == "delete":
-                    self.mount(Label("User chose to delete files."))
-                elif response == "trash":
-                    self.mount(Label("User chose to move files to trash."))
-                else:
-                    self.mount(Label("User cancelled the operation."))
-
-            self.push_screen(
-                DeleteFiles("How do you want to delete the files?"), on_response
-            )
-
-        @on(Button.Pressed, "#open_copy_overwrite_dialog")
-        def open_copy_overwrite_dialog(self, event: Button.Pressed) -> None:
-            """Open the Copy/Overwrite dialog."""
-
-            def on_response(response: str) -> None:
-                self.mount(Label(f"User chose: {response}"))
-
-            self.push_screen(
-                CopyOverwrite("File already exists. What do you want to do?"),
-                on_response,
-            )
-
-        @on(Button.Pressed, "#open_zoxide_to_directory_dialog")
-        def open_zoxide_to_directory_dialog(self, event: Button.Pressed) -> None:
-            """Open the ZToDirectory dialog."""
-
-            def on_response(response: str) -> None:
-                if response:
-                    self.mount(Label(f"User selected: {utils.decompress(response)}"))
-                else:
-                    self.mount(Label("No directory selected."))
-
-            self.push_screen(ZToDirectory(), on_response)
-
-    utils.start_watcher()
-    TestApp().run()

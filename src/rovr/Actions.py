@@ -1,51 +1,12 @@
 import shutil
-from os import getcwd, makedirs, path, remove
+from os import getcwd, makedirs, path
 
-from send2trash import send2trash
 from textual.app import App
 from textual.content import Content
 
 from . import utils
 
 utils.load_config()
-
-
-async def remove_files(
-    appInstance: App,
-    files: list[str],
-    compressed: bool = True,
-    ignore_trash: bool = False,
-) -> None:
-    """Remove files from the filesystem.
-
-    Args:
-        appInstance (App): The application instance.
-        files (list[str]): List of file paths to remove.
-        compressed (bool): Whether the file paths are compressed. Defaults to True.
-        ignore_trash (bool): If True, files will be permanently deleted instead of sent to the recycle bin. Defaults to False.
-    """
-    for file in files:
-        if compressed:
-            file = utils.decompress(file)
-        file = path.realpath(file)
-        try:
-            if path.exists(file):
-                if utils.config["settings"]["use_recycle_bin"] and not ignore_trash:
-                    try:
-                        send2trash(file)
-                    except Exception as e:
-                        appInstance.notify(
-                            message=Content(f"Error sending {file} to trash: {e}"),
-                            severity="error",
-                        )
-                else:
-                    shutil.rmtree(file) if path.isdir(file) else remove(file)
-        except Exception as e:
-            appInstance.notify(
-                message=Content(f"Error removing file {file}: {e}"), severity="error"
-            )
-    appInstance.query_one("#refresh").action_press()
-    appInstance.query_one("#file_list").focus()
 
 
 async def create_new_item(appInstance: App, location: str):

@@ -1,5 +1,6 @@
 import shutil
 from os import getcwd, path
+from types import SimpleNamespace
 
 from textual import events
 from textual.app import App, ComposeResult
@@ -175,7 +176,9 @@ class Application(App):
                     or "hide" in self.query_one("#pinned_sidebar_container").classes
                 ):
                     self.query_one("#file_list").focus()
-                else:
+                elif self.query_one("#pinned_sidebar_container").display:
+                    self.notify(str(self.query_one("#pinned_sidebar")))
+                    self.notify(str(self.query_exactly_one("#pinned_sidebar")))
                     self.query_one("#pinned_sidebar").focus()
             # Focus file list from anywhere except input
             case key if key in config["keybinds"]["focus_file_list"]:
@@ -188,7 +191,7 @@ class Application(App):
                     or "hide" in self.query_one("#preview_sidebar").classes
                 ):
                     self.query_one("#file_list").focus()
-                else:
+                elif self.query_one("#preview_sidebar").display:
                     try:
                         self.query_one("#preview_sidebar > *").focus()
                     except NoMatches:
@@ -203,46 +206,48 @@ class Application(App):
                     or "hide" in self.query_one("#processes").classes
                 ):
                     self.query_one("#file_list").focus()
-                else:
+                elif self.query_one("#footer").display:
                     self.query_one("#processes").focus()
             # Focus metadata
             case key if key in config["keybinds"]["focus_toggle_metadata"]:
                 if self.focused.id == "metadata":
                     self.query_one("#file_list").focus()
-                else:
+                elif self.query_one("#footer").display:
                     self.query_one("#metadata").focus()
             # Focus clipboard
             case key if key in config["keybinds"]["focus_toggle_clipboard"]:
                 if self.focused.id == "clipboard":
                     self.query_one("#file_list").focus()
-                else:
+                elif self.query_one("#footer").display:
                     self.query_one("#clipboard").focus()
             # file list keybind stuff
             case key if (
                 key in config["keybinds"]["copy"]
                 and self.query_one("#file_list").has_focus
             ):
-                self.query_one(CopyButton).action_press()
+                self.query_one(CopyButton).on_button_pressed(CopyButton.Pressed)
             case key if (
                 key in config["keybinds"]["cut"]
                 and self.query_one("#file_list").has_focus
             ):
-                self.query_one(CutButton).action_press()
+                self.query_one(CutButton).on_button_pressed(CutButton.Pressed)
             case key if (
                 key in config["keybinds"]["new"]
                 and self.query_one("#file_list").has_focus
             ):
-                self.query_one(NewItemButton).action_press()
+                self.query_one(NewItemButton).on_button_pressed(NewItemButton.Pressed)
             case key if (
                 key in config["keybinds"]["rename"]
                 and self.query_one("#file_list").has_focus
             ):
-                self.query_one(RenameItemButton).action_press()
+                self.query_one(RenameItemButton).on_button_pressed(
+                    RenameItemButton.Pressed
+                )
             case key if (
                 key in config["keybinds"]["delete"]
                 and self.query_one("#file_list").has_focus
             ):
-                self.query_one(DeleteButton).action_press()
+                self.query_one(DeleteButton).on_button_pressed(DeleteButton.Pressed)
             case key if (
                 key in config["keybinds"]["toggle_visual"]
                 and self.query_one("#file_list").has_focus
@@ -254,20 +259,20 @@ class Application(App):
                 and not self.query_one("#file_list", FileList).select_mode_enabled
             ):
                 if self.query_one("#back").disabled:
-                    self.query_one(UpButton).action_press()
+                    self.query_one(UpButton).action_press(UpButton.Pressed)
                 else:
-                    self.query_one(BackButton).action_press()
+                    self.query_one(BackButton).action_press(BackButton.Pressed)
             case key if (
                 key in config["keybinds"]["hist_next"]
                 and not self.query_one("#file_list", FileList).select_mode_enabled
+                and not self.query_one("#forward").disabled
             ):
-                if not self.query_one("#forward").disabled:
-                    self.query_one(ForwardButton).action_press()
+                self.query_one(ForwardButton).action_press(ForwardButton.Pressed)
             case key if (
                 key in config["keybinds"]["up_tree"]
                 and not self.query_one("#file_list", FileList).select_mode_enabled
             ):
-                self.query_one(UpButton).action_press()
+                self.query_one(UpButton).on_button_pressed(UpButton.Pressed)
             case key if key in config["keybinds"]["refresh"]:
                 self.query_one(RefreshButton).action_press()
             # Toggle pin on current directory
@@ -309,9 +314,16 @@ class Application(App):
                     if response:
                         pathinput = self.query_one(PathInput)
                         pathinput.value = decompress(response).replace(path.sep, "/")
-                        pathinput.action_submit()
+                        pathinput.on_input_submitted(
+                            SimpleNamespace(value=pathinput.value)
+                        )
 
                 self.push_screen(ZToDirectory(), on_response)
+            case key if key in config["plugins"]["zen_mode"]["keybinds"]:
+                if "zen" in self.classes:
+                    self.remove_class("zen")
+                else:
+                    self.add_class("zen")
 
 
 start_watcher()

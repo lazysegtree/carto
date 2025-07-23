@@ -1,5 +1,6 @@
 import os
 import platform
+import stat
 import subprocess
 from os import path
 from threading import Thread
@@ -53,12 +54,12 @@ config = {}
 pins = {}
 
 
-# okay so the reason why I have wrapper functions is
-# I was messing around with different lzstring options
-# and encodeduricomponent seems to best option. ive just
+# Okay so the reason why I have wrapper functions is
+# I was messing around with different LZString options
+# and Encoded URI Component seems to best option. I've just
 # left it here, in case we can switch to something like
-# base 64 because encodeduricomponent can get quite long
-# very fast, which isnt really the purpose of lzstring
+# base 64 because Encoded URI Component can get quite long
+# very fast, which isn't really the purpose of LZString
 def compress(text: str) -> str:
     return lzstring.compressToEncodedURIComponent(text)
 
@@ -111,6 +112,57 @@ def get_cwd_object(cwd: str, sort_order: str, sort_by: str) -> list[dict]:
     files.sort(key=lambda x: x["name"].lower(), reverse=(sort_order == "descending"))
     print(f"Found {len(folders)} folders and {len(files)} files in {cwd}")
     return folders, files
+
+
+def file_is_type(file_path: str):
+    try:
+        file_stat = os.lstat(file_path)
+    except (OSError, FileNotFoundError):
+        return "unknown"
+    mode = file_stat.st_mode
+    if stat.S_ISLNK(mode):
+        return "symlink"
+    elif stat.S_ISDIR(mode):
+        return "directory"
+    elif (
+        platform.system() == "Windows"
+        and hasattr(file_stat, "st_file_attributes")
+        and file_stat.st_file_attributes & stat.FILE_ATTRIBUTE_REPARSE_POINT
+    ):
+        return "junction"
+    else:
+        return "file"
+
+
+def get_recursive_files(object_path: str) -> list[str]:
+    """
+    Get the files available at a directory recursively, regardless of whether it is a directory or not
+    Args:
+        object_path (str): The object's path
+    Returns:
+        list: A list of dictionaries, with a "path" key and "relative_loc" key
+    """
+    if path.isfile(path.realpath(object_path)) or path.islink(
+        path.realpath(object_path)
+    ):
+        return [{"path": object_path, "relative_loc": path.basename(object_path)}]
+    else:
+        files = []
+        for folder, _, files_in_folder in os.walk(object_path):
+            for file in files_in_folder:
+                full_path = path.join(folder, file)
+                if path.realpath(full_path) != full_path:  # ie we passed over a symlink
+                    pass  # will hopefully be taken by shutil.rmtree
+                else:
+                    files.append(
+                        {
+                            "path": full_path,
+                            "relative_loc": path.relpath(
+                                full_path, object_path
+                            ).replace(path.sep, "/"),
+                        }
+                    )
+        return files
 
 
 def get_icon_for_file(location: str) -> list:
@@ -246,7 +298,7 @@ def load_config() -> None:
                     user_config = toml.loads(user_config_content)
         except (IOError, toml.TomlDecodeError):
             pass
-    # dont really have to consider the else part, because it's created further down
+    # Don't really have to consider the else part, because it's created further down
     config = deep_merge(template_config, user_config)
 
 
@@ -285,7 +337,7 @@ def load_pins() -> dict:
         with open(user_pins_file_path, "r") as f:
             pins = ujson.load(f)
     except (IOError, ValueError):
-        # Reset pins on corrupt or smth idk
+        # Reset pins on corrupt or something else happened
         pins = {
             "default": [
                 {"name": "Home", "path": "$HOME"},
@@ -491,8 +543,8 @@ def set_scuffed_subtitle(element: Widget, mode: str, frac: str, hover: bool) -> 
 # check config folder
 if not path.exists(VAR_TO_DIR["CONFIG"]):
     os.makedirs(VAR_TO_DIR["CONFIG"])
-# Textual doesnt seem to have a way to check whether the
-# css file exists while it is in operation, but textual
+# Textual doesn't seem to have a way to check whether the
+# CSS file exists while it is in operation, but textual
 # only craps itself when it can't find it as the app starts
 # so no issues
 if not path.exists(path.join(VAR_TO_DIR["CONFIG"], "style.tcss")):

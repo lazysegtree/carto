@@ -14,6 +14,7 @@ $footer_focus_height: 10;
   height: 3;
   margin: 0 1 0 1;
   padding: 0 1;
+  scrollbar-size: 0 0
 }
 
 #main {
@@ -166,6 +167,7 @@ PinnedSidebar Option {
   color: red !important;
 }
 
+.hide,
 .hidden {
   display: none;
 }
@@ -206,10 +208,6 @@ Screen.-nopreview {
   #below_menu PathAutoCompleteInput {
     margin: -1 1 0 1 !important
   }
-}
-
-.hide {
-  display: none !important;
 }
 
 #footer {
@@ -324,9 +322,7 @@ CommandInput {
     text-overflow: ellipsis;
   }
 }
-BetterProgressBar {
-  height: 2;
-  Bar {
-    width: 1fr;
-  }
+
+Bar {
+  width: 1fr;
 }

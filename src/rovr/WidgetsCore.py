@@ -103,7 +103,9 @@ class PreviewContainer(Container):
             try:
                 await self.mount(
                     AutoImage(
-                        self._current_file_path, id="image_preview", classes="inner_preview"
+                        self._current_file_path,
+                        id="image_preview",
+                        classes="inner_preview",
                     )
                 )
             # at times, when travelling too fast, this can happen
@@ -116,7 +118,7 @@ class PreviewContainer(Container):
                         read_only=True,
                         text=config["interface"]["preview_error"],
                         language="markdown",
-                        compact=True
+                        compact=True,
                     )
                 )
             self.border_title = "Image Preview"

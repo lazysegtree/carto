@@ -116,3 +116,6 @@ keybinds = ["e"]
 enabled = false
 executable = "code"
 keybinds = ["E"]
+[plugins.zen_mode]
+enabled = true
+keybinds = ["Z"]
