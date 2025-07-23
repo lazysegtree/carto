@@ -115,7 +115,7 @@ Status: 19/29
 - [x] Double Click to enter into directories (explorer)
 - Configuration (superfile)
   - [x] Base
-  - [ ] Schema
+  - [x] Schema
   - [x] Extending custom themes via configuration
 - [x] [zoxide](https://github.com/ajeetdsouza/zoxide) support (ranger)<br><sub>There is no command line for rovr, which means it will use keybinds to launch either a modified current folder bar or a panel</sub>
 - [x] Previewing image files using [textual-image](https://github.com/lnqs/textual-image) (superfile)<br><sub>Explorer kinda supports image viewing, but this is a TUI, so inspiration is from superfile</sub>

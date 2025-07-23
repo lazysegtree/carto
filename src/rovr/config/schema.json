@@ -1,0 +1,550 @@
+{
+  "$schema": "https://json-schema.org/draft-04/schema",
+  "title": "Rovr Config",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "interface": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "tooltips": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show tooltips when your mouse is over a tooltip supported button.\nThis is not hot reloaded."
+        },
+        "nerd_font": {
+          "type": "boolean",
+          "default": false,
+          "description": "Use nerd font for rendering icons instead of weird characters and stuff.\nNot properly hot-reloaded."
+        },
+        "show_progress_eta": {
+          "type": "boolean",
+          "default": false,
+          "description": "When copying or deleting files, show an ETA for when the action will be completed."
+        },
+        "show_progress_percentage": {
+          "type": "boolean",
+          "default": false,
+          "description": "When copying or deleting files, show a percentage of how much had been completed"
+        },
+        "preview_error": {
+          "type": "string",
+          "default": "Hmm, I think this file got corrupted (or maybe not?)",
+          "description": "If for any reason the file preview refused to show, this appears."
+        },
+        "preview_binary": {
+          "type": "string",
+          "default": "This file is not UTF-8 encoded, so I decline to read it.",
+          "description": "If the current file cannot be read due to an encoding issue (ie not UTF8), it will display this message."
+        },
+        "preview_start": {
+          "type": "string",
+          "default": "print(\"Hello, world!\")",
+          "description": "This is shown when the rovr starts up. You may see it for a split second, but it will never appear afterwards."
+        }
+      }
+    },
+    "settings": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "use_recycle_bin": {
+          "type": "boolean",
+          "default": true,
+          "description": "When deleting a file, allow moving the file to the recycle bin."
+        },
+        "filelist_sort_by": {
+          "type": "string",
+          "default": "name",
+          "description": "NOT AVAILABLE\nSort the file list by either file \"name\" or \"date modified\""
+        },
+        "filelist_sort_order": {
+          "type": "string",
+          "default": "ascending",
+          "description": "MAY NOT BE AVAILABLE\nSort the file list in \"ascending\" or \"descending\" order"
+        },
+        "preview_full": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether or not you want to view the full file. It sort of works, not sure why it doesnt properly work, looking into it."
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "fields": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "type",
+              "permissions",
+              "size",
+              "modified",
+              "accessed",
+              "created"
+            ]
+          },
+          "default": [
+            "type",
+            "permissions",
+            "size",
+            "modified",
+            "accessed",
+            "created"
+          ],
+          "description": "The order of the metadata tags that you want to see in the Metadata section"
+        },
+        "datetime_format": {
+          "type": "string",
+          "default": "%Y-%m-%d %H:%M",
+          "description": "The datetime format for Metadata. Refer to https://docs.python.org/3/library/datetime.html#format-codes for more information."
+        }
+      }
+    },
+    "theme": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "default": {
+          "type": "string",
+          "default": "nord",
+          "description": "The default theme. Can be changed while in rovr, but it is not persistent."
+        }
+      }
+    },
+    "custom_theme": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "A name for the theme. However, when the theme is available in the theme picker, it shows up as a hiphenated, lowercase version."
+          },
+          "primary": {
+            "type": "string",
+            "description": "A hex code or named color to use as the primary color. Refer to https://textual.textualize.io/css_types/color/#named-colors for the named colors."
+          },
+          "secondary": {
+            "type": "string",
+            "description": "A hex code or named color to use as the secondary color. Refer to https://textual.textualize.io/css_types/color/#named-colors for the named colors."
+          },
+          "warning": {
+            "type": "string",
+            "description": "A hex code or named color to use as the warning color. Refer to https://textual.textualize.io/css_types/color/#named-colors for the named colors."
+          },
+          "error": {
+            "type": "string",
+            "description": "A hex code or named color to use as the error color. Refer to https://textual.textualize.io/css_types/color/#named-colors for the named colors."
+          },
+          "success": {
+            "type": "string",
+            "description": "A hex code or named color to use as the success color. Refer to https://textual.textualize.io/css_types/color/#named-colors for the named colors."
+          },
+          "accent": {
+            "type": "string",
+            "description": "A hex code or named color to use as the accent color. Refer to https://textual.textualize.io/css_types/color/#named-colors for the named colors."
+          },
+          "foreground": {
+            "type": "string",
+            "description": "A hex code or named color to use as the foreground color. Refer to https://textual.textualize.io/css_types/color/#named-colors for the named colors."
+          },
+          "background": {
+            "type": "string",
+            "description": "A hex code or named color to use as the background color. Refer to https://textual.textualize.io/css_types/color/#named-colors for the named colors."
+          },
+          "surface": {
+            "type": "string",
+            "description": "A hex code or named color to use as the surface color. Refer to https://textual.textualize.io/css_types/color/#named-colors for the named colors."
+          },
+          "panel": {
+            "type": "string",
+            "description": "A hex code or named color to use as the panel color. Refer to https://textual.textualize.io/css_types/color/#named-colors for the named colors."
+          },
+          "is_dark": {
+            "type": "boolean",
+            "description": "Whether or not this theme is a dark type theme."
+          }
+        },
+        "required": [
+          "name",
+          "primary",
+          "secondary",
+          "warning",
+          "error",
+          "success",
+          "accent",
+          "foreground",
+          "background",
+          "surface",
+          "panel",
+          "is_dark"
+        ]
+      }
+    },
+    "keybinds": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "toggle_pin": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Toggle the current folder in the Pinned Folder Sidebar"
+        },
+        "toggle_pinned_sidebar": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Toggle viewing the pinned sidebar"
+        },
+        "toggle_preview_sidebar": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Toggle viewing the preview sidebar"
+        },
+        "toggle_footer": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Toggle viewing the footer"
+        },
+        "focus_toggle_pinned_sidebar": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Toggle focus between pinned folder sidebar and file list"
+        },
+        "focus_file_list": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Focus the file list"
+        },
+        "focus_toggle_preview_sidebar": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Focus toggle between preview sidebar and file list"
+        },
+        "focus_toggle_path_switcher": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Focus toggle between path switcher and file list"
+        },
+        "focus_toggle_search": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Focus toggle the search bar (not implemented yet)"
+        },
+        "focus_toggle_processes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Focus toggle the processes container"
+        },
+        "focus_toggle_clipboard": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Focus toggle the clipboard container"
+        },
+        "focus_toggle_metadata": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Focus toggle the metadata container"
+        },
+        "copy": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Copy the selected files in the file list to the clipboard."
+        },
+        "paste": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "NOT IMPLEMENTED\nPaste the selected files in the clipboard into the current directory."
+        },
+        "cut": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Cut the selected files in the file list to the clipboard."
+        },
+        "delete": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Delete the selected files in the file list"
+        },
+        "rename": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Rename the selected file in the file list to something else"
+        },
+        "toggle_all": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Enter into select mode and select/unselect everything"
+        },
+        "new": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Create a new item in the current directory"
+        },
+        "up": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Go up the file list options"
+        },
+        "down": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Go down the file list options"
+        },
+        "up_tree": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Go up the file tree"
+        },
+        "down_tree": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Go down the file tree, or open the currently selected item"
+        },
+        "page_up": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Page Up in the file list options"
+        },
+        "page_down": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Page Down in the file list options"
+        },
+        "home": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Go to the first option in the file list options"
+        },
+        "end": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Go to the last option in the file list options"
+        },
+        "hist_previous": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Go back in history"
+        },
+        "hist_next": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Go forward in history"
+        },
+        "refresh": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Refresh the file list"
+        },
+        "toggle_visual": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Enter or exit select/visual mode"
+        },
+        "select_up": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "While in visual mode, extend the selection up."
+        },
+        "select_down": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "While in visual mode, extend the selection down"
+        },
+        "select_page_up": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "While in visual mode, extend the selection to the previous page"
+        },
+        "select_page_down": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "While in visual mode, extend the selection to the next page"
+        },
+        "select_home": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "While in visual mode, extend the selection to the first option"
+        },
+        "select_end": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "While in visual mode, extend the selection to the last option"
+        }
+      }
+    },
+    "plugins": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "zoxide": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false,
+              "description": "Enable or disable zoxide travelling"
+            },
+            "keybinds": {
+              "type": "array",
+              "default": ["z"],
+              "items": {
+                "type": "string"
+              },
+              "description": "The keybind to open the zoxide modal"
+            }
+          }
+        },
+        "bat": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false,
+              "description": "Enable or disable bat for previewing files"
+            },
+            "executable": {
+              "type": "string",
+              "default": "bat",
+              "description": "The executable for bat"
+            },
+            "show_line_numbers": {
+              "type": "boolean",
+              "default": true,
+              "description": "Make batcat show line numbers"
+            }
+          }
+        },
+        "editor": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true,
+              "description": "Enable opening a file in your editor"
+            },
+            "file_executable": {
+              "type": "string",
+              "default": "nano",
+              "description": "Open files in this app"
+            },
+            "folder_executable": {
+              "type": "string",
+              "default": "code",
+              "description": "Open folders in this app"
+            },
+            "keybinds": {
+              "type": "array",
+              "default": ["e"],
+              "items": {
+                "type": "string"
+              },
+              "description": "The keybind to launch your editor"
+            }
+          }
+        },
+        "zen_mode": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false,
+              "description": "Allow enabling or disabling zen mode. Nothing shows up while in zen mode, except only the file list."
+            },
+            "keybinds": {
+              "type": "array",
+              "default": ["Z"],
+              "items": {
+                "type": "string"
+              },
+              "description": "The keybind to toggle zen mode"
+            }
+          }
+        }
+      }
+    }
+  }
+}

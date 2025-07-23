@@ -16,14 +16,7 @@ preview_full = false
 
 
 [metadata]
-fields = [
-    "type",
-    "permissions",
-    "size",
-    "modified",
-    "accessed",
-    "created",
-]
+fields = ["type", "permissions", "size", "modified", "accessed", "created"]
 datetime_format = "%Y-%m-%d %H:%M"
 
 [theme]
@@ -104,16 +97,18 @@ select_end = ["shift+end"]
 [plugins.zoxide]
 enabled = false
 keybinds = ["z"]
+
 [plugins.bat]
 enabled = false
 executable = "bat"
 show_line_numbers = true
+
 [plugins.editor]
-enabled = true
+enabled = false
 file_executable = "nano"
 folder_executable = "code"
 keybinds = ["e"]
-enabled = false
+
 [plugins.zen_mode]
 enabled = true
 keybinds = ["Z"]
