@@ -210,6 +210,18 @@ Screen.-nopreview {
   }
 }
 
+.zen {
+  #menu,
+  #below_menu,
+  #below_menu Input,
+  #below_menu Button,
+  #pinned_sidebar_container,
+  #preview_sidebar,
+  #footer {
+    display: none !important;
+  }
+}
+
 #footer {
   height: $footer_unfocus_height;
   margin: 0 1;
