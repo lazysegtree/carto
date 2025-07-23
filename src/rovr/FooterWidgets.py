@@ -218,7 +218,7 @@ class Clipboard(SelectionList, inherit_bindings=False):
         self.refresh(layout=True)
 
     @work
-    async def on_key(self, event: events.Key):
+    async def on_key(self, event: events.Key) -> None:
         if self.has_focus:
             if event.key in config["keybinds"]["delete"]:
                 """Delete the selected files from the clipboard."""
@@ -458,7 +458,7 @@ class ProgressBarContainer(VerticalGroup):
         total: None | float | UnusedParameter = UnusedParameter(),
         progress: float | UnusedParameter = UnusedParameter(),
         advance: float | UnusedParameter = UnusedParameter(),
-    ):
+    ) -> None:
         self.progress_bar.update(total=total, progress=progress, advance=advance)
 
 
@@ -468,7 +468,7 @@ class ProcessContainer(VerticalScroll):
 
     async def new_process_bar(
         self, max: int | None = None, id: str | None = None, classes: str | None = None
-    ):
+    ) -> ProgressBarContainer:
         new_bar = ProgressBarContainer(total=max, id=id, classes=classes)
         await self.mount(new_bar)
         return new_bar

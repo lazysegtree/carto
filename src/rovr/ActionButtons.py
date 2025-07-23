@@ -22,7 +22,7 @@ class SortOrderButton(Button):
 
     #  actions soon :tm:
 
-    def on_mount(self):
+    def on_mount(self) -> None:
         if utils.config["interface"]["tooltips"]:
             self.tooltip = "Lists are in ascending order"
 
@@ -35,7 +35,7 @@ class CopyButton(Button):
             get_icon("general", "copy")[0], classes="option", id="copy", *args, **kwargs
         )
 
-    def on_mount(self):
+    def on_mount(self) -> None:
         if utils.config["interface"]["tooltips"]:
             self.tooltip = "Copy selected files"
 
@@ -59,7 +59,7 @@ class CutButton(Button):
             get_icon("general", "cut")[0], classes="option", id="cut", *args, **kwargs
         )
 
-    def on_mount(self):
+    def on_mount(self) -> None:
         if utils.config["interface"]["tooltips"]:
             self.tooltip = "Cut selected files"
 
@@ -87,7 +87,7 @@ class PasteButton(Button):
             **kwargs,
         )
 
-    def on_mount(self):
+    def on_mount(self) -> None:
         if utils.config["interface"]["tooltips"]:
             self.tooltip = "Paste files from clipboard"
 
@@ -100,7 +100,7 @@ class NewItemButton(Button):
             get_icon("general", "new")[0], classes="option", id="new", *args, **kwargs
         )
 
-    def on_mount(self):
+    def on_mount(self) -> None:
         if utils.config["interface"]["tooltips"]:
             self.tooltip = "Create a new file or directory"
 
@@ -127,11 +127,11 @@ class RenameItemButton(Button):
             **kwargs,
         )
 
-    def on_mount(self):
+    def on_mount(self) -> None:
         if utils.config["interface"]["tooltips"]:
             self.tooltip = "Rename selected files"
 
-    async def on_button_pressed(self, event: Button.Pressed):
+    async def on_button_pressed(self, event: Button.Pressed) -> None:
         if self.app.focused.id == "file_list":
             selected_files = await self.app.query_one(
                 "#file_list"
@@ -169,7 +169,7 @@ class DeleteButton(Button):
             **kwargs,
         )
 
-    def on_mount(self):
+    def on_mount(self) -> None:
         if utils.config["interface"]["tooltips"]:
             self.tooltip = "Delete selected files"
 

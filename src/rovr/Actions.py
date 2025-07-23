@@ -1,3 +1,5 @@
+"""Plans to move the functions here out, because this file is too small to be worth a seperate file"""
+
 import shutil
 from os import getcwd, makedirs, path
 
@@ -9,7 +11,13 @@ from . import utils
 utils.load_config()
 
 
-async def create_new_item(appInstance: App, location: str):
+async def create_new_item(appInstance: App, location: str) -> None:
+    """
+    Create a new item
+    Args:
+        appInstance(App): The current app class
+        location(str): The path that you want to create a new item at
+    """
     location = location.strip().replace("\\", "/")
     if location == "":
         return

@@ -60,7 +60,11 @@ class PreviewContainer(Container):
 
     @work(exclusive=True)
     async def show_preview(self, file_path: str) -> None:
-        """Debounce super fast requests, then show preview"""
+        """
+        Debounce requests, then show preview
+        Args:
+            file_path(str): The file path
+        """
         if self._update_task:
             self._update_task.stop()
 
@@ -75,7 +79,11 @@ class PreviewContainer(Container):
             self._update_task = self.set_timer(0.25, lambda: self.show_file(file_path))
 
     async def show_file(self, file_path: str) -> None:
-        """Load the file preview"""
+        """
+        Load the file preview
+        Args:
+            file_path(str): The file path
+        """
         self._current_file_path = file_path
         if any(file_path.endswith(ext) for ext in PIL_EXTENSIONS):
             self._is_image = True
@@ -242,7 +250,11 @@ class PreviewContainer(Container):
         self.border_title = "File Preview"
 
     async def show_folder(self, folder_path: str) -> None:
-        """Show the folder in the preview container."""
+        """
+        Show the folder in the preview container.
+        Args:
+            folder_path(str): The folder path
+        """
         if len(self.children) != 0:
             await self.remove_children()
         await self.mount(
@@ -300,6 +312,7 @@ class FolderNotFileError(Exception):
 
 
 class PinnedSidebar(OptionList, inherit_bindings=False):
+    # Just so that I can disable space
     BINDINGS: ClassVar[list[BindingType]] = (
         [
             Binding(bind, "cursor_down", "Down", show=False)
@@ -338,7 +351,8 @@ class PinnedSidebar(OptionList, inherit_bindings=False):
         yield Static()
 
     @work(exclusive=True)
-    async def reload_pins(self):
+    async def reload_pins(self) -> None:
+        """Reload pins shown"""
         # be extra sure
         available_pins = load_pins()
         pins = available_pins["pins"]
@@ -410,7 +424,7 @@ class PinnedSidebar(OptionList, inherit_bindings=False):
         self.disable_option("pinned-header")
         self.disable_option("drives-header")
 
-    async def on_mount(self):
+    async def on_mount(self) -> None:
         """Reload the pinned files from the config."""
         self.reload_pins()
 
@@ -497,7 +511,8 @@ class FileList(SelectionList, inherit_bindings=False):
 
     # ignore single clicks
     async def _on_click(self, event: events.Click) -> None:
-        """React to the mouse being clicked on an item.
+        """
+        React to the mouse being clicked on an item.
 
         Args:
             event: The click event.
@@ -886,7 +901,10 @@ class FileList(SelectionList, inherit_bindings=False):
                     self.deselect_all()
                 else:
                     self.select_all()
-            elif self.select_mode_enabled and event.key in config["keybinds"]["select_up"]:
+            elif (
+                self.select_mode_enabled
+                and event.key in config["keybinds"]["select_up"]
+            ):
                 """Select the current and previous file."""
                 if self.highlighted == 0:
                     self.select(self.get_option_at_index(0))
@@ -895,7 +913,10 @@ class FileList(SelectionList, inherit_bindings=False):
                     self.action_cursor_up()
                     self.select(self.get_option_at_index(self.highlighted))
                 return
-            elif self.select_mode_enabled and event.key in config["keybinds"]["select_down"]:
+            elif (
+                self.select_mode_enabled
+                and event.key in config["keybinds"]["select_down"]
+            ):
                 """Select the current and next file."""
                 if self.highlighted == len(self.options) - 1:
                     self.select(self.get_option_at_index(self.option_count - 1))
@@ -904,7 +925,10 @@ class FileList(SelectionList, inherit_bindings=False):
                     self.action_cursor_down()
                     self.select(self.get_option_at_index(self.highlighted))
                 return
-            elif self.select_mode_enabled and event.key in config["keybinds"]["select_page_up"]:
+            elif (
+                self.select_mode_enabled
+                and event.key in config["keybinds"]["select_page_up"]
+            ):
                 """Select the options between the current and the previous 'page'."""
                 old = self.highlighted
                 self.action_page_up()
@@ -916,7 +940,10 @@ class FileList(SelectionList, inherit_bindings=False):
                 for index in range(new, old + 1):
                     self.select(self.get_option_at_index(index))
                 return
-            elif self.select_mode_enabled and event.key in config["keybinds"]["select_page_down"]:
+            elif (
+                self.select_mode_enabled
+                and event.key in config["keybinds"]["select_page_down"]
+            ):
                 """Select the options between the current and the next 'page'."""
                 old = self.highlighted
                 self.action_page_down()
@@ -928,7 +955,10 @@ class FileList(SelectionList, inherit_bindings=False):
                 for index in range(old, new + 1):
                     self.select(self.get_option_at_index(index))
                 return
-            elif self.select_mode_enabled and event.key in config["keybinds"]["select_home"]:
+            elif (
+                self.select_mode_enabled
+                and event.key in config["keybinds"]["select_home"]
+            ):
                 old = self.highlighted
                 self.action_first()
                 new = self.highlighted
@@ -937,7 +967,10 @@ class FileList(SelectionList, inherit_bindings=False):
                 for index in range(new, old + 1):
                     self.select(self.get_option_at_index(index))
                 return
-            elif self.select_mode_enabled and event.key in config["keybinds"]["select_end"]:
+            elif (
+                self.select_mode_enabled
+                and event.key in config["keybinds"]["select_end"]
+            ):
                 old = self.highlighted
                 self.action_last()
                 new = self.highlighted
@@ -946,9 +979,24 @@ class FileList(SelectionList, inherit_bindings=False):
                 for index in range(old, new + 1):
                     self.select(self.get_option_at_index(index))
                 return
-            elif config["plugins"]["editor"]["enabled"] and event.key in config["plugins"]["editor"]["keybinds"]:
-                print(path.isdir(path.join(getcwd(), decompress(self.get_option_at_index(self.highlighted).id))))
-                if path.isdir(path.join(getcwd(), decompress(self.get_option_at_index(self.highlighted).id))):
+            elif (
+                config["plugins"]["editor"]["enabled"]
+                and event.key in config["plugins"]["editor"]["keybinds"]
+            ):
+                print(
+                    path.isdir(
+                        path.join(
+                            getcwd(),
+                            decompress(self.get_option_at_index(self.highlighted).id),
+                        )
+                    )
+                )
+                if path.isdir(
+                    path.join(
+                        getcwd(),
+                        decompress(self.get_option_at_index(self.highlighted).id),
+                    )
+                ):
                     with self.app.suspend():
                         cmd(
                             f'{config["plugins"]["editor"]["folder_executable"]} "{getcwd()}"'

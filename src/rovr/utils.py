@@ -88,7 +88,17 @@ def open_file(filepath: str) -> None:
         print(f"Error opening file: {e}")
 
 
-def get_cwd_object(cwd: str, sort_order: str, sort_by: str) -> list[dict]:
+def get_cwd_object(cwd: str, sort_order: str, sort_by: str) -> (list[dict], list[dict]):
+    """
+    Get the objects (files and folders) in a provided directory
+    Args:
+        cwd(str): The working directory to check
+        sort_order(str): The sort order (ascending or descending)
+        sort_by(str): How to sort it (currently unused)
+    Returns:
+        folders(list[dict]): A list of dictionaries, containing "name" as the item's name and "icon" as the respective icon
+        files(list[dict]): A list of dictionaries, containing "name" as the item's name and "icon" as the respective icon
+    """
     folders, files = [], []
     try:
         listed_dir = os.listdir(cwd)
@@ -112,7 +122,14 @@ def get_cwd_object(cwd: str, sort_order: str, sort_by: str) -> list[dict]:
     return folders, files
 
 
-def file_is_type(file_path: str):
+def file_is_type(file_path: str) -> str:
+    """
+    Get a given path's type
+    Args:
+        file_path(str): The file path to check
+    Returns:
+        str: The string that says what type it is (unknown, symlink, directory, junction or file)
+    """
     try:
         file_stat = os.lstat(file_path)
     except (OSError, FileNotFoundError):
@@ -260,7 +277,7 @@ def deep_merge(d, u) -> dict:
         d (dict): old dictionary
         u (dict): new dictionary, to merge on top of d
     Returns:
-        dict
+        dict: Merged dictionary
     """
     for k, v in u.items():
         if isinstance(v, dict):
@@ -550,6 +567,7 @@ if not path.exists(path.join(VAR_TO_DIR["CONFIG"], "style.tcss")):
         pass
 
 
+# watchers
 class FileEventHandler(FileSystemEventHandler):
     @staticmethod
     def on_modified(event):

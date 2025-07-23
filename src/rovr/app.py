@@ -56,6 +56,7 @@ load_config()
 
 
 class Application(App, inherit_bindings=False):
+    # dont need ctrl+c
     BINDINGS = [
         Binding(
             "ctrl+q",
@@ -66,13 +67,15 @@ class Application(App, inherit_bindings=False):
             priority=True,
         )
     ]
+    # higher index = higher priority
     CSS_PATH = ["style.tcss", path.join(VAR_TO_DIR["CONFIG"], "style.tcss")]
-
+    # reactivity
     HORIZONTAL_BREAKPOINTS = [(0, "-filelistonly"), (60, "-nopreview"), (90, "-all")]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.prev_selected_option = None
+        # TODO: need to actually do this.
         self.main_sort_by = config["settings"]["filelist_sort_by"]
         self.main_sort_order = config["settings"]["filelist_sort_order"]
 
@@ -124,6 +127,7 @@ class Application(App, inherit_bindings=False):
                 yield Clipboard(id="clipboard")
 
     def on_mount(self) -> None:
+        # this will stay until a beta release.
         def warning(response: bool) -> None:
             match response:
                 case True:
@@ -159,16 +163,19 @@ class Application(App, inherit_bindings=False):
             self.query_one("#refresh").tooltip = "Refresh the file list"
 
     async def on_key(self, event: events.Key) -> None:
+        # Not really sure why this can happen, but I will still handle this
         if self.focused is None or not self.focused.id:
             return
         # Make sure that key binds don't break
         match event.key:
+            # after input
             case key if (
                 key in ["enter", "escape"] and self.focused.id == "path_switcher"
             ):
-                self.query_one("#file_list").focus()
                 await self.query_one(PathInput).action_submit()
+                self.query_one("#file_list").focus()
                 return
+            # placeholder, not yet existing
             case "escape" if "search" in self.focused.id:
                 match self.focused.id:
                     case "search_file_list":
@@ -176,6 +183,8 @@ class Application(App, inherit_bindings=False):
                     case "search_pinned_sidebar":
                         self.query_one("#pinned_sidebar").focus()
                 return
+            # backspace is used by default bindings to head up in history
+            # so just avoid it
             case "backspace" if (
                 type(self.focused) is Input or "search" in self.focused.id
             ):
@@ -234,29 +243,34 @@ class Application(App, inherit_bindings=False):
                 key in config["keybinds"]["copy"]
                 and self.query_one("#file_list").has_focus
             ):
-                 await self.query_one(CopyButton).on_button_pressed(CopyButton.Pressed)
+                await self.query_one(CopyButton).on_button_pressed(CopyButton.Pressed)
             case key if (
                 key in config["keybinds"]["cut"]
                 and self.query_one("#file_list").has_focus
             ):
-                 await self.query_one(CutButton).on_button_pressed(CutButton.Pressed)
+                await self.query_one(CutButton).on_button_pressed(CutButton.Pressed)
             case key if (
                 key in config["keybinds"]["new"]
                 and self.query_one("#file_list").has_focus
             ):
-                 await self.query_one(NewItemButton).on_button_pressed(NewItemButton.Pressed)
+                await self.query_one(NewItemButton).on_button_pressed(
+                    NewItemButton.Pressed
+                )
             case key if (
                 key in config["keybinds"]["rename"]
                 and self.query_one("#file_list").has_focus
             ):
-                 await self.query_one(RenameItemButton).on_button_pressed(
+                await self.query_one(RenameItemButton).on_button_pressed(
                     RenameItemButton.Pressed
                 )
             case key if (
                 key in config["keybinds"]["delete"]
                 and self.query_one("#file_list").has_focus
             ):
-                 await self.query_one(DeleteButton).on_button_pressed(DeleteButton.Pressed)
+                await self.query_one(DeleteButton).on_button_pressed(
+                    DeleteButton.Pressed
+                )
+            # toggle select mode
             case key if (
                 key in config["keybinds"]["toggle_visual"]
                 and self.query_one("#file_list").has_focus
@@ -267,6 +281,7 @@ class Application(App, inherit_bindings=False):
                 key in config["keybinds"]["hist_previous"]
                 and not self.query_one("#file_list", FileList).select_mode_enabled
             ):
+                # file explorer behaviour, if you have no history, it goes up the tree
                 if self.query_one("#back").disabled:
                     self.query_one(UpButton).on_button_pressed(UpButton.Pressed)
                 else:
@@ -281,7 +296,7 @@ class Application(App, inherit_bindings=False):
                 key in config["keybinds"]["up_tree"]
                 and not self.query_one("#file_list", FileList).select_mode_enabled
             ):
-                 self.query_one(UpButton).on_button_pressed(UpButton.Pressed)
+                self.query_one(UpButton).on_button_pressed(UpButton.Pressed)
             case key if key in config["keybinds"]["refresh"]:
                 self.query_one(RefreshButton).action_press()
             # Toggle pin on current directory
@@ -307,6 +322,7 @@ class Application(App, inherit_bindings=False):
                     self.query_one("#footer").add_class("hide")
                 else:
                     self.query_one("#footer").remove_class("hide")
+            # zoxide
             case key if (
                 event.key in config["plugins"]["zoxide"]["keybinds"]
                 and config["plugins"]["zoxide"]["enabled"]
@@ -328,6 +344,7 @@ class Application(App, inherit_bindings=False):
                         )
 
                 self.push_screen(ZToDirectory(), on_response)
+            # zen mode
             case key if key in config["plugins"]["zen_mode"]["keybinds"]:
                 if "zen" in self.classes:
                     self.remove_class("zen")

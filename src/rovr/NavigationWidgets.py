@@ -90,11 +90,11 @@ class PathAutoCompleteInput(PathAutoComplete):
         """Empty function that was supposed to align the completion box to the cursor."""
         pass
 
-    def _on_show(self, event):
+    def _on_show(self, event: events.Show) -> None:
         super()._on_show(event)
         self._target.add_class("hide_border_bottom", update=True)
 
-    async def _on_hide(self, event):
+    async def _on_hide(self, event: events.Hide) -> None:
         super()._on_hide(event)
         self._target.remove_class("hide_border_bottom", update=True)
         await self._target.action_submit()
@@ -119,7 +119,7 @@ class PathInput(Input):
                 self.app.main_sort_by, self.app.main_sort_order
             )
 
-    def on_key(self, event: events.Key):
+    def on_key(self, event: events.Key) -> None:
         if event.key == "backspace":
             event.stop()
             self.action_delete_left()

@@ -5,12 +5,12 @@ from . import utils
 utils.load_config()
 
 
-def get_custom_themes():
+def get_custom_themes() -> list:
     """
     Get the custom themes defined in the config file.
 
     Returns:
-        dict: A dictionary of custom themes.
+        list: A list of custom themes.
     """
     custom_themes = []
     for theme in utils.config["custom_theme"]:

@@ -298,6 +298,7 @@ class ZToDirectory(ModalScreen):
 
     @work(thread=True, exclusive=True)
     def on_input_changed(self, event: Input.Changed) -> None:
+        """Update the list"""
         search_term = self.query_one("#zoxide_input").value.strip()
         zoxide_output = run(
             ["zoxide", "query", "--list"] + search_term.split(),
@@ -309,6 +310,11 @@ class ZToDirectory(ModalScreen):
         options = []
         try:
             if zoxide_output.stdout:
+                # unline normally, im using an add_option**s** function
+                # using it without has a likelyhood of DuplicateID being
+                # raised, or just nothing showing up. By having the clear
+                # options and add options functions nearby, it hopefully
+                # reduces the likelihood of an empty option list
                 for line in zoxide_output.stdout.splitlines():
                     options.append(Option(Content(f" {line}"), id=utils.compress(line)))
                 self.app.call_from_thread(zoxide_options.clear_options)
@@ -319,7 +325,7 @@ class ZToDirectory(ModalScreen):
                 self.app.call_from_thread(zoxide_options.clear_options)
                 self.app.call_from_thread(
                     zoxide_options.add_option,
-                    Option(" No matches found", disabled=True),
+                    Option(" --No matches found--", disabled=True),
                 )
         except DuplicateID:
             return
