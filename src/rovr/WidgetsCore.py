@@ -1030,7 +1030,7 @@ class FileList(SelectionList, inherit_bindings=False):
                 ):
                     with self.app.suspend():
                         cmd(
-                            f'{config["plugins"]["editor"]["folder_executable"]} "{getcwd()}"'
+                            f'{config["plugins"]["editor"]["folder_executable"]} "{path.join(getcwd(), decompress(self.get_option_at_index(self.highlighted).id))}"'
                         )
                 else:
                     with self.app.suspend():
