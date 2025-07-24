@@ -1,7 +1,7 @@
 import platform
 import stat
 from datetime import datetime
-from os import lstat, path, remove, walk
+from os import DirEntry, lstat, path, remove, walk
 from shutil import rmtree
 from typing import ClassVar
 
@@ -27,7 +27,6 @@ from .utils import (
     compress,
     config,
     decompress,
-    file_is_type,
     get_icon,
     get_recursive_files,
     get_toggle_button_icon,
@@ -245,24 +244,31 @@ class MetadataContainer(VerticalScroll):
         self._size_worker = None
         self._update_task = None
 
-    def info_of_file_path(self, file_path: str) -> str:
+    def info_of_dir_entry(self, dir_entry: DirEntry, type_string: str) -> str:
+        """
+        Get the permission line from a given DirEntry object
+        Args:
+            dir_entry (DirEntry): The nt.DirEntry class
+            type_string (str): The type of file. It should already be handled.
+        """
         try:
-            file_stat = lstat(file_path)
+            file_stat = lstat(dir_entry.path)
         except (OSError, FileNotFoundError):
             return "?????????"
         mode = file_stat.st_mode
 
         permission_string = ""
-        file_type = file_is_type(file_path)
-        match file_type:
-            case "symlink":
+        match type_string:
+            case "Symlink":
                 permission_string = "l"
-            case "directory":
+            case "Directory":
                 permission_string = "d"
-            case "junction":
+            case "Junction":
                 permission_string = "j"
-            case "file":
+            case "File":
                 permission_string = "-"
+            case "Unknown":
+                return "????????"
 
         permission_string += "r" if mode & stat.S_IRUSR else "-"
         permission_string += "w" if mode & stat.S_IWUSR else "-"
@@ -278,39 +284,45 @@ class MetadataContainer(VerticalScroll):
         return permission_string
 
     @work(exclusive=True)
-    async def update_metadata(self, location_of_item: str) -> None:
-        """Debounce the update, because some people can be speed typers"""
+    async def update_metadata(self, dir_entry: DirEntry) -> None:
+        """
+        Debounce the update, because some people can be speed travellers
+        Args:
+            dir_entry (DirEntry): The nt.DirEntry object
+        """
         if self._update_task:
             self._update_task.stop()
         self._update_task = self.set_timer(
-            0.25, lambda: self._perform_update(location_of_item)
+            0.25, lambda: self._perform_update(dir_entry)
         )
 
-    async def _perform_update(self, location_of_item: str) -> None:
-        """After debouncing"""
+    async def _perform_update(self, dir_entry: DirEntry) -> None:
+        """
+        After debouncing the update
+        Args:
+            dir_entry (DirEntry): The nt.DirEntry object
+        """
         if self._size_worker:
             self._size_worker.cancel()
             self._size_worker = None
-        self.current_path = location_of_item
-        try:
-            file_stat = lstat(location_of_item)
-            file_info = self.info_of_file_path(location_of_item)
-        except (OSError, FileNotFoundError):
+
+        if not path.exists(dir_entry.path):
             await self.remove_children()
             await self.mount(Static("Item not found or inaccessible."))
             return
 
         type_str = "Unknown"
-        if file_info.startswith("j"):
+        if dir_entry.is_junction():
             type_str = "Junction"
-        elif file_info.startswith("l"):
+        elif dir_entry.is_symlink():
             type_str = "Symlink"
-        elif file_info.startswith("d"):
+        elif dir_entry.is_dir():
             type_str = "Directory"
-        elif file_info.startswith("-"):
+        elif dir_entry.is_file():
             type_str = "File"
+        file_info = self.info_of_dir_entry(dir_entry, type_str)
         # got the type, now we follow
-        file_stat = lstat(path.realpath(location_of_item))
+        file_stat = dir_entry.stat()
         values_list = []
         for field in config["metadata"]["fields"]:
             match field:
@@ -375,9 +387,9 @@ class MetadataContainer(VerticalScroll):
                     keys_list.append(Static("Created"))
             keys = VerticalGroup(*keys_list, id="metadata-keys")
             await self.mount(keys, values)
-
+        self.current_path = dir_entry.path
         if type_str == "Directory" and self.has_focus:
-            self._size_worker = self.calculate_folder_size(location_of_item)
+            self._size_worker = self.calculate_folder_size(dir_entry.path)
 
     @work
     async def calculate_folder_size(self, folder_path: str) -> None:
@@ -417,11 +429,6 @@ class MetadataContainer(VerticalScroll):
         if self._size_worker:
             self._size_worker.cancel()
             self._size_worker = None
-            try:
-                size_widget = self.query_one("#metadata-size", Static)
-                size_widget.update("--")
-            except NoMatches:
-                pass
 
 
 class ProgressBarContainer(VerticalGroup):
@@ -526,7 +533,7 @@ class ProcessContainer(VerticalScroll):
                                 path_to_trash = path_to_trash[6:]
                             send2trash(path_to_trash)
                         except FileNotFoundError:
-                            pass
+                            self.app.notify("FileNotFoundError")
                         except Exception as e:
                             perma_delete = self.app.call_from_thread(
                                 self.app.push_screen_wait,
@@ -541,6 +548,7 @@ class ProcessContainer(VerticalScroll):
                                     bar.update_label,
                                     f"{get_icon('general', 'close')[0]} Process Interrupted",
                                 )
+                                self.app.call_from_thread(bar.add_class, "error")
                                 return
                     else:
                         remove(file_dict["path"])
@@ -554,6 +562,7 @@ class ProcessContainer(VerticalScroll):
                         ),
                     )
                     if not do_continue:
+                        self.app.call_from_thread(bar.add_class, "error")
                         return
                 except Exception as e:
                     self.app.call_from_thread(
@@ -564,6 +573,7 @@ class ProcessContainer(VerticalScroll):
                         self.app.push_screen_wait,
                         Dismissable(f"Deleting failed due to\n{e}\nProcess Aborted."),
                     )
+                    self.app.call_from_thread(bar.add_class, "error")
                     return
         for folder in folders_to_delete:
             try:
@@ -574,8 +584,9 @@ class ProcessContainer(VerticalScroll):
                 )
         self.app.call_from_thread(
             bar.update_label,
-            f"{get_icon('general', 'close')[0]} {path.basename(files[-1])}",
+            f"{get_icon('general', 'delete')[0]} {path.basename(files[-1])} {get_icon('general', 'check')[0]}",
         )
+        self.app.call_from_thread(bar.add_class, "done")
 
     async def on_key(self, event: events.Key):
         if event.key in config["keybinds"]["delete"]:

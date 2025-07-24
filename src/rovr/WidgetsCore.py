@@ -1,5 +1,5 @@
 import asyncio
-from os import chdir, getcwd, path
+from os import DirEntry, chdir, getcwd, path
 from os import system as cmd
 from typing import ClassVar
 
@@ -236,17 +236,31 @@ class PreviewContainer(Container):
                 path.splitext(self._current_file_path)[1], "markdown"
             )
 
-        await self.mount(
-            TextArea(
-                id="text_preview",
-                show_line_numbers=True,
-                soft_wrap=False,
-                read_only=True,
-                text=text_to_display,
-                language=language,
-                classes="inner_preview",
+        try:
+            await self.mount(
+                TextArea(
+                    id="text_preview",
+                    show_line_numbers=True,
+                    soft_wrap=False,
+                    read_only=True,
+                    text=text_to_display,
+                    language=language,
+                    classes="inner_preview",
+                )
             )
-        )
+        # travelling fast also causes this
+        except KeyError:
+            await self.mount(
+                TextArea(
+                    id="text_preview",
+                    show_line_numbers=True,
+                    soft_wrap=False,
+                    read_only=True,
+                    text=config["interface"]["preview_error"],
+                    language="markdown",
+                    compact=True,
+                )
+            )
         self.border_title = "File Preview"
 
     async def show_folder(self, folder_path: str) -> None:
@@ -447,6 +461,23 @@ class PinnedSidebar(OptionList, inherit_bindings=False):
         self.app.query_one("#file_list").focus()
 
 
+class FileListSelectionWidget(Selection):
+    def __init__(self, dir_entry: DirEntry, *args, **kwargs):
+        """
+        Initialise the selection.
+
+        Args:
+            dir_entry (DirEntry): The nt.DirEntry class
+            prompt (ContentText): The prompt for the selection.
+            value (SelectionType): The value for the selection.
+            initial_state (bool) = False: The initial selected state of the selection.
+            id (str or None) = None: The optional ID for the selection.
+            disabled (bool) = False: The initial enabled/disabled state. Enabled by default.
+        """
+        super().__init__(*args, **kwargs)
+        self.dir_entry = dir_entry
+
+
 class FileList(SelectionList, inherit_bindings=False):
     """
     OptionList but can multi-select files and folders.
@@ -579,13 +610,14 @@ class FileList(SelectionList, inherit_bindings=False):
             )
             for item in file_list_options:
                 self.add_option(
-                    Selection(
-                        Content.from_markup(
+                    FileListSelectionWidget(
+                        prompt=Content.from_markup(
                             f" [{item['icon'][1]}]{item['icon'][0]}[/{item['icon'][1]}] $name",
                             name=item["name"],
                         ),
                         value=compress(item["name"]),
                         id=compress(item["name"]),
+                        dir_entry=item["dir_entry"],
                     )
                 )
         # session handler
@@ -659,12 +691,13 @@ class FileList(SelectionList, inherit_bindings=False):
         )
         for item in file_list_options:
             self.add_option(
-                Selection(
-                    Content.from_markup(
+                FileListSelectionWidget(
+                    prompt=Content.from_markup(
                         f" [{item['icon'][1]}]{item['icon'][0]}[/{item['icon'][1]}] $name",
                         name=item["name"],
                     ),
                     value=compress(item["name"]),
+                    dir_entry=item["dir_entry"],
                 )
             )
         # somehow prevents more debouncing, ill take it
@@ -748,9 +781,7 @@ class FileList(SelectionList, inherit_bindings=False):
         self.app.query_one("#preview_sidebar").show_preview(
             path.join(getcwd(), file_name).replace(path.sep, "/")
         )
-        self.app.query_one("MetadataContainer").update_metadata(
-            path.join(getcwd(), file_name).replace(path.sep, "/")
-        )
+        self.app.query_one("MetadataContainer").update_metadata(event.option.dir_entry)
 
     # Use better versions of the checkbox icons
     def _get_left_gutter_width(

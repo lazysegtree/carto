@@ -101,20 +101,27 @@ def get_cwd_object(cwd: str, sort_order: str, sort_by: str) -> (list[dict], list
     """
     folders, files = [], []
     try:
-        listed_dir = os.listdir(cwd)
+        listed_dir = os.scandir(cwd)
     except (PermissionError, FileNotFoundError, OSError):
         print(f"PermissionError: Unable to access {cwd}")
         return [PermissionError], [PermissionError]
     for item in listed_dir:
-        if path.isdir(path.join(cwd, item)):
+        if item.is_dir():
             folders.append(
                 {
-                    "name": f"{item}",
-                    "icon": get_icon_for_folder(item),
+                    "name": f"{item.name}",
+                    "icon": get_icon_for_folder(item.name),
+                    "dir_entry": item,
                 }
             )
         else:
-            files.append({"name": item, "icon": get_icon_for_file(item)})
+            files.append(
+                {
+                    "name": item.name,
+                    "icon": get_icon_for_file(item.name),
+                    "dir_entry": item,
+                }
+            )
     # Sort folders and files properly
     folders.sort(key=lambda x: x["name"].lower(), reverse=(sort_order == "descending"))
     files.sort(key=lambda x: x["name"].lower(), reverse=(sort_order == "descending"))
