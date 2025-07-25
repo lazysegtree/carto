@@ -44,7 +44,6 @@ from .utils import (
     decompress,
     load_config,
     start_watcher,
-    toggle_pin,
 )
 from .WidgetsCore import (
     FileList,
@@ -276,33 +275,6 @@ class Application(App, inherit_bindings=False):
                 and self.query_one("#file_list").has_focus
             ):
                 await self.query_one("#file_list", FileList).toggle_mode()
-            # Navigation buttons but with key binds
-            case key if (
-                key in config["keybinds"]["hist_previous"]
-                and not self.query_one("#file_list", FileList).select_mode_enabled
-            ):
-                # file explorer behaviour, if you have no history, it goes up the tree
-                if self.query_one("#back").disabled:
-                    self.query_one(UpButton).on_button_pressed(UpButton.Pressed)
-                else:
-                    self.query_one(BackButton).on_button_pressed(BackButton.Pressed)
-            case key if (
-                key in config["keybinds"]["hist_next"]
-                and not self.query_one("#file_list", FileList).select_mode_enabled
-                and not self.query_one("#forward").disabled
-            ):
-                self.query_one(ForwardButton).on_button_pressed(ForwardButton.Pressed)
-            case key if (
-                key in config["keybinds"]["up_tree"]
-                and not self.query_one("#file_list", FileList).select_mode_enabled
-            ):
-                self.query_one(UpButton).on_button_pressed(UpButton.Pressed)
-            case key if key in config["keybinds"]["refresh"]:
-                self.query_one(RefreshButton).action_press()
-            # Toggle pin on current directory
-            case key if key in config["keybinds"]["toggle_pin"]:
-                toggle_pin(path.basename(getcwd()), getcwd())
-                self.query_one(PinnedSidebar).reload_pins()
             # Toggle hiding panels
             case key if key in config["keybinds"]["toggle_pinned_sidebar"]:
                 self.query_one("#file_list").focus()

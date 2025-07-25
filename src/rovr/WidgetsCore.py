@@ -13,7 +13,7 @@ from textual.containers import Container, VerticalScroll
 from textual.content import Content
 from textual.css.query import NoMatches
 from textual.strip import Strip
-from textual.widgets import OptionList, SelectionList, Static, TextArea
+from textual.widgets import Button, OptionList, SelectionList, Static, TextArea
 from textual.widgets.option_list import Option, OptionDoesNotExist
 from textual.widgets.selection_list import Selection
 from textual_image.widget import AutoImage
@@ -34,6 +34,7 @@ from .utils import (
     open_file,
     set_scuffed_subtitle,
     state,
+    toggle_pin,
 )
 
 load_config()
@@ -1037,3 +1038,29 @@ class FileList(SelectionList, inherit_bindings=False):
                         cmd(
                             f'{config["plugins"]["editor"]["file_executable"]} "{path.join(getcwd(), decompress(self.get_option_at_index(self.highlighted).id))}"'
                         )
+            # hit buttons with keybinds
+            elif (
+                event.key in config["keybinds"]["hist_previous"]
+                and not self.select_mode_enabled
+            ):
+                if self.app.query_one("#back").disabled:
+                    self.app.query_one("UpButton").on_button_pressed(Button.Pressed)
+                else:
+                    self.app.query_one("BackButton").on_button_pressed(Button.Pressed)
+            elif (
+                event.key in config["keybinds"]["hist_next"]
+                and not self.select_mode_enabled
+                and not self.app.query_one("#forward").disabled
+            ):
+                self.app.query_one("ForwardButton").on_button_pressed(Button.Pressed)
+            elif (
+                event.key in config["keybinds"]["up_tree"]
+                and not self.select_mode_enabled
+            ):
+                self.app.query_one("UpButton").on_button_pressed(Button.Pressed)
+            elif event.key in config["keybinds"]["refresh"]:
+                self.app.query_one("RefreshButton").on_button_pressed(Button.Pressed)
+            # Toggle pin on current directory
+            elif event.key in config["keybinds"]["toggle_pin"]:
+                toggle_pin(path.basename(getcwd()), getcwd())
+                self.query_one(PinnedSidebar).reload_pins()
