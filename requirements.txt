@@ -1,5 +1,5 @@
 aiohappyeyeballs==2.6.1
-aiohttp==3.12.13
+aiohttp==3.12.14
 aiohttp-jinja2==1.6
 aiosignal==1.4.0
 argcomplete==3.6.2
@@ -35,11 +35,11 @@ pygments==2.19.2
 pyyaml==6.0.2
 questionary==2.1.0
 rapidfuzz==3.13.0
-rich==14.0.0
-ruff==0.12.2
+rich==14.1.0
+ruff==0.12.5
 send2trash==1.8.3
 termcolor==3.1.0
-textual==3.7.1
+textual==5.0.0
 textual-autocomplete==4.0.4
 textual-dev==1.7.0
 textual-image==0.8.3
@@ -47,7 +47,7 @@ textual-serve==1.1.2
 thefuzz==0.22.1
 toml==0.10.2
 tomlkit==0.13.3
-tree-sitter==0.24.0
+tree-sitter==0.25.0
 tree-sitter-bash==0.25.0
 tree-sitter-css==0.23.2
 tree-sitter-go==0.23.4
