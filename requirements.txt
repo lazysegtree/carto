@@ -39,7 +39,7 @@ rich==14.1.0
 ruff==0.12.5
 send2trash==1.8.3
 termcolor==3.1.0
-textual==5.0.0
+textual==4.0.0
 textual-autocomplete==4.0.4
 textual-dev==1.7.0
 textual-image==0.8.3
@@ -47,7 +47,7 @@ textual-serve==1.1.2
 thefuzz==0.22.1
 toml==0.10.2
 tomlkit==0.13.3
-tree-sitter==0.25.0
+tree-sitter==0.24.0
 tree-sitter-bash==0.25.0
 tree-sitter-css==0.23.2
 tree-sitter-go==0.23.4
