@@ -33,6 +33,22 @@ from .utils import (
 )
 
 
+class ClipboardSelection(Selection):
+    def __init__(self, type_of_item: str, *args, **kwargs):
+        """
+        Initialise the selection.
+
+        Args:
+            type_of_item (str): The type of selection it is (copy/cut)
+            prompt: The prompt for the selection.
+            value: The value for the selection.
+            initial_state: The initial selected state of the selection.
+            id: The optional ID for the selection.
+            disabled: The initial enabled/disabled state. Enabled by default.
+        """
+        super().__init__(*args, **kwargs)
+        self.type_of_item = type_of_item
+
 class Clipboard(SelectionList, inherit_bindings=False):
     """A selection list that displays the clipboard contents."""
 
@@ -77,15 +93,14 @@ class Clipboard(SelectionList, inherit_bindings=False):
     async def on_mount(self) -> None:
         """Initialize the clipboard contents."""
         await self.remove_children()
-        for item in self.clipboard_contents:
-            self.add_option(Selection(Content(item), value=compress(item)))
 
     async def copy_to_clipboard(self, items: list[str]) -> None:
         """Copy the selected files to the clipboard"""
         for item in items[::-1]:
             self.insert_selection_at_beginning(
-                Selection(
-                    Content(f"{get_icon('general', 'copy')[0]} {item}"),
+                ClipboardSelection(
+                    "copy",
+                    prompt=Content(f"{get_icon('general', 'copy')[0]} {item}"),
                     value=compress(f"{item}-copy"),
                     id=compress(item),
                 )
@@ -99,8 +114,9 @@ class Clipboard(SelectionList, inherit_bindings=False):
         for item in items[::-1]:
             if isinstance(item, str):
                 self.insert_selection_at_beginning(
-                    Selection(
-                        Content(f"{get_icon('general', 'cut')[0]} {item}"),
+                    ClipboardSelection(
+                        "cut",
+                        prompt=Content(f"{get_icon('general', 'cut')[0]} {item}"),
                         value=compress(f"{item}-cut"),
                         id=compress(item),
                     )
@@ -441,7 +457,7 @@ class ProgressBarContainer(VerticalGroup):
     ):
         super().__init__(*args, **kwargs)
         self.progress_bar = ProgressBar(
-            total=total, show_percentage=False, show_eta=True, gradient=gradient
+            total=total, show_percentage=config["interface"]["show_progress_percentage"], show_eta=config["interface"]["show_progress_eta"], gradient=gradient
         )
         self.label = Label(label)
 
