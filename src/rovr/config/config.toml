@@ -1,3 +1,4 @@
+#:schema  https://raw.githubusercontent.com/NSPC911/rovr/refs/heads/master/src/rovr/config/schema.json
 [interface]
 tooltips = true
 nerd_font = false

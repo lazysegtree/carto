@@ -304,8 +304,8 @@ def load_config() -> None:
     if not path.exists(VAR_TO_DIR["CONFIG"]):
         os.makedirs(VAR_TO_DIR["CONFIG"])
     if not path.exists(path.join(VAR_TO_DIR["CONFIG"], "config.toml")):
-        with open(path.join(VAR_TO_DIR["CONFIG"], "config.toml"), "w") as _:
-            pass
+        with open(path.join(VAR_TO_DIR["CONFIG"], "config.toml"), "w") as file:
+            file.write("#:schema  https://raw.githubusercontent.com/NSPC911/rovr/refs/heads/master/src/rovr/config/schema.json")
 
     with open(path.join(path.dirname(__file__), "config/config.toml"), "r") as f:
         template_config = toml.loads(f.read())
