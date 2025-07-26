@@ -338,3 +338,16 @@ CommandInput {
 Bar {
   width: 1fr;
 }
+ProgressBarContainer.error .bar--bar,
+ProgressBarContainer.error .bar--complete {
+  color: $error;
+}
+ProgressBarContainer.done .bar--complete {
+  color: $success;
+}
+ProgressBarContainer .bar--indeterminate {
+  color: $accent;
+}
+ProgressBarContainer .bar--bar {
+  color: $warning;
+}

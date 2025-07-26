@@ -212,7 +212,6 @@ class Clipboard(SelectionList, inherit_bindings=False):
         if self.highlighted is not None:
             self.highlighted += 1
 
-        # // serve refreshments
         # redraw
         self.refresh(layout=True)
 
@@ -508,73 +507,74 @@ class ProcessContainer(VerticalScroll):
             if path.isdir(file):
                 folders_to_delete.append(file)
             files_to_delete.extend(get_recursive_files(file))
-        self.app.call_from_thread(bar.update_progress, total=len(files_to_delete))
-        for file_dict in files_to_delete:
-            self.app.call_from_thread(
-                bar.update_label,
-                f"{get_icon('general', 'delete')[0]} {file_dict['relative_loc']}",
-            )
-            if path.exists(file):
-                # I know that it `path.exists` prevents issues, but on the
-                # off chance that anything happens, this should help
-                try:
-                    print(file_dict["path"])
-                    if config["settings"]["use_recycle_bin"] and not ignore_trash:
-                        try:
-                            path_to_trash = file_dict["path"]
-                            self.app.notify(
-                                f"Windows: {platform.system() == 'Windows'}\nhas nonsense: {path_to_trash.startswith('\\\\\\\\?\\\\')}\ncheck start: {path_to_trash.split('?')[0]}"
-                            )
-                            if (
-                                platform.system() == "Windows"
-                                and path_to_trash.startswith("\\\\\\\\?\\\\")
-                            ):
-                                # An inherent issue with long paths on windows
-                                path_to_trash = path_to_trash[6:]
-                            send2trash(path_to_trash)
-                        except FileNotFoundError:
-                            self.app.notify("FileNotFoundError")
-                        except Exception as e:
-                            perma_delete = self.app.call_from_thread(
-                                self.app.push_screen_wait,
-                                YesOrNo(
-                                    f"Trashing failed due to\n{e}\nDo Permenant Deletion?"
-                                ),
-                            )
-                            if perma_delete:
-                                ignore_trash = True
-                            else:
-                                self.app.call_from_thread(
-                                    bar.update_label,
-                                    f"{get_icon('general', 'close')[0]} Process Interrupted",
+        if files_to_delete != []: # ie only folders, no file
+            self.app.call_from_thread(bar.update_progress, total=len(files_to_delete))
+            for file_dict in files_to_delete:
+                self.app.call_from_thread(
+                    bar.update_label,
+                    f"{get_icon('general', 'delete')[0]} {file_dict['relative_loc']}",
+                )
+                if path.exists(file):
+                    # I know that it `path.exists` prevents issues, but on the
+                    # off chance that anything happens, this should help
+                    try:
+                        print(file_dict["path"])
+                        if config["settings"]["use_recycle_bin"] and not ignore_trash:
+                            try:
+                                path_to_trash = file_dict["path"]
+                                self.app.notify(
+                                    f"Windows: {platform.system() == 'Windows'}\nhas nonsense: {path_to_trash.startswith('\\\\\\\\?\\\\')}\ncheck start: {path_to_trash.split('?')[0]}"
                                 )
-                                self.app.call_from_thread(bar.add_class, "error")
-                                return
-                    else:
-                        remove(file_dict["path"])
-                except FileNotFoundError:
-                    pass
-                except PermissionError:
-                    do_continue = self.app.call_from_thread(
-                        self.app.push_screen_wait,
-                        YesOrNo(
-                            f"{file_dict['path']} could not be deleted due to PermissionError.\nContinue?"
-                        ),
-                    )
-                    if not do_continue:
+                                if (
+                                    platform.system() == "Windows"
+                                    and path_to_trash.startswith("\\\\\\\\?\\\\")
+                                ):
+                                    # An inherent issue with long paths on windows
+                                    path_to_trash = path_to_trash[6:]
+                                send2trash(path_to_trash)
+                            except FileNotFoundError:
+                                self.app.notify("FileNotFoundError")
+                            except Exception as e:
+                                perma_delete = self.app.call_from_thread(
+                                    self.app.push_screen_wait,
+                                    YesOrNo(
+                                        f"Trashing failed due to\n{e}\nDo Permenant Deletion?"
+                                    ),
+                                )
+                                if perma_delete:
+                                    ignore_trash = True
+                                else:
+                                    self.app.call_from_thread(
+                                        bar.update_label,
+                                        f"{get_icon('general', 'close')[0]} Process Interrupted",
+                                    )
+                                    self.app.call_from_thread(bar.add_class, "error")
+                                    return
+                        else:
+                            remove(file_dict["path"])
+                    except FileNotFoundError:
+                        pass
+                    except PermissionError:
+                        do_continue = self.app.call_from_thread(
+                            self.app.push_screen_wait,
+                            YesOrNo(
+                                f"{file_dict['path']} could not be deleted due to PermissionError.\nContinue?"
+                            ),
+                        )
+                        if not do_continue:
+                            self.app.call_from_thread(bar.add_class, "error")
+                            return
+                    except Exception as e:
+                        self.app.call_from_thread(
+                            bar.update_label,
+                            f"{get_icon('general', 'close')[0]} Unhandled Error.",
+                        )
+                        self.app.call_from_thread(
+                            self.app.push_screen_wait,
+                            Dismissable(f"Deleting failed due to\n{e}\nProcess Aborted."),
+                        )
                         self.app.call_from_thread(bar.add_class, "error")
                         return
-                except Exception as e:
-                    self.app.call_from_thread(
-                        bar.update_label,
-                        f"{get_icon('general', 'close')[0]} Unhandled Error.",
-                    )
-                    self.app.call_from_thread(
-                        self.app.push_screen_wait,
-                        Dismissable(f"Deleting failed due to\n{e}\nProcess Aborted."),
-                    )
-                    self.app.call_from_thread(bar.add_class, "error")
-                    return
         for folder in folders_to_delete:
             try:
                 rmtree(folder)
@@ -582,6 +582,12 @@ class ProcessContainer(VerticalScroll):
                 self.app.notify(
                     f"Certain files in {folder} could not be deleted.", severity="error"
                 )
+                self.app.call_from_thread(
+                    bar.update_label,
+                    f"{get_icon('general','delete')[0]} {path.basename(files[-1])} {get_icon('general', 'close')[0]}"
+                )
+                self.app.call_from_thread(bar.add_class, "error")
+                return
         self.app.call_from_thread(
             bar.update_label,
             f"{get_icon('general', 'delete')[0]} {path.basename(files[-1])} {get_icon('general', 'check')[0]}",
