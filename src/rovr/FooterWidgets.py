@@ -457,7 +457,10 @@ class ProgressBarContainer(VerticalGroup):
     ):
         super().__init__(*args, **kwargs)
         self.progress_bar = ProgressBar(
-            total=total, show_percentage=config["interface"]["show_progress_percentage"], show_eta=config["interface"]["show_progress_eta"], gradient=gradient
+            total=total,
+            show_percentage=config["interface"]["show_progress_percentage"],
+            show_eta=config["interface"]["show_progress_eta"],
+            gradient=gradient,
         )
         self.label = Label(label)
 
@@ -529,7 +532,7 @@ class ProcessContainer(VerticalScroll):
                 bar.update_label,
                 f"{get_icon('general', 'delete')[0]} {file_dict['relative_loc']}",
             )
-            if path.exists(file):
+            if path.exists(file_dict["path"]):
                 # I know that it `path.exists` prevents issues, but on the
                 # off chance that anything happens, this should help
                 try:
@@ -599,7 +602,7 @@ class ProcessContainer(VerticalScroll):
                 )
                 self.app.call_from_thread(
                     bar.update_label,
-                    f"{get_icon('general','delete')[0]} {path.basename(files[-1])} {get_icon('general', 'close')[0]}"
+                    f"{get_icon('general', 'delete')[0]} {path.basename(files[-1])} {get_icon('general', 'close')[0]}",
                 )
                 self.app.call_from_thread(bar.add_class, "error")
                 return
