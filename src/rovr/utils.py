@@ -172,7 +172,9 @@ def get_recursive_files(object_path: str) -> list[str]:
         files = []
         for folder, _, files_in_folder in os.walk(object_path):
             for file in files_in_folder:
-                full_path = path.join(folder, file)
+                full_path = path.join(folder, file).replace(
+                    "/", path.sep
+                )  # normalise the path
                 if path.realpath(full_path) != full_path:  # ie we passed over a symlink
                     pass  # will hopefully be taken by shutil.rmtree
                 else:
@@ -305,7 +307,9 @@ def load_config() -> None:
         os.makedirs(VAR_TO_DIR["CONFIG"])
     if not path.exists(path.join(VAR_TO_DIR["CONFIG"], "config.toml")):
         with open(path.join(VAR_TO_DIR["CONFIG"], "config.toml"), "w") as file:
-            file.write("#:schema  https://raw.githubusercontent.com/NSPC911/rovr/refs/heads/master/src/rovr/config/schema.json")
+            file.write(
+                "#:schema  https://raw.githubusercontent.com/NSPC911/rovr/refs/heads/master/src/rovr/config/schema.json"
+            )
 
     with open(path.join(path.dirname(__file__), "config/config.toml"), "r") as f:
         template_config = toml.loads(f.read())
