@@ -85,7 +85,7 @@ class YesOrNo(ModalScreen):
         grid-size: 2;
         grid-gutter: 1 2;
         grid-rows: 1fr 3;
-        padding: 1 3;
+        padding: 1 2 0 2;
         width: 50vw;
         max-height: 13;
         border: panel $primary-lighten-3;
@@ -99,7 +99,8 @@ class YesOrNo(ModalScreen):
     .question {
         content-align: center middle;
         width: 1fr;
-        text-align: center
+        height: 1fr;
+        text-align: center;
     }
     Button {
         width: 100%;
