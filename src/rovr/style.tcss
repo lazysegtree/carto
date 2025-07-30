@@ -6,7 +6,7 @@ $border-style: round;
 $pinned_sidebar_width: 20;
 $file_list_width: 3fr;
 $preview_sidebar_width: 2fr;
-$footer_unfocus_height: 10;
+$footer_unfocus_height: 8;
 $footer_focus_height: 10;
 
 #menu {
@@ -37,18 +37,20 @@ $footer_focus_height: 10;
   width: $pinned_sidebar_width;
 }
 
-#pinned_sidebar_container>Input,
-#file_list_container>Input {
-  padding: 0 1;
-  margin: 0 1;
-  height: 1;
+#pinned_sidebar_container,
+#file_list_container {
+  /* saving for when I add search bar */
+  Input {
+    padding: 0 1;
+    margin: 0 1;
+    height: 1;
+  }
+  OptionList {
+    background: transparent;
+    border: none;
+  }
 }
 
-#pinned_sidebar_container OptionList,
-#file_list_container OptionList {
-  background: transparent;
-  border: none;
-}
 
 #preview_sidebar {
   height: 1fr;
@@ -59,47 +61,43 @@ $footer_focus_height: 10;
   padding: 0 1;
 }
 
-#below_menu Input {
-  height: 3;
-  width: 1fr;
-  margin: 0 1 0 1;
-  padding: 0 2 0 2;
-}
-
-#below_menu Input.hide_border_bottom {
-  border: $border-style $accent !important;
-  border-bottom: none !important;
-  height: 3;
-}
-
-#below_menu Button {
-  margin: 0 1;
-  height: 3;
-  max-width: 7;
-}
-
 #below_menu {
   margin: 0 1 0 1;
   border: $border-style white;
   max-height: 11;
-}
 
-#below_menu PathAutoCompleteInput {
-  padding: 0 2 1 2;
-  margin: -1 1 0 33;
-  overlay: screen;
-  width: 1fr;
-  border: $border-style $accent;
-  border-top: none;
-  background: $background;
-
-  AutoCompleteList {
+  Input {
+    height: 3;
     width: 1fr;
-    max-height: 4
+    margin: 0 1 0 1;
+    padding: 0 2 0 2;
   }
+  Input.hide_border_bottom {
+    border: $border-style $accent !important;
+    border-bottom: none !important;
+    height: 3;
+  }
+  Button {
+    margin: 0 1;
+    height: 3;
+    max-width: 7;
+  }
+  PathAutoCompleteInput {
+    padding: 0 2 1 2;
+    margin: -1 1 0 33;
+    overlay: screen;
+    width: 1fr;
+    border: $border-style $accent;
+    border-top: none;
+    background: $background;
 
-  Option {
-    width: 100%;
+    AutoCompleteList {
+      width: 1fr;
+      max-height: 4
+    }
+    Option {
+      width: 100%;
+    }
   }
 }
 
@@ -150,11 +148,16 @@ $footer_focus_height: 10;
   border-subtitle-background: $border-active-color;
 }
 
-#preview_sidebar>* {
+#preview_sidebar > * {
   background: transparent;
   border: none;
   padding: 0;
   margin: 0;
+}
+
+#preview_sidebar,
+#pinned_sidebar {
+  padding: 0;
 }
 
 AutoImage {
@@ -163,21 +166,16 @@ AutoImage {
   align: center bottom;
 }
 
-PinnedSidebar Option {
-  color: red !important;
-}
-
 .hide,
 .hidden {
   display: none;
 }
 
-PinnedSidebar {
-  scrollbar-size: 0 0 !important;
-}
-
 #pinned_sidebar_container {
   min-width: 15;
+  PinnedSidebar {
+    scrollbar-size: 0 0 !important;
+  }
 }
 
 OptionList {
@@ -186,25 +184,21 @@ OptionList {
 }
 
 Screen.-filelistonly {
-
   #pinned_sidebar_container,
   #preview_sidebar,
   #below_menu Button {
     display: none !important;
   }
-
   #below_menu PathAutoCompleteInput {
     margin: -1 1 0 1 !important
   }
 }
 
 Screen.-nopreview {
-
   #preview_sidebar,
   #below_menu Button {
     display: none !important;
   }
-
   #below_menu PathAutoCompleteInput {
     margin: -1 1 0 1 !important
   }
@@ -225,21 +219,19 @@ Screen.-nopreview {
 #footer {
   height: $footer_unfocus_height;
   margin: 0 1;
+  & > * {
+    border: $border-style $border-color;
+    height: 1fr;
+    background: transparent;
+    &:focus-within {
+    border: $border-style $border-active-color;
+    }
+  }
+  &:focus-within {
+    height: $footer_focus_height;
+  }
 }
 
-#footer:focus-within {
-  height: $footer_focus_height;
-}
-
-#footer>* {
-  border: $border-style $border-color;
-  height: 1fr;
-  background: transparent;
-}
-
-#footer>*:focus-within {
-  border: $border-style $border-active-color;
-}
 
 RichLog {
   scrollbar-size: 0 0 !important;
@@ -255,31 +247,28 @@ Content.selected {
 
 FileList,
 Clipboard {
+  padding: 0;
+
   .selection-list--button {
     background: transparent;
     color: $primary;
   }
-
   .selection-list--button-selected {
     background: transparent;
     color: $primary;
   }
-
   .selection-list--button-highlighted {
     background: $primary;
     color: $background;
   }
-
   .selection-list--button-selected-highlighted {
     background: $primary;
     color: $background;
   }
-
   &:blur {
     .selection-list--button-highlighted {
       background: $primary-muted;
     }
-
     .selection-list--button-selected-highlighted {
       background: $primary-muted;
     }
@@ -288,32 +277,30 @@ Clipboard {
 
 ZToDirectory {
   align: center middle;
-}
 
-#zoxide_input {
-  width: 100%;
-  max-width: 100%;
-  padding: 0 1;
-  background: transparent;
-  border: $border-style $border-active-color;
-}
-
-#zoxide_options {
-  width: 100%;
-  max-width: 100%;
-  height: 1fr;
-  background: transparent;
-  border: $border-style $border-active-color;
-
-  .option-list--option-highlighted {
-    background: $border-active-color;
-    color: $background;
+  #zoxide_input {
+    width: 100%;
+    max-width: 100%;
+    padding: 0 1;
+    background: transparent;
+    border: $border-style $border-active-color;
   }
-}
+  #zoxide_options {
+    width: 100%;
+    max-width: 100%;
+    height: 1fr;
+    background: transparent;
+    border: $border-style $border-active-color;
 
-#zoxide_group {
-  max-width: 50vw;
-  max-height: 50vh;
+    .option-list--option-highlighted {
+      background: $border-active-color;
+      color: $background;
+    }
+  }
+  #zoxide_group {
+    max-width: 50vw;
+    max-height: 50vh;
+  }
 }
 
 Tooltip {
@@ -329,7 +316,7 @@ CommandInput {
   padding-left: 1;
   padding-right: 1;
 
-  &>VerticalGroup>Static {
+  & > VerticalGroup > Static {
     text-wrap: nowrap;
     text-overflow: ellipsis;
   }
@@ -338,16 +325,19 @@ CommandInput {
 Bar {
   width: 1fr;
 }
-ProgressBarContainer.error .bar--bar,
-ProgressBarContainer.error .bar--complete {
-  color: $error;
-}
-ProgressBarContainer.done .bar--complete {
-  color: $success;
-}
-ProgressBarContainer .bar--indeterminate {
-  color: $accent;
-}
-ProgressBarContainer .bar--bar {
-  color: $warning;
+
+ProgressBarContainer {
+  &.error .bar--bar,
+  &.error .bar--complete {
+    color: $error
+  }
+  &.done .bar--complete {
+    color: $success
+  }
+  .bar--indeterminate {
+    color: $accent
+  }
+  .bar--bar {
+    color: $warning
+  }
 }

@@ -283,7 +283,7 @@ class ZToDirectory(ModalScreen):
                 placeholder="Enter directory name or pattern",
             )
             yield OptionList(
-                Option(" No input provided", disabled=True),
+                Option("  No input provided", disabled=True),
                 id="zoxide_options",
                 classes="empty",
             )
@@ -326,7 +326,7 @@ class ZToDirectory(ModalScreen):
                 self.app.call_from_thread(zoxide_options.clear_options)
                 self.app.call_from_thread(
                     zoxide_options.add_option,
-                    Option(" --No matches found--", disabled=True),
+                    Option("  --No matches found--", disabled=True),
                 )
         except DuplicateID:
             return
