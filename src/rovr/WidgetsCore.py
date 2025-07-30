@@ -279,7 +279,7 @@ class PreviewContainer(Container):
                 sort_by="name",
                 sort_order="ascending",
                 dummy=True,
-                enter_into=path.relpath(getcwd().replace(path.sep, "/"), folder_path),
+                enter_into=utils.normalise(path.relpath(getcwd(), folder_path)),
             )
         )
         self.app.query_one("#folder_preview").dummy_update_file_list(
@@ -586,7 +586,7 @@ class FileList(SelectionList, inherit_bindings=False):
             sort_order (str): The order to sort by ("ascending" or "descending").
             add_to_session (bool): Whether to add the current directory to the session history.
         """
-        cwd = getcwd().replace(path.sep, "/").replace(path.sep, "/")
+        cwd = utils.normalise(getcwd())
         self.clear_options()
         # Separate folders and files
         folders, files = utils.get_cwd_object(cwd, sort_order, sort_by)
@@ -659,7 +659,7 @@ class FileList(SelectionList, inherit_bindings=False):
             utils.state.sessionLastHighlighted[cwd] = (
                 self.app.query_one("#file_list").options[0].value
             )
-        self.app.title = f"rovr - {cwd.replace(path.sep, '/')}"
+        self.app.title = f"rovr - {utils.normalise(cwd)}"
 
     def dummy_update_file_list(
         self,
@@ -675,7 +675,7 @@ class FileList(SelectionList, inherit_bindings=False):
             cwd (str): The current working directory.
         """
         if cwd == "":
-            cwd = getcwd().replace(path.sep, "/")
+            cwd = utils.normalise(getcwd())
         self.clear_options()
         # Separate folders and files
         folders, files = utils.get_cwd_object(cwd, sort_order, sort_by)
@@ -716,7 +716,7 @@ class FileList(SelectionList, inherit_bindings=False):
             return
         if not self.select_mode_enabled:
             event.prevent_default()
-            cwd = getcwd().replace(path.sep, "/")
+            cwd = utils.normalise(getcwd())
             # Get the selected option
             selected_option = self.get_option_at_index(
                 self.highlighted
@@ -775,7 +775,7 @@ class FileList(SelectionList, inherit_bindings=False):
             )
         # Get the highlighted option
         highlighted_option = event.option
-        utils.state.sessionLastHighlighted[getcwd().replace(path.sep, "/")] = (
+        utils.state.sessionLastHighlighted[utils.normalise(getcwd())] = (
             highlighted_option.value
         )
         # Get the filename from the option id
@@ -785,7 +785,7 @@ class FileList(SelectionList, inherit_bindings=False):
             self.highlighted = 0
         # preview
         self.app.query_one("#preview_sidebar").show_preview(
-            path.join(getcwd(), file_name).replace(path.sep, "/")
+            utils.normalise(path.join(getcwd(), file_name))
         )
         self.app.query_one("MetadataContainer").update_metadata(event.option.dir_entry)
 
@@ -912,19 +912,23 @@ class FileList(SelectionList, inherit_bindings=False):
 
     async def get_selected_objects(self) -> list[str] | None:
         """Get the selected objects in the file list."""
-        cwd = getcwd().replace(path.sep, "/")
+        cwd = utils.normalise(getcwd())
         if self.get_option_at_index(self.highlighted).value == "HTI":
             return None
         if not self.select_mode_enabled:
             return [
-                path.join(
-                    cwd,
-                    utils.decompress(self.get_option_at_index(self.highlighted).value),
-                ).replace(path.sep, "/")
+                utils.normalise(
+                    path.join(
+                        cwd,
+                        utils.decompress(
+                            self.get_option_at_index(self.highlighted).value
+                        ),
+                    )
+                )
             ]
         else:
             return [
-                path.join(cwd, utils.decompress(option)).replace(path.sep, "/")
+                utils.normalise(path.join(cwd, utils.decompress(option)))
                 for option in self.selected
             ]
 
