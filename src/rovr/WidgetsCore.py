@@ -49,15 +49,18 @@ class PreviewContainer(Container):
         self._is_image = False
 
     def compose(self) -> ComposeResult:
-        yield TextArea(
-            id="text_preview",
-            show_line_numbers=True,
-            soft_wrap=False,
-            read_only=True,
-            text=config["interface"]["preview_start"],
-            language="markdown",
-            compact=True,
-        )
+        ## for some unknown reason, it started causing KeyErrors
+        ## and I just cannot catch the exception
+        # yield TextArea(
+        #     id="text_preview",
+        #     show_line_numbers=True,
+        #     soft_wrap=True,
+        #     read_only=True,
+        #     text=config["interface"]["preview_start"],
+        #     language="markdown",
+        #     compact=True
+        # )
+        yield Static(config["interface"]["preview_start"])
 
     @work(exclusive=True)
     async def show_preview(self, file_path: str) -> None:
