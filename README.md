@@ -53,11 +53,11 @@ uvx --from git+https://github.com/NSPC911/rovr.git -q rovr --python 3.13
 
 ```pwsh
 # uv (my fav)
-uv tool install -i https://test.pypi.org/simple/ rovr
+uv tool install rovr
 # or pipx
-pipx install -i https://test.pypi.org/simple rovr
+pipx install rovr
 # or plain old pip
-pip install -i https://test.pypi.org/simple/ rovr
+pip install rovr
 ```
 
 ### FAQ
