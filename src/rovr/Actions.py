@@ -18,7 +18,7 @@ async def create_new_item(appInstance: App, location: str) -> None:
         appInstance(App): The current app class
         location(str): The path that you want to create a new item at
     """
-    location = location.strip().replace("\\", "/")
+    location = utils.normalise(location.strip())
     if location == "":
         return
     elif path.exists(location):
@@ -72,8 +72,8 @@ async def rename_object(appInstance: App, old_name: str, new_name: str):
         old_name (str): The current name of the file or directory.
         new_name (str): The new name for the file or directory.
     """
-    old_name = path.realpath(path.join(getcwd(), old_name.strip().replace("\\", "/")))
-    new_name = path.realpath(path.join(getcwd(), new_name.strip().replace("\\", "/")))
+    old_name = utils.normalise(path.realpath(path.join(getcwd(), old_name.strip())))
+    new_name = utils.normalise(path.realpath(path.join(getcwd(), new_name.strip())))
 
     if not path.exists(old_name):
         appInstance.notify(message=f"'{old_name}' does not exist.", severity="error")

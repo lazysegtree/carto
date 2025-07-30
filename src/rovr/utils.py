@@ -54,6 +54,20 @@ config = {}
 pins = {}
 
 
+def normalise(location: str) -> str:
+    """
+    "Normalise" the path
+    Args:
+        location (str): The location to the item
+    Returns:
+        str: A normalised path
+    """
+    # path.normalise fixes the relative references
+    # replace \\ with / on windows
+    # by any chance if somehow a \\\\ was to enter, fix that
+    return path.normpath(location).replace("\\", "/").replace("//", "/")
+
+
 # Okay so the reason why I have wrapper functions is
 # I was messing around with different LZString options
 # and Encoded URI Component seems to best option. I've just
@@ -156,34 +170,42 @@ def file_is_type(file_path: str) -> str:
         return "file"
 
 
-def get_recursive_files(object_path: str) -> list[str]:
+def get_recursive_files(
+    object_path: str, return_includes_object_path: bool = False
+) -> list[str]:
     """
     Get the files available at a directory recursively, regardless of whether it is a directory or not
     Args:
         object_path (str): The object's path
+        return_includes_object_path (bool): Whether or not the relative location includes the object path's base name
     Returns:
         list: A list of dictionaries, with a "path" key and "relative_loc" key
     """
     if path.isfile(path.realpath(object_path)) or path.islink(
         path.realpath(object_path)
     ):
-        return [{"path": object_path, "relative_loc": path.basename(object_path)}]
+        return [
+            {
+                "path": normalise(object_path),
+                "relative_loc": path.basename(object_path),
+            }
+        ]
     else:
         files = []
         for folder, _, files_in_folder in os.walk(object_path):
             for file in files_in_folder:
-                full_path = path.join(folder, file).replace(
-                    "/", path.sep
-                )  # normalise the path
-                if path.realpath(full_path) != full_path:  # ie we passed over a symlink
+                full_path = normalise(path.join(folder, file))  # normalise the path
+                if (
+                    normalise(path.realpath(full_path)) != full_path
+                ):  # ie we passed over a symlink
                     pass  # will hopefully be taken by shutil.rmtree
                 else:
                     files.append(
                         {
                             "path": full_path,
-                            "relative_loc": path.relpath(
-                                full_path, object_path
-                            ).replace(path.sep, "/"),
+                            "relative_loc": normalise(
+                                path.relpath(full_path, object_path)
+                            ),
                         }
                     )
         return files
@@ -402,7 +424,7 @@ def load_pins() -> dict:
                 for var, dir_path_val in VAR_TO_DIR.items():
                     item["path"] = item["path"].replace(f"${var}", dir_path_val)
                 # Normalize to forward slashes
-                item["path"] = item["path"].replace("\\", "/")
+                item["path"] = normalise(item["path"])
     return pins
 
 
@@ -418,7 +440,7 @@ def add_pin(pin_name: str, pin_path: str) -> None:
 
     pins_to_write = ujson.loads(ujson.dumps(pins))
 
-    pin_path_normalized = pin_path.replace("\\", "/")
+    pin_path_normalized = normalise(pin_path)
     pins_to_write.setdefault("pins", []).append(
         {
             "name": pin_name,
@@ -459,7 +481,7 @@ def remove_pin(pin_path: str) -> None:
 
     pins_to_write = ujson.loads(ujson.dumps(pins))
 
-    pin_path_normalized = pin_path.replace("\\", "/")
+    pin_path_normalized = normalise(pin_path)
     if "pins" in pins_to_write:
         pins_to_write["pins"] = [
             pin
@@ -497,7 +519,7 @@ def toggle_pin(pin_name: str, pin_path: str) -> None:
         pin_name (str): Name of the pin.
         pin_path (str): Path of the pin.
     """
-    pin_path_normalized = pin_path.replace("\\", "/")
+    pin_path_normalized = normalise(pin_path)
 
     pin_exists = False
     if "pins" in pins:
@@ -530,7 +552,7 @@ def get_mounted_drives() -> list:
         if platform.system() == "Windows":
             # For Windows, return the drive letters
             drives = [
-                p.mountpoint.replace("\\", "/")
+                normalise(p.mountpoint)
                 for p in partitions
                 if p.device and ":" in p.device
             ]
