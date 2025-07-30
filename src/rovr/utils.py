@@ -560,9 +560,7 @@ def set_scuffed_subtitle(element: Widget, mode: str, frac: str, hover: bool) -> 
     border_bottom = BORDER_BOTTOM.get(
         element.styles.border_bottom[0], BORDER_BOTTOM["blank"]
     )
-    element.border_subtitle = (
-        f"{mode} [r]{border_bottom}[/] {frac}"
-    )
+    element.border_subtitle = f"{mode} [r]{border_bottom}[/] {frac}"
 
 
 # check config folder

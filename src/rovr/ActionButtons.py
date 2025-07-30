@@ -2,10 +2,9 @@ from os import path
 
 from textual.widgets import Button
 
-from . import utils
 from .Actions import create_new_item, rename_object
 from .ScreensCore import DeleteFiles, ModalInput
-from .utils import get_icon
+from .utils import config, decompress, get_icon
 
 
 class SortOrderButton(Button):
@@ -23,7 +22,7 @@ class SortOrderButton(Button):
     #  actions soon :tm:
 
     def on_mount(self) -> None:
-        if utils.config["interface"]["tooltips"]:
+        if config["interface"]["tooltips"]:
             self.tooltip = "Lists are in ascending order"
 
 
@@ -36,14 +35,12 @@ class CopyButton(Button):
         )
 
     def on_mount(self) -> None:
-        if utils.config["interface"]["tooltips"]:
+        if config["interface"]["tooltips"]:
             self.tooltip = "Copy selected files"
 
     async def on_button_pressed(self, event: Button.Pressed) -> None:
         """Copy selected files to the clipboard"""
-        selected_files = await self.app.query_one(
-            "#file_list"
-        ).get_selected_objects()
+        selected_files = await self.app.query_one("#file_list").get_selected_objects()
         if selected_files:
             await self.app.query_one("#clipboard").copy_to_clipboard(selected_files)
         else:
@@ -59,14 +56,12 @@ class CutButton(Button):
         )
 
     def on_mount(self) -> None:
-        if utils.config["interface"]["tooltips"]:
+        if config["interface"]["tooltips"]:
             self.tooltip = "Cut selected files"
 
     async def on_button_pressed(self, event: Button.Pressed) -> None:
         """Cut selected files to the clipboard"""
-        selected_files = await self.app.query_one(
-            "#file_list"
-        ).get_selected_objects()
+        selected_files = await self.app.query_one("#file_list").get_selected_objects()
         if selected_files:
             await self.app.query_one("#clipboard").cut_to_clipboard(selected_files)
         else:
@@ -86,7 +81,7 @@ class PasteButton(Button):
         )
 
     def on_mount(self) -> None:
-        if utils.config["interface"]["tooltips"]:
+        if config["interface"]["tooltips"]:
             self.tooltip = "Paste files from clipboard"
 
 
@@ -99,7 +94,7 @@ class NewItemButton(Button):
         )
 
     def on_mount(self) -> None:
-        if utils.config["interface"]["tooltips"]:
+        if config["interface"]["tooltips"]:
             self.tooltip = "Create a new file or directory"
 
     async def on_button_pressed(self, event: Button.Pressed) -> None:
@@ -125,13 +120,11 @@ class RenameItemButton(Button):
         )
 
     def on_mount(self) -> None:
-        if utils.config["interface"]["tooltips"]:
+        if config["interface"]["tooltips"]:
             self.tooltip = "Rename selected files"
 
     async def on_button_pressed(self, event: Button.Pressed) -> None:
-        selected_files = await self.app.query_one(
-            "#file_list"
-        ).get_selected_objects()
+        selected_files = await self.app.query_one("#file_list").get_selected_objects()
         if selected_files is None or len(selected_files) != 1:
             self.app.notify(
                 "Please select exactly one file to rename.",
@@ -166,7 +159,7 @@ class DeleteButton(Button):
         )
 
     def on_mount(self) -> None:
-        if utils.config["interface"]["tooltips"]:
+        if config["interface"]["tooltips"]:
             self.tooltip = "Delete selected files"
 
     async def on_button_pressed(self, event: Button.Pressed) -> None:

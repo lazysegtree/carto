@@ -22,15 +22,9 @@ from textual.widgets import Label, ProgressBar, SelectionList, Static
 from textual.widgets.option_list import OptionDoesNotExist
 from textual.widgets.selection_list import Selection
 
+from . import utils
 from .ScreensCore import Dismissable, YesOrNo
-from .utils import (
-    compress,
-    config,
-    decompress,
-    get_icon,
-    get_recursive_files,
-    get_toggle_button_icon,
-)
+from .utils import config
 
 
 class ClipboardSelection(Selection):
@@ -98,9 +92,9 @@ class Clipboard(SelectionList, inherit_bindings=False):
         for item in items[::-1]:
             self.insert_selection_at_beginning(
                 ClipboardSelection(
-                    prompt=Content(f"{get_icon('general', 'copy')[0]} {item}"),
-                    value=compress(f"{item}-copy"),
-                    id=compress(item),
+                    prompt=Content(f"{utils.get_icon('general', 'copy')[0]} {item}"),
+                    value=utils.compress(f"{item}-copy"),
+                    id=utils.compress(item),
                 )
             )
         self.deselect_all()
@@ -113,9 +107,9 @@ class Clipboard(SelectionList, inherit_bindings=False):
             if isinstance(item, str):
                 self.insert_selection_at_beginning(
                     ClipboardSelection(
-                        prompt=Content(f"{get_icon('general', 'cut')[0]} {item}"),
-                        value=compress(f"{item}-cut"),
-                        id=compress(item),
+                        prompt=Content(f"{utils.get_icon('general', 'cut')[0]} {item}"),
+                        value=utils.compress(f"{item}-cut"),
+                        id=utils.compress(item),
                     )
                 )
         self.deselect_all()
@@ -133,9 +127,9 @@ class Clipboard(SelectionList, inherit_bindings=False):
             The width of the left gutter.
         """
         return len(
-            get_toggle_button_icon("left")
-            + get_toggle_button_icon("inner")
-            + get_toggle_button_icon("right")
+            utils.get_toggle_button_icon("left")
+            + utils.get_toggle_button_icon("inner")
+            + utils.get_toggle_button_icon("right")
             + " "
         )
 
@@ -175,14 +169,14 @@ class Clipboard(SelectionList, inherit_bindings=False):
 
         return Strip(
             [
-                Segment(get_toggle_button_icon("left"), style=side_style),
+                Segment(utils.get_toggle_button_icon("left"), style=side_style),
                 Segment(
-                    get_toggle_button_icon("inner_filled")
+                    utils.get_toggle_button_icon("inner_filled")
                     if selection.value in self._selected
-                    else get_toggle_button_icon("inner"),
+                    else utils.get_toggle_button_icon("inner"),
                     style=button_style,
                 ),
-                Segment(get_toggle_button_icon("right"), style=side_style),
+                Segment(utils.get_toggle_button_icon("right"), style=side_style),
                 Segment(" ", style=underlying_style),
                 *line,
             ]
@@ -510,7 +504,7 @@ class ProcessContainer(VerticalScroll):
         bar = self.app.call_from_thread(self.new_process_bar, classes="active")
         self.app.call_from_thread(
             bar.update_label,
-            f"{get_icon('general', 'delete')[0]} Getting files to delete...",
+            f"{utils.get_icon('general', 'delete')[0]} Getting files to delete...",
             step=False,
         )
         # get files to delete
@@ -518,15 +512,15 @@ class ProcessContainer(VerticalScroll):
         folders_to_delete = []
         for file in files:
             if compressed:
-                file = decompress(file)
+                file = utils.decompress(file)
             if path.isdir(file):
                 folders_to_delete.append(file)
-            files_to_delete.extend(get_recursive_files(file))
+            files_to_delete.extend(utils.get_recursive_files(file))
         self.app.call_from_thread(bar.update_progress, total=len(files_to_delete) + 1)
         for file_dict in files_to_delete:
             self.app.call_from_thread(
                 bar.update_label,
-                f"{get_icon('general', 'delete')[0]} {file_dict['relative_loc']}",
+                f"{utils.get_icon('general', 'delete')[0]} {file_dict['relative_loc']}",
             )
             if path.exists(file_dict["path"]):
                 # I know that it `path.exists` prevents issues, but on the
@@ -559,7 +553,7 @@ class ProcessContainer(VerticalScroll):
                             else:
                                 self.app.call_from_thread(
                                     bar.update_label,
-                                    f"{get_icon('general', 'close')[0]} Process Interrupted",
+                                    f"{utils.get_icon('general', 'close')[0]} Process Interrupted",
                                 )
                                 self.app.call_from_thread(bar.add_class, "error")
                                 return
@@ -581,7 +575,7 @@ class ProcessContainer(VerticalScroll):
                     # TODO: should probably let it continue, then have a summary
                     self.app.call_from_thread(
                         bar.update_label,
-                        f"{get_icon('general', 'delete')[0]} Unhandled Error. {get_icon('general', 'close')[0]}",
+                        f"{utils.get_icon('general', 'delete')[0]} Unhandled Error. {utils.get_icon('general', 'close')[0]}",
                     )
                     self.app.call_from_thread(bar.add_class, "error")
                     self.app.call_from_thread(
@@ -598,13 +592,13 @@ class ProcessContainer(VerticalScroll):
                 )
                 self.app.call_from_thread(
                     bar.update_label,
-                    f"{get_icon('general', 'delete')[0]} {path.basename(files[-1])} {get_icon('general', 'close')[0]}",
+                    f"{utils.get_icon('general', 'delete')[0]} {path.basename(files[-1])} {utils.get_icon('general', 'close')[0]}",
                 )
                 self.app.call_from_thread(bar.add_class, "error")
                 return
         self.app.call_from_thread(
             bar.update_label,
-            f"{get_icon('general', 'delete')[0]} {path.basename(files[-1])} {get_icon('general', 'check')[0]}",
+            f"{utils.get_icon('general', 'delete')[0]} {path.basename(files[-1])} {utils.get_icon('general', 'check')[0]}",
         )
         self.app.call_from_thread(bar.add_class, "done")
 

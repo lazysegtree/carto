@@ -14,6 +14,7 @@ from textual.containers import (
 from textual.css.query import NoMatches
 from textual.widgets import Header, Input
 
+from . import utils
 from .ActionButtons import (
     CopyButton,
     CutButton,
@@ -39,19 +40,14 @@ from .NavigationWidgets import (
 )
 from .ScreensCore import YesOrNo, ZToDirectory
 from .themes import get_custom_themes
-from .utils import (
-    config,
-    decompress,
-    load_config,
-    start_watcher,
-)
+from .utils import config
 from .WidgetsCore import (
     FileList,
     PinnedSidebar,
     PreviewContainer,
 )
 
-load_config()
+utils.load_config()
 
 
 class Application(App, inherit_bindings=False):
@@ -310,7 +306,9 @@ class Application(App, inherit_bindings=False):
                     """Handle the response from the ZToDirectory dialog."""
                     if response:
                         pathinput = self.query_one(PathInput)
-                        pathinput.value = decompress(response).replace(path.sep, "/")
+                        pathinput.value = utils.decompress(response).replace(
+                            path.sep, "/"
+                        )
                         pathinput.on_input_submitted(
                             SimpleNamespace(value=pathinput.value)
                         )
@@ -324,5 +322,5 @@ class Application(App, inherit_bindings=False):
                     self.add_class("zen")
 
 
-start_watcher()
+utils.start_watcher()
 app = Application(watch_css=True)

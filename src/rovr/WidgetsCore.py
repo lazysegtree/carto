@@ -18,26 +18,11 @@ from textual.widgets.option_list import Option, OptionDoesNotExist
 from textual.widgets.selection_list import Selection
 from textual_image.widget import AutoImage
 
+from . import utils
 from .maps import EXT_TO_LANG_MAP, PIL_EXTENSIONS
-from .utils import (
-    compress,
-    config,
-    decompress,
-    get_cwd_object,
-    get_icon,
-    get_icon_for_file,
-    get_icon_for_folder,
-    get_mounted_drives,
-    get_toggle_button_icon,
-    load_config,
-    load_pins,
-    open_file,
-    set_scuffed_subtitle,
-    state,
-    toggle_pin,
-)
+from .utils import config
 
-load_config()
+utils.load_config()
 
 
 class PreviewContainer(Container):
@@ -372,7 +357,7 @@ class PinnedSidebar(OptionList, inherit_bindings=False):
     async def reload_pins(self) -> None:
         """Reload pins shown"""
         # be extra sure
-        available_pins = load_pins()
+        available_pins = utils.load_pins()
         pins = available_pins["pins"]
         default = available_pins["default"]
         print(f"Reloading pins: {available_pins}")
@@ -390,19 +375,19 @@ class PinnedSidebar(OptionList, inherit_bindings=False):
             if "icon" in default_folder:
                 icon = default_folder["icon"]
             elif path.isdir(default_folder["path"]):
-                icon = get_icon_for_folder(default_folder["name"])
+                icon = utils.get_icon_for_folder(default_folder["name"])
             else:
-                icon = get_icon_for_file(default_folder["name"])
+                icon = utils.get_icon_for_file(default_folder["name"])
             self.add_option(
                 Option(
                     Content.from_markup(
                         f" [{icon[1]}]{icon[0]}[/{icon[1]}] $name",
                         name=default_folder["name"],
                     ),
-                    id=f"{compress(default_folder['path'])}-default",
+                    id=f"{utils.compress(default_folder['path'])}-default",
                 )
             )
-        self.add_option(Option("Pinned", id="pinned-header"))
+        self.add_option(Option(" Pinned", id="pinned-header"))
         for pin in pins:
             try:
                 pin["path"]
@@ -418,25 +403,25 @@ class PinnedSidebar(OptionList, inherit_bindings=False):
             if "icon" in pin:
                 icon = pin["icon"]
             elif path.isdir(pin["path"]):
-                icon = get_icon_for_folder(pin["name"])
+                icon = utils.get_icon_for_folder(pin["name"])
             else:
-                icon = get_icon_for_file(pin["name"])
+                icon = utils.get_icon_for_file(pin["name"])
             self.add_option(
                 Option(
                     Content.from_markup(
                         f" [{icon[1]}]{icon[0]}[/{icon[1]}] $name",
                         name=pin["name"],
                     ),
-                    id=f"{compress(pin['path'])}-pinned",
+                    id=f"{utils.compress(pin['path'])}-pinned",
                 )
             )
-        self.add_option(Option("Drives", id="drives-header"))
-        drives = get_mounted_drives()
+        self.add_option(Option(" Drives", id="drives-header"))
+        drives = utils.get_mounted_drives()
         for drive in drives:
             self.add_option(
                 Option(
-                    f" {get_icon('folder', ':/drive:')[0]} {drive}",
-                    id=f"{compress(drive)}-drives",
+                    f" {utils.get_icon('folder', ':/drive:')[0]} {drive}",
+                    id=f"{utils.compress(drive)}-drives",
                 )
             )
         self.disable_option("pinned-header")
@@ -452,7 +437,7 @@ class PinnedSidebar(OptionList, inherit_bindings=False):
         """Handle the selection of an option in the pinned sidebar."""
         selected_option = event.option
         # Get the file path from the option id
-        file_path = decompress(selected_option.id.split("-")[0])
+        file_path = utils.decompress(selected_option.id.split("-")[0])
         if not path.isdir(file_path):
             if path.exists(file_path):
                 raise FolderNotFileError(
@@ -593,11 +578,11 @@ class FileList(SelectionList, inherit_bindings=False):
         cwd = getcwd().replace(path.sep, "/").replace(path.sep, "/")
         self.clear_options()
         # Separate folders and files
-        folders, files = get_cwd_object(cwd, sort_order, sort_by)
+        folders, files = utils.get_cwd_object(cwd, sort_order, sort_by)
         if folders == [PermissionError] or files == [PermissionError]:
             self.add_option(
                 Selection(
-                    Content("Permission Error: Unable to access this directory."),
+                    Content("  Permission Error: Unable to access this directory."),
                     value="",
                     id="",
                     disabled=True,
@@ -619,42 +604,42 @@ class FileList(SelectionList, inherit_bindings=False):
                             f" [{item['icon'][1]}]{item['icon'][0]}[/{item['icon'][1]}] $name",
                             name=item["name"],
                         ),
-                        value=compress(item["name"]),
-                        id=compress(item["name"]),
+                        value=utils.compress(item["name"]),
+                        id=utils.compress(item["name"]),
                         dir_entry=item["dir_entry"],
                     )
                 )
         # session handler
         self.app.query_one("#path_switcher").value = cwd + "/"
         if add_to_session:
-            if state.sessionHistoryIndex != len(state.sessionDirectories) - 1:
-                state.sessionDirectories = state.sessionDirectories[
-                    : state.sessionHistoryIndex + 1
+            if utils.state.sessionHistoryIndex != len(utils.state.sessionDirectories) - 1:
+                utils.state.sessionDirectories = utils.state.sessionDirectories[
+                    : utils.state.sessionHistoryIndex + 1
                 ]
-            state.sessionDirectories.append(
+            utils.state.sessionDirectories.append(
                 {
                     "path": cwd,
                 }
             )
-            if state.sessionLastHighlighted.get(cwd) is None:
+            if utils.state.sessionLastHighlighted.get(cwd) is None:
                 # Hard coding is my passion (referring to the id)
-                state.sessionLastHighlighted[cwd] = (
+                utils.state.sessionLastHighlighted[cwd] = (
                     self.app.query_one("#file_list").options[0].value
                 )
-            state.sessionHistoryIndex = len(state.sessionDirectories) - 1
+            utils.state.sessionHistoryIndex = len(utils.state.sessionDirectories) - 1
         self.app.query_one("Button#back").disabled = (
-            True if state.sessionHistoryIndex == 0 else False
+            True if utils.state.sessionHistoryIndex == 0 else False
         )
         self.app.query_one("Button#forward").disabled = (
             True
-            if state.sessionHistoryIndex == len(state.sessionDirectories) - 1
+            if utils.state.sessionHistoryIndex == len(utils.state.sessionDirectories) - 1
             else False
         )
         try:
-            self.highlighted = self.get_option_index(state.sessionLastHighlighted[cwd])
+            self.highlighted = self.get_option_index(utils.state.sessionLastHighlighted[cwd])
         except OptionDoesNotExist:
             self.highlighted = 0
-            state.sessionLastHighlighted[cwd] = (
+            utils.state.sessionLastHighlighted[cwd] = (
                 self.app.query_one("#file_list").options[0].value
             )
         self.app.title = f"rovr - {cwd.replace(path.sep, '/')}"
@@ -676,11 +661,11 @@ class FileList(SelectionList, inherit_bindings=False):
             cwd = getcwd().replace(path.sep, "/")
         self.clear_options()
         # Separate folders and files
-        folders, files = get_cwd_object(cwd, sort_order, sort_by)
+        folders, files = utils.get_cwd_object(cwd, sort_order, sort_by)
         if folders == [PermissionError] or files == [PermissionError]:
             self.add_option(
                 Selection(
-                    Content("Permission Error: Unable to access this directory."),
+                    Content("  Permission Error: Unable to access this directory."),
                     id="",
                     value="",
                     disabled=True,
@@ -700,7 +685,7 @@ class FileList(SelectionList, inherit_bindings=False):
                         f" [{item['icon'][1]}]{item['icon'][0]}[/{item['icon'][1]}] $name",
                         name=item["name"],
                     ),
-                    value=compress(item["name"]),
+                    value=utils.compress(item["name"]),
                     dir_entry=item["dir_entry"],
                 )
             )
@@ -720,7 +705,7 @@ class FileList(SelectionList, inherit_bindings=False):
                 self.highlighted
             )  # ? Trust me bro
             # Get the filename from the option id
-            file_name = decompress(selected_option.value)
+            file_name = utils.decompress(selected_option.value)
             # Check if it's a folder or a file
             if path.isdir(path.join(cwd, file_name)):
                 # If it's a folder, navigate into it
@@ -733,17 +718,17 @@ class FileList(SelectionList, inherit_bindings=False):
                     self.sort_by, self.sort_order
                 )
             else:
-                open_file(path.join(cwd, file_name))
+                utils.open_file(path.join(cwd, file_name))
             if self.highlighted is None:
                 self.highlighted = 0
-            set_scuffed_subtitle(
+            utils.set_scuffed_subtitle(
                 self.parent,
                 "NORMAL",
                 f"{self.highlighted + 1}/{self.option_count}",
                 True,
             )
         else:
-            set_scuffed_subtitle(
+            utils.set_scuffed_subtitle(
                 self.parent, "SELECT", f"{len(self.selected)}/{len(self.options)}", True
             )
 
@@ -758,14 +743,14 @@ class FileList(SelectionList, inherit_bindings=False):
             self.app.query_one("#preview_sidebar").remove_children()
             return  # ignore folders that go to prev dir
         if self.select_mode_enabled:
-            set_scuffed_subtitle(
+            utils.set_scuffed_subtitle(
                 self.parent,
                 "SELECT",
                 f"{len(self.selected)}/{len(self.options)}",
                 True,
             )
         else:
-            set_scuffed_subtitle(
+            utils.set_scuffed_subtitle(
                 self.parent,
                 "NORMAL",
                 f"{self.highlighted + 1}/{self.option_count}",
@@ -773,11 +758,11 @@ class FileList(SelectionList, inherit_bindings=False):
             )
         # Get the highlighted option
         highlighted_option = event.option
-        state.sessionLastHighlighted[getcwd().replace(path.sep, "/")] = (
+        utils.state.sessionLastHighlighted[getcwd().replace(path.sep, "/")] = (
             highlighted_option.value
         )
         # Get the filename from the option id
-        file_name = decompress(highlighted_option.value)
+        file_name = utils.decompress(highlighted_option.value)
         # total files as footer
         if self.highlighted is None:
             self.highlighted = 0
@@ -800,9 +785,9 @@ class FileList(SelectionList, inherit_bindings=False):
             return 0
         else:
             return len(
-                get_toggle_button_icon("left")
-                + get_toggle_button_icon("inner")
-                + get_toggle_button_icon("right")
+                utils.get_toggle_button_icon("left")
+                + utils.get_toggle_button_icon("inner")
+                + utils.get_toggle_button_icon("right")
                 + " "
             )
 
@@ -845,14 +830,14 @@ class FileList(SelectionList, inherit_bindings=False):
 
         return Strip(
             [
-                Segment(get_toggle_button_icon("left"), style=side_style),
+                Segment(utils.get_toggle_button_icon("left"), style=side_style),
                 Segment(
-                    get_toggle_button_icon("inner_filled")
+                    utils.get_toggle_button_icon("inner_filled")
                     if selection.value in self._selected
-                    else get_toggle_button_icon("inner"),
+                    else utils.get_toggle_button_icon("inner"),
                     style=button_style,
                 ),
-                Segment(get_toggle_button_icon("right"), style=side_style),
+                Segment(utils.get_toggle_button_icon("right"), style=side_style),
                 Segment(" ", style=underlying_style),
                 *line,
             ]
@@ -872,13 +857,13 @@ class FileList(SelectionList, inherit_bindings=False):
         if self.dummy:
             return
         elif self.select_mode_enabled:
-            set_scuffed_subtitle(
+            utils.set_scuffed_subtitle(
                 self.parent, "SELECT", f"{len(self.selected)}/{len(self.options)}", True
             )
         else:
             if self.highlighted is None:
                 self.highlighted = 0
-            set_scuffed_subtitle(
+            utils.set_scuffed_subtitle(
                 self.parent,
                 "NORMAL",
                 f"{self.highlighted + 1}/{self.option_count}",
@@ -892,7 +877,7 @@ class FileList(SelectionList, inherit_bindings=False):
         if self.dummy:
             return
         if self.select_mode_enabled:
-            set_scuffed_subtitle(
+            utils.set_scuffed_subtitle(
                 self.parent,
                 "SELECT",
                 f"{len(self.selected)}/{len(self.options)}",
@@ -901,7 +886,7 @@ class FileList(SelectionList, inherit_bindings=False):
         else:
             if self.highlighted is None:
                 self.highlighted = 0
-            set_scuffed_subtitle(
+            utils.set_scuffed_subtitle(
                 self.parent,
                 "NORMAL",
                 f"{self.highlighted + 1}/{self.option_count}",
@@ -917,12 +902,12 @@ class FileList(SelectionList, inherit_bindings=False):
             return [
                 path.join(
                     cwd,
-                    decompress(self.get_option_at_index(self.highlighted).value),
+                    utils.decompress(self.get_option_at_index(self.highlighted).value),
                 ).replace(path.sep, "/")
             ]
         else:
             return [
-                path.join(cwd, decompress(option)).replace(path.sep, "/")
+                path.join(cwd, utils.decompress(option)).replace(path.sep, "/")
                 for option in self.selected
             ]
 
@@ -1022,24 +1007,24 @@ class FileList(SelectionList, inherit_bindings=False):
                     path.isdir(
                         path.join(
                             getcwd(),
-                            decompress(self.get_option_at_index(self.highlighted).id),
+                            utils.decompress(self.get_option_at_index(self.highlighted).id),
                         )
                     )
                 )
                 if path.isdir(
                     path.join(
                         getcwd(),
-                        decompress(self.get_option_at_index(self.highlighted).id),
+                        utils.decompress(self.get_option_at_index(self.highlighted).id),
                     )
                 ):
                     with self.app.suspend():
                         cmd(
-                            f'{config["plugins"]["editor"]["folder_executable"]} "{path.join(getcwd(), decompress(self.get_option_at_index(self.highlighted).id))}"'
+                            f'{config["plugins"]["editor"]["folder_executable"]} "{path.join(getcwd(), utils.decompress(self.get_option_at_index(self.highlighted).id))}"'
                         )
                 else:
                     with self.app.suspend():
                         cmd(
-                            f'{config["plugins"]["editor"]["file_executable"]} "{path.join(getcwd(), decompress(self.get_option_at_index(self.highlighted).id))}"'
+                            f'{config["plugins"]["editor"]["file_executable"]} "{path.join(getcwd(), utils.decompress(self.get_option_at_index(self.highlighted).id))}"'
                         )
             # hit buttons with keybinds
             elif (
@@ -1065,5 +1050,5 @@ class FileList(SelectionList, inherit_bindings=False):
                 self.app.query_one("RefreshButton").on_button_pressed(Button.Pressed)
             # Toggle pin on current directory
             elif event.key in config["keybinds"]["toggle_pin"]:
-                toggle_pin(path.basename(getcwd()), getcwd())
+                utils.toggle_pin(path.basename(getcwd()), getcwd())
                 self.query_one(PinnedSidebar).reload_pins()
