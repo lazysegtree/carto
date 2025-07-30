@@ -2,7 +2,7 @@ import platform
 import shutil
 import stat
 from datetime import datetime
-from os import DirEntry, lstat, path, remove, walk
+from os import DirEntry, getcwd, lstat, makedirs, path, remove, walk
 from typing import ClassVar
 
 from humanize import naturalsize
@@ -41,6 +41,7 @@ class ClipboardSelection(Selection):
         """
         super().__init__(prompt, *args, **kwargs)
         self.initial_prompt = prompt
+
 
 class Clipboard(SelectionList, inherit_bindings=False):
     """A selection list that displays the clipboard contents."""
@@ -529,9 +530,6 @@ class ProcessContainer(VerticalScroll):
                     if config["settings"]["use_recycle_bin"] and not ignore_trash:
                         try:
                             path_to_trash = file_dict["path"]
-                            self.app.notify(
-                                f"Windows: {platform.system() == 'Windows'}\nhas nonsense: {path_to_trash.startswith('\\\\\\\\?\\\\')}\ncheck start: {path_to_trash.split('?')[0]}"
-                            )
                             if (
                                 platform.system() == "Windows"
                                 and path_to_trash.startswith("\\\\\\\\?\\\\")
@@ -575,7 +573,7 @@ class ProcessContainer(VerticalScroll):
                     # TODO: should probably let it continue, then have a summary
                     self.app.call_from_thread(
                         bar.update_label,
-                        f"{utils.get_icon('general', 'delete')[0]} Unhandled Error. {utils.get_icon('general', 'close')[0]}",
+                        f"{utils.get_icon('general', 'delete')[0]} {utils.get_icon('general', 'close')[0]} Unhandled Error.",
                     )
                     self.app.call_from_thread(bar.add_class, "error")
                     self.app.call_from_thread(
@@ -583,23 +581,180 @@ class ProcessContainer(VerticalScroll):
                         Dismissable(f"Deleting failed due to\n{e}\nProcess Aborted."),
                     )
                     return
+        # The reason for an extra +1 in the total is for this
+        # handling folders
         for folder in folders_to_delete:
             try:
                 shutil.rmtree(folder)
             except PermissionError:
+                # TODO: allow continuation and not return on error
                 self.app.notify(
                     f"Certain files in {folder} could not be deleted.", severity="error"
                 )
                 self.app.call_from_thread(
                     bar.update_label,
-                    f"{utils.get_icon('general', 'delete')[0]} {path.basename(files[-1])} {utils.get_icon('general', 'close')[0]}",
+                    f"{utils.get_icon('general', 'delete')[0]} {utils.get_icon('general', 'close')[0]} {path.basename(files[-1])}",
                 )
                 self.app.call_from_thread(bar.add_class, "error")
                 return
+        self.app.call_from_thread(bar.progress_bar.advance)
+        self.app.call_from_thread(bar.add_class, "done")
+
+    @work(thread=True)
+    def paste_items(self, copied: list[str], cutted: list[str], dest: str = ""):
+        """
+        Paste copied or cut files to the current directory
+        Args:
+            copied (list[str]): A list of items to be copied to the location
+            cutted (list[str]): A list of items to be cut to the location
+            dest (str) = getcwd(): The directory to copy to.
+        """
+        # so overall before its done, I need copied to copy over, and
+        # cutted, to move have copy go first, then cut over items, then
+        # remove cut items from clipboard. to remove, you add `-cut` to
+        # the end, then compress, then get option by id, remove item
+        if dest == "":
+            dest = getcwd()
+        bar = self.app.call_from_thread(self.new_process_bar, classes="active")
         self.app.call_from_thread(
             bar.update_label,
-            f"{utils.get_icon('general', 'delete')[0]} {path.basename(files[-1])} {utils.get_icon('general', 'check')[0]}",
+            f"{utils.get_icon('general', 'paste')[0]} Getting items to paste...",
         )
+        files_to_copy = []
+        files_to_cut = []
+        cut_files__folders = []
+        for file in copied:
+            files_to_copy.extend(utils.get_recursive_files(file))
+        for file in cutted:
+            if path.isdir(file):
+                cut_files__folders.append(file)
+            files_to_cut.extend(utils.get_recursive_files(file))
+        self.app.call_from_thread(
+            bar.update_progress, total=int(len(files_to_copy) + len(files_to_cut)) + 1
+        )
+        for item_dict in files_to_copy:
+            self.app.call_from_thread(
+                bar.update_label,
+                f"{utils.get_icon('general', 'copy')[0]} {item_dict['relative_loc']}",
+            )
+            if path.exists(item_dict["path"]):
+                # again checks just in case something goes wrong
+                try:
+                    makedirs(
+                        utils.normalise(
+                            path.join(dest, item_dict["relative_loc"], "..")
+                        ),
+                        exist_ok=True,
+                    )
+                    if config["settings"]["copy_includes_metadata"]:
+                        shutil.copy2(
+                            item_dict["path"],
+                            path.join(dest, item_dict["relative_loc"]),
+                        )
+                    else:
+                        shutil.copy(
+                            item_dict["path"],
+                            path.join(dest, item_dict["relative_loc"]),
+                        )
+                except (OSError, PermissionError):
+                    # OSError from shutil: The destination location must be writable; otherwise, an OSError exception will be raised
+                    # Permission Error just in case
+                    do_continue = self.app.call_from_thread(
+                        self.app.push_screen_wait,
+                        YesOrNo(
+                            f"{item_dict['path']} could not be copied due to Permission Errors.\nContinue?"
+                        ),
+                    )
+                    if not do_continue:
+                        self.app.call_from_thread(bar.add_class, "error")
+                        return
+                    pass
+                except FileNotFoundError:
+                    # by chance if somehow this is raised, still catch it
+                    pass
+                except Exception as e:
+                    # TODO: should probably let it continue, then have a summary
+                    self.app.call_from_thread(
+                        bar.update_label,
+                        f"{utils.get_icon('general', 'copy')[0]} {utils.get_icon('general', 'close')[0]} Unhandled Error.",
+                    )
+                    self.app.call_from_thread(bar.add_class, "error")
+                    self.app.call_from_thread(
+                        self.app.push_screen_wait,
+                        Dismissable(f"Deleting failed due to \n{e}\nProcess Aborted."),
+                    )
+                    return
+        for item_dict in files_to_cut:
+            self.app.call_from_thread(
+                bar.update_label,
+                f"{utils.get_icon('general', 'cut')[0]} {item_dict['relative_loc']}",
+            )
+            if path.exists(item_dict["path"]):
+                # again checks just in case something goes wrong
+                try:
+                    makedirs(
+                        utils.normalise(
+                            path.join(dest, item_dict["relative_loc"], "..")
+                        ),
+                        exist_ok=True,
+                    )
+                    shutil.move(
+                        item_dict["path"],
+                        path.join(dest, item_dict["relative_loc"]),
+                    )
+                except (OSError, PermissionError):
+                    # OSError from shutil: The destination location must be writable; otherwise, an OSError exception will be raised
+                    # Permission Error just in case
+                    do_continue = self.app.call_from_thread(
+                        self.app.push_screen_wait,
+                        YesOrNo(
+                            f"{item_dict['path']} could not be copied due to Permission Errors.\nContinue?"
+                        ),
+                    )
+                    if not do_continue:
+                        self.app.call_from_thread(bar.add_class, "error")
+                        return
+                    pass
+                except FileNotFoundError:
+                    # by chance if somehow this is raised, still catch it
+                    pass
+                except Exception as e:
+                    # utils.TODO: should probably let it continue, then have a summary
+                    self.app.call_from_thread(
+                        bar.update_label,
+                        f"{utils.get_icon('general', 'copy')[0]} {utils.get_icon('general', 'close')} Unhandled Error.",
+                    )
+                    self.app.call_from_thread(bar.add_class, "error")
+                    self.app.call_from_thread(
+                        self.app.push_screen_wait,
+                        Dismissable(f"Deleting failed due to \n{e}\nProcess Aborted."),
+                    )
+        # delete the folders
+        for folder in cut_files__folders:
+            try:
+                shutil.rmtree(folder)
+            except PermissionError:
+                # TODO: allow continuation and not return on error
+                self.app.notify(
+                    f"Certain files in {folder} could not be moved.", severity="error"
+                )
+                self.app.call_from_thread(
+                    bar.update_label,
+                    f"{utils.get_icon('general', 'cut')[0]} {utils.get_icon('general', 'close')[0]} {path.basename(cutted[-1])}",
+                )
+                self.app.call_from_thread(bar.add_class, "error")
+                return
+        # remove from clipboard
+        for item in cutted:
+            try:
+                self.app.call_from_thread(
+                    self.app.query_one(Clipboard).remove_option, utils.compress(item)
+                )
+            except OptionDoesNotExist:
+                # cant bother to figure out how this happens,
+                # just catch it
+                pass
+        self.app.call_from_thread(bar.progress_bar.advance)
         self.app.call_from_thread(bar.add_class, "done")
 
     async def on_key(self, event: events.Key):

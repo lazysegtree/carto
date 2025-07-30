@@ -16,6 +16,7 @@ use_recycle_bin = true
 filelist_sort_by = "name"
 filelist_sort_order = "ascending"
 preview_full = false
+copy_includes_metadata = true
 image_protocol = "Auto"
 
 [metadata]

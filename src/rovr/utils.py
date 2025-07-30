@@ -182,14 +182,11 @@ def file_is_type(file_path: str) -> str:
         return "file"
 
 
-def get_recursive_files(
-    object_path: str, return_includes_object_path: bool = False
-) -> list[str]:
+def get_recursive_files(object_path: str) -> list[str]:
     """
     Get the files available at a directory recursively, regardless of whether it is a directory or not
     Args:
         object_path (str): The object's path
-        return_includes_object_path (bool): Whether or not the relative location includes the object path's base name
     Returns:
         list: A list of dictionaries, with a "path" key and "relative_loc" key
     """
@@ -216,7 +213,7 @@ def get_recursive_files(
                         {
                             "path": full_path,
                             "relative_loc": normalise(
-                                path.relpath(full_path, object_path)
+                                path.relpath(full_path, object_path + "/..")
                             ),
                         }
                     )

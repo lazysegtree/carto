@@ -54,17 +54,16 @@
           "default": true,
           "description": "When deleting a file, allow moving the file to the recycle bin."
         },
+        "copy_includes_metadata": {
+          "type": "boolean",
+          "default": true,
+          "description": "When copying over a file, preserve metadata from the original file, such as creation and modification times."
+        },
         "image_protocol": {
           "type": "string",
           "default": "Auto",
           "description": "The image protocol to use when displaying an image",
-          "enum": [
-            "Auto",
-            "TGP",
-            "Sixel",
-            "Halfcell",
-            "Unicode"
-          ]
+          "enum": ["Auto", "TGP", "Sixel", "Halfcell", "Unicode"]
         },
         "filelist_sort_by": {
           "type": "string",

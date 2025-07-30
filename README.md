@@ -10,6 +10,7 @@
 > This project is in its very early stages. Feedback is appreciated, but this cannot be daily-driven yet.
 
 <!--toc:start-->
+
 - [What and Why?](#what-and-why)
 - [Screenshots](#screenshots)
 - [Test run with uv](#test-run-with-uv)
@@ -18,14 +19,15 @@
 - [Road map](#road-map)
   - [Version 1](#version-1)
   - [Version 2](#version-2)
-<!--toc:end-->
+  <!--toc:end-->
 
 ### What and Why?
+
 - What:
-    - It is a file manager made using the Textual framework.
+  - It is a file manager made using the Textual framework.
 - Why:
-    - Because I can :3
-    - I'm using this as a learning opportunity to learn more about Textual, and designing a neat little app for myself.
+  - Because I can :3
+  - I'm using this as a learning opportunity to learn more about Textual, and designing a neat little app for myself.
 
 ### Screenshots
 
@@ -59,9 +61,11 @@ pip install -i https://test.pypi.org/simple/ rovr
 ```
 
 ### FAQ
+
 1. There isn't X theme/Why isn't Y theme available?
-    - Textual's currently available themes are limited. However, extra themes can be added via the config file in the format below
-    - You can take a look at what each color represents in https://textual.textualize.io/guide/design/#base-colors<br>Inheriting themes will **not** be added.
+   - Textual's currently available themes are limited. However, extra themes can be added via the config file in the format below
+   - You can take a look at what each color represents in https://textual.textualize.io/guide/design/#base-colors<br>Inheriting themes will **not** be added.
+
 ```toml
 [[custom_theme]]
 name = "<str>"
@@ -77,27 +81,28 @@ surface = "<hex>"
 panel = "<hex>"
 is_dark = "<bool>"
 ```
+
 2. Why is it considered post-modern?
-    - Parody to my current editor, [helix](https://helix-editor.com)
-        - If NeoVim is considered modern, then Helix is post-modern
-        - If superfile is considered modern, then rovr is post-modern
+   - Parody to my current editor, [helix](https://helix-editor.com)
+     - If NeoVim is considered modern, then Helix is post-modern
+     - If superfile is considered modern, then rovr is post-modern
 3. Why did you say it cannot be daily driven?
-    - Refer to the road map. There is many features yet to be completed. Pull Requests are appreciated
+   - Refer to the road map. There is many features yet to be completed. Pull Requests are appreciated
 4. What can I contribute?
-    - Themes, and features can be contributed.
-    - Refactors will be frowned on, and may take a longer time before merging
+   - Themes, and features can be contributed.
+   - Refactors will be frowned on, and may take a longer time before merging
 5. I want to add a feature/theme/etc! How do I do so?
-    - You need [uv](https://docs.astral.sh/uv) at minimum. [pre-commit](https://pre-commit.com/) and [ruff](https://docs.astral.sh/ruff) are recommended to be installed.
-    - Clone the repo, and inside it, run `uv sync` and `pre-commit install`
-    - Make your changes, ensure that your changes are properly formatted (via the pre-commit hook), before pushing to a **custom** branch on your fork
+   - You need [uv](https://docs.astral.sh/uv) at minimum. [pre-commit](https://pre-commit.com/) and [ruff](https://docs.astral.sh/ruff) are recommended to be installed.
+   - Clone the repo, and inside it, run `uv sync` and `pre-commit install`
+   - Make your changes, ensure that your changes are properly formatted (via the pre-commit hook), before pushing to a **custom** branch on your fork
 6. How do I make a feature suggestion?
-    - Open an issue using the `feature-request` tag. Issue templates will come soon.
+   - Open an issue using the `feature-request` tag. Issue templates will come soon.
 7. Why is it on [test.pypi.org](https://test.pypi.org) and not [pypi.org](https://pypi.org)
-    - I need somewhere to act as a mini sadbox to learn more about pypi before I make any permenant mistakes in the actual app to be listed on the main pypi repository
+   - I need somewhere to act as a mini sadbox to learn more about pypi before I make any permenant mistakes in the actual app to be listed on the main pypi repository
 8. Why not ratatui or bubbletea??? <sub><i>angry noises</i></sub>
-    - I like python.
+   - I like python.
 9. When will it be completed?
-    - When it is completed.
+   - When it is completed.
 
 ### Road map
 
@@ -105,7 +110,7 @@ This is a list of features that I plan to add before releasing the appropriate v
 
 #### Version 1
 
-Status: 19/29
+Status: 21/29
 
 - [x] Directory Auto-completion (explorer)
 - [x] Button Navigation (explorer)
@@ -126,7 +131,7 @@ Status: 19/29
 - Clipboard (superfile)
   - [x] Copy files and folders
   - [x] Cut files and folders
-  - [ ] Paste files and folders
+  - [x] Paste files and folders
     - [ ] Warn when overwriting same named files
 - Multiple File Lists
   - [ ] Tabs
@@ -136,7 +141,7 @@ Status: 19/29
   - [ ] Change sort order of files
   - [x] Copy files
   - [x] Cut files
-  - [ ] Paste files
+  - [x] Paste files
   - [x] Create new files/folders
   - [x] Delete files/folders
   - [x] Rename **a** file/folder

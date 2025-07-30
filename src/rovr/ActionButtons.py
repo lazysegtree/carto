@@ -3,7 +3,7 @@ from os import path
 from textual.widgets import Button
 
 from .Actions import create_new_item, rename_object
-from .ScreensCore import DeleteFiles, ModalInput
+from .ScreensCore import DeleteFiles, ModalInput, YesOrNo
 from .utils import config, decompress, get_icon
 
 
@@ -83,6 +83,47 @@ class PasteButton(Button):
     def on_mount(self) -> None:
         if config["interface"]["tooltips"]:
             self.tooltip = "Paste files from clipboard"
+
+    async def on_button_pressed(self, event: Button.Pressed):
+        """Paste files from clipboard"""
+        selected_items = self.app.query_one(
+            "Clipboard"
+        ).selected  # dont include highlighted
+        if selected_items:
+            # decompress items
+            selected_items = [decompress(item) for item in selected_items]
+            # split into two items, those ending with `-cut` and those ending with `-copy`
+            to_copy, to_cut = (
+                [item[:-5] for item in selected_items if item.endswith("-copy")],
+                [item[:-4] for item in selected_items if item.endswith("-cut")],
+            )
+
+            async def callback(response: str) -> None:
+                """Callback to paste files after confirmation"""
+                if response:
+                    self.app.query_one("ProcessContainer").paste_items(to_copy, to_cut)
+                else:
+                    self.app.notify(
+                        "Paste operation cancelled", title="Paste Files", timeout=3
+                    )
+
+            self.app.push_screen(
+                YesOrNo(
+                    message="Are you sure you want to "
+                    + (
+                        f"copy {len(to_copy)} item{'s' if len(to_copy) != 1 else ''}{' and ' if len(to_cut) != 0 else ''}"
+                        if len(to_copy) > 0
+                        else ""
+                    )
+                    + (
+                        f"cut {len(to_cut)} item{'s' if len(to_cut) != 1 else ''}"
+                        if len(to_cut) > 0
+                        else ""
+                    )
+                    + "?"
+                ),
+                callback=callback,
+            )
 
 
 class NewItemButton(Button):
