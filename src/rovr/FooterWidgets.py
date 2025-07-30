@@ -1,8 +1,8 @@
 import platform
+import shutil
 import stat
 from datetime import datetime
 from os import DirEntry, lstat, path, remove, walk
-from shutil import rmtree
 from typing import ClassVar
 
 from humanize import naturalsize
@@ -14,7 +14,7 @@ from textual.app import ComposeResult
 from textual.binding import Binding, BindingType
 from textual.color import Gradient
 from textual.containers import VerticalGroup, VerticalScroll
-from textual.content import Content
+from textual.content import Content, ContentText
 from textual.css.query import NoMatches
 from textual.strip import Strip
 from textual.types import UnusedParameter
@@ -34,20 +34,19 @@ from .utils import (
 
 
 class ClipboardSelection(Selection):
-    def __init__(self, type_of_item: str, *args, **kwargs):
+    def __init__(self, prompt: ContentText, *args, **kwargs):
         """
         Initialise the selection.
 
         Args:
-            type_of_item (str): The type of selection it is (copy/cut)
             prompt: The prompt for the selection.
             value: The value for the selection.
             initial_state: The initial selected state of the selection.
             id: The optional ID for the selection.
             disabled: The initial enabled/disabled state. Enabled by default.
         """
-        super().__init__(*args, **kwargs)
-        self.type_of_item = type_of_item
+        super().__init__(prompt, *args, **kwargs)
+        self.initial_prompt = prompt
 
 class Clipboard(SelectionList, inherit_bindings=False):
     """A selection list that displays the clipboard contents."""
@@ -99,7 +98,6 @@ class Clipboard(SelectionList, inherit_bindings=False):
         for item in items[::-1]:
             self.insert_selection_at_beginning(
                 ClipboardSelection(
-                    "copy",
                     prompt=Content(f"{get_icon('general', 'copy')[0]} {item}"),
                     value=compress(f"{item}-copy"),
                     id=compress(item),
@@ -115,7 +113,6 @@ class Clipboard(SelectionList, inherit_bindings=False):
             if isinstance(item, str):
                 self.insert_selection_at_beginning(
                     ClipboardSelection(
-                        "cut",
                         prompt=Content(f"{get_icon('general', 'cut')[0]} {item}"),
                         value=compress(f"{item}-cut"),
                         id=compress(item),
@@ -192,11 +189,11 @@ class Clipboard(SelectionList, inherit_bindings=False):
         )
 
     # Why isnt this already a thing
-    def insert_selection_at_beginning(self, content: Selection) -> None:
+    def insert_selection_at_beginning(self, content: ClipboardSelection) -> None:
         """Insert a new selection at the beginning of the clipboard list.
 
         Args:
-            content (Selection): A pre-created Selection object to insert.
+            content (ClipboardSelection): A pre-created Selection object to insert.
         """
         # Check for duplicate ID
         if content.id is not None and content.id in self._id_to_option:
@@ -214,7 +211,6 @@ class Clipboard(SelectionList, inherit_bindings=False):
         for key, value in self._values.items():
             values[key] = value + 1
         self._values = values
-        print(self._values)
         self._option_to_index[content] = 0
 
         # update id mapping
@@ -526,7 +522,7 @@ class ProcessContainer(VerticalScroll):
             if path.isdir(file):
                 folders_to_delete.append(file)
             files_to_delete.extend(get_recursive_files(file))
-        self.app.call_from_thread(bar.update_progress, total=len(files_to_delete))
+        self.app.call_from_thread(bar.update_progress, total=len(files_to_delete) + 1)
         for file_dict in files_to_delete:
             self.app.call_from_thread(
                 bar.update_label,
@@ -536,7 +532,6 @@ class ProcessContainer(VerticalScroll):
                 # I know that it `path.exists` prevents issues, but on the
                 # off chance that anything happens, this should help
                 try:
-                    print(file_dict["path"])
                     if config["settings"]["use_recycle_bin"] and not ignore_trash:
                         try:
                             path_to_trash = file_dict["path"]
@@ -583,19 +578,20 @@ class ProcessContainer(VerticalScroll):
                         self.app.call_from_thread(bar.add_class, "error")
                         return
                 except Exception as e:
+                    # TODO: should probably let it continue, then have a summary
                     self.app.call_from_thread(
                         bar.update_label,
-                        f"{get_icon('general', 'close')[0]} Unhandled Error.",
+                        f"{get_icon('general', 'delete')[0]} Unhandled Error. {get_icon('general', 'close')[0]}",
                     )
+                    self.app.call_from_thread(bar.add_class, "error")
                     self.app.call_from_thread(
                         self.app.push_screen_wait,
                         Dismissable(f"Deleting failed due to\n{e}\nProcess Aborted."),
                     )
-                    self.app.call_from_thread(bar.add_class, "error")
                     return
         for folder in folders_to_delete:
             try:
-                rmtree(folder)
+                shutil.rmtree(folder)
             except PermissionError:
                 self.app.notify(
                     f"Certain files in {folder} could not be deleted.", severity="error"
