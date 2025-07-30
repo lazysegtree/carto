@@ -48,6 +48,18 @@ class SessionManager:
         self.sessionLastHighlighted = {}
 
 
+class ConfigError(Exception):
+    """Exception raised for config related errors.
+
+    Attributes:
+        message -- explanation of the error
+    """
+
+    def __init__(self, message):
+        self.message = message
+        super().__init__(self.message)
+
+
 state = SessionManager()
 
 config = {}

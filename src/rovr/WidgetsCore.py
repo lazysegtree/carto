@@ -3,6 +3,7 @@ from os import DirEntry, chdir, getcwd, path
 from os import system as cmd
 from typing import ClassVar
 
+import textual_image.widget as timg
 from rich.segment import Segment
 from rich.style import Style
 from rich.text import Text
@@ -16,7 +17,6 @@ from textual.strip import Strip
 from textual.widgets import Button, OptionList, SelectionList, Static, TextArea
 from textual.widgets.option_list import Option, OptionDoesNotExist
 from textual.widgets.selection_list import Selection
-from textual_image.widget import AutoImage
 
 from . import utils
 from .maps import EXT_TO_LANG_MAP, PIL_EXTENSIONS
@@ -98,13 +98,24 @@ class PreviewContainer(Container):
 
         if self._is_image:
             try:
-                await self.mount(
-                    AutoImage(
-                        self._current_file_path,
-                        id="image_preview",
-                        classes="inner_preview",
+                if config["settings"]["image_protocol"] in [
+                    "Auto",
+                    "TGP",
+                    "Sixel",
+                    "Halfcell",
+                    "Unicode",
+                ]:
+                    await self.mount(
+                        timg.__dict__[f"{config['settings']['image_protocol']}Image"](
+                            self._current_file_path,
+                            id="image_preview",
+                            classes="inner_preview",
+                        )
                     )
-                )
+                else:
+                    raise utils.ConfigError(
+                        f"settings.image_protocol needs to be either `Auto`, `TGP`, `Sixel`, `Halfcell` or `Unicode`, but `{config['settings']['image_protocol']}` was received"
+                    )
             # at times, when travelling too fast, this can happen
             except FileNotFoundError:
                 await self.mount(
@@ -612,7 +623,10 @@ class FileList(SelectionList, inherit_bindings=False):
         # session handler
         self.app.query_one("#path_switcher").value = cwd + "/"
         if add_to_session:
-            if utils.state.sessionHistoryIndex != len(utils.state.sessionDirectories) - 1:
+            if (
+                utils.state.sessionHistoryIndex
+                != len(utils.state.sessionDirectories) - 1
+            ):
                 utils.state.sessionDirectories = utils.state.sessionDirectories[
                     : utils.state.sessionHistoryIndex + 1
                 ]
@@ -632,11 +646,14 @@ class FileList(SelectionList, inherit_bindings=False):
         )
         self.app.query_one("Button#forward").disabled = (
             True
-            if utils.state.sessionHistoryIndex == len(utils.state.sessionDirectories) - 1
+            if utils.state.sessionHistoryIndex
+            == len(utils.state.sessionDirectories) - 1
             else False
         )
         try:
-            self.highlighted = self.get_option_index(utils.state.sessionLastHighlighted[cwd])
+            self.highlighted = self.get_option_index(
+                utils.state.sessionLastHighlighted[cwd]
+            )
         except OptionDoesNotExist:
             self.highlighted = 0
             utils.state.sessionLastHighlighted[cwd] = (
@@ -1007,7 +1024,9 @@ class FileList(SelectionList, inherit_bindings=False):
                     path.isdir(
                         path.join(
                             getcwd(),
-                            utils.decompress(self.get_option_at_index(self.highlighted).id),
+                            utils.decompress(
+                                self.get_option_at_index(self.highlighted).id
+                            ),
                         )
                     )
                 )

@@ -26,7 +26,7 @@
         "show_progress_percentage": {
           "type": "boolean",
           "default": false,
-          "description": "When copying or deleting files, show a percentage of how much had been completed"
+          "description": "When copying or deleting files, show a percentage of how much had been completed."
         },
         "preview_error": {
           "type": "string",
@@ -54,15 +54,27 @@
           "default": true,
           "description": "When deleting a file, allow moving the file to the recycle bin."
         },
+        "image_protocol": {
+          "type": "string",
+          "default": "Auto",
+          "description": "The image protocol to use when displaying an image",
+          "enum": [
+            "Auto",
+            "TGP",
+            "Sixel",
+            "Halfcell",
+            "Unicode"
+          ]
+        },
         "filelist_sort_by": {
           "type": "string",
           "default": "name",
-          "description": "NOT AVAILABLE\nSort the file list by either file \"name\" or \"date modified\""
+          "description": "NOT AVAILABLE\nSort the file list by either file \"name\" or \"date modified\"."
         },
         "filelist_sort_order": {
           "type": "string",
           "default": "ascending",
-          "description": "MAY NOT BE AVAILABLE\nSort the file list in \"ascending\" or \"descending\" order"
+          "description": "MAY NOT BE AVAILABLE\nSort the file list in \"ascending\" or \"descending\" order."
         },
         "preview_full": {
           "type": "boolean",
@@ -96,7 +108,7 @@
             "accessed",
             "created"
           ],
-          "description": "The order of the metadata tags that you want to see in the Metadata section"
+          "description": "The order of the metadata tags that you want to see in the Metadata section."
         },
         "datetime_format": {
           "type": "string",
@@ -196,84 +208,84 @@
           "items": {
             "type": "string"
           },
-          "description": "Toggle the current folder in the Pinned Folder Sidebar"
+          "description": "Toggle the current folder in the Pinned Folder Sidebar,"
         },
         "toggle_pinned_sidebar": {
           "type": "array",
           "items": {
             "type": "string"
           },
-          "description": "Toggle viewing the pinned sidebar"
+          "description": "Toggle viewing the pinned sidebar."
         },
         "toggle_preview_sidebar": {
           "type": "array",
           "items": {
             "type": "string"
           },
-          "description": "Toggle viewing the preview sidebar"
+          "description": "Toggle viewing the preview sidebar."
         },
         "toggle_footer": {
           "type": "array",
           "items": {
             "type": "string"
           },
-          "description": "Toggle viewing the footer"
+          "description": "Toggle viewing the footer."
         },
         "focus_toggle_pinned_sidebar": {
           "type": "array",
           "items": {
             "type": "string"
           },
-          "description": "Toggle focus between pinned folder sidebar and file list"
+          "description": "Toggle focus between pinned folder sidebar and file list."
         },
         "focus_file_list": {
           "type": "array",
           "items": {
             "type": "string"
           },
-          "description": "Focus the file list"
+          "description": "Focus the file list."
         },
         "focus_toggle_preview_sidebar": {
           "type": "array",
           "items": {
             "type": "string"
           },
-          "description": "Focus toggle between preview sidebar and file list"
+          "description": "Focus toggle between preview sidebar and file list."
         },
         "focus_toggle_path_switcher": {
           "type": "array",
           "items": {
             "type": "string"
           },
-          "description": "Focus toggle between path switcher and file list"
+          "description": "Focus toggle between path switcher and file list."
         },
         "focus_toggle_search": {
           "type": "array",
           "items": {
             "type": "string"
           },
-          "description": "Focus toggle the search bar (not implemented yet)"
+          "description": "Focus toggle the search bar (not implemented yet)."
         },
         "focus_toggle_processes": {
           "type": "array",
           "items": {
             "type": "string"
           },
-          "description": "Focus toggle the processes container"
+          "description": "Focus toggle the processes container."
         },
         "focus_toggle_clipboard": {
           "type": "array",
           "items": {
             "type": "string"
           },
-          "description": "Focus toggle the clipboard container"
+          "description": "Focus toggle the clipboard container."
         },
         "focus_toggle_metadata": {
           "type": "array",
           "items": {
             "type": "string"
           },
-          "description": "Focus toggle the metadata container"
+          "description": "Focus toggle the metadata container."
         },
         "copy": {
           "type": "array",
@@ -301,112 +313,112 @@
           "items": {
             "type": "string"
           },
-          "description": "Delete the selected files in the file list"
+          "description": "Delete the selected files in the file list."
         },
         "rename": {
           "type": "array",
           "items": {
             "type": "string"
           },
-          "description": "Rename the selected file in the file list to something else"
+          "description": "Rename the selected file in the file list to something else."
         },
         "toggle_all": {
           "type": "array",
           "items": {
             "type": "string"
           },
-          "description": "Enter into select mode and select/unselect everything"
+          "description": "Enter into select mode and select/unselect everything."
         },
         "new": {
           "type": "array",
           "items": {
             "type": "string"
           },
-          "description": "Create a new item in the current directory"
+          "description": "Create a new item in the current directory."
         },
         "up": {
           "type": "array",
           "items": {
             "type": "string"
           },
-          "description": "Go up the file list options"
+          "description": "Go up the file list options."
         },
         "down": {
           "type": "array",
           "items": {
             "type": "string"
           },
-          "description": "Go down the file list options"
+          "description": "Go down the file list options."
         },
         "up_tree": {
           "type": "array",
           "items": {
             "type": "string"
           },
-          "description": "Go up the file tree"
+          "description": "Go up the file tree."
         },
         "down_tree": {
           "type": "array",
           "items": {
             "type": "string"
           },
-          "description": "Go down the file tree, or open the currently selected item"
+          "description": "Go down the file tree, or open the currently selected item."
         },
         "page_up": {
           "type": "array",
           "items": {
             "type": "string"
           },
-          "description": "Page Up in the file list options"
+          "description": "Page Up in the file list options."
         },
         "page_down": {
           "type": "array",
           "items": {
             "type": "string"
           },
-          "description": "Page Down in the file list options"
+          "description": "Page Down in the file list options."
         },
         "home": {
           "type": "array",
           "items": {
             "type": "string"
           },
-          "description": "Go to the first option in the file list options"
+          "description": "Go to the first option in the file list options."
         },
         "end": {
           "type": "array",
           "items": {
             "type": "string"
           },
-          "description": "Go to the last option in the file list options"
+          "description": "Go to the last option in the file list options."
         },
         "hist_previous": {
           "type": "array",
           "items": {
             "type": "string"
           },
-          "description": "Go back in history"
+          "description": "Go back in history."
         },
         "hist_next": {
           "type": "array",
           "items": {
             "type": "string"
           },
-          "description": "Go forward in history"
+          "description": "Go forward in history."
         },
         "refresh": {
           "type": "array",
           "items": {
             "type": "string"
           },
-          "description": "Refresh the file list"
+          "description": "Refresh the file list."
         },
         "toggle_visual": {
           "type": "array",
           "items": {
             "type": "string"
           },
-          "description": "Enter or exit select/visual mode"
+          "description": "Enter or exit select/visual mode."
         },
         "select_up": {
           "type": "array",
@@ -420,35 +432,35 @@
           "items": {
             "type": "string"
           },
-          "description": "While in visual mode, extend the selection down"
+          "description": "While in visual mode, extend the selection down."
         },
         "select_page_up": {
           "type": "array",
           "items": {
             "type": "string"
           },
-          "description": "While in visual mode, extend the selection to the previous page"
+          "description": "While in visual mode, extend the selection to the previous page."
         },
         "select_page_down": {
           "type": "array",
           "items": {
             "type": "string"
           },
-          "description": "While in visual mode, extend the selection to the next page"
+          "description": "While in visual mode, extend the selection to the next page."
         },
         "select_home": {
           "type": "array",
           "items": {
             "type": "string"
           },
-          "description": "While in visual mode, extend the selection to the first option"
+          "description": "While in visual mode, extend the selection to the first option."
         },
         "select_end": {
           "type": "array",
           "items": {
             "type": "string"
           },
-          "description": "While in visual mode, extend the selection to the last option"
+          "description": "While in visual mode, extend the selection to the last option."
         }
       }
     },
@@ -463,7 +475,7 @@
             "enabled": {
               "type": "boolean",
               "default": false,
-              "description": "Enable or disable zoxide travelling"
+              "description": "Enable or disable zoxide travelling."
             },
             "keybinds": {
               "type": "array",
@@ -471,7 +483,7 @@
               "items": {
                 "type": "string"
               },
-              "description": "The keybind to open the zoxide modal"
+              "description": "The keybind to open the zoxide modal."
             }
           }
         },
@@ -482,17 +494,17 @@
             "enabled": {
               "type": "boolean",
               "default": false,
-              "description": "Enable or disable bat for previewing files"
+              "description": "Enable or disable bat for previewing files."
             },
             "executable": {
               "type": "string",
               "default": "bat",
-              "description": "The executable for bat"
+              "description": "The executable for bat."
             },
             "show_line_numbers": {
               "type": "boolean",
               "default": true,
-              "description": "Make batcat show line numbers"
+              "description": "Make batcat show line numbers."
             }
           }
         },
@@ -503,17 +515,17 @@
             "enabled": {
               "type": "boolean",
               "default": true,
-              "description": "Enable opening a file in your editor"
+              "description": "Enable opening a file in your editor."
             },
             "file_executable": {
               "type": "string",
               "default": "nano",
-              "description": "Open files in this app"
+              "description": "Open files in this app."
             },
             "folder_executable": {
               "type": "string",
               "default": "code",
-              "description": "Open folders in this app"
+              "description": "Open folders in this app."
             },
             "keybinds": {
               "type": "array",
@@ -521,7 +533,7 @@
               "items": {
                 "type": "string"
               },
-              "description": "The keybind to launch your editor"
+              "description": "The keybind to launch your editor."
             }
           }
         },
@@ -540,7 +552,7 @@
               "items": {
                 "type": "string"
               },
-              "description": "The keybind to toggle zen mode"
+              "description": "The keybind to toggle zen mode."
             }
           }
         }
