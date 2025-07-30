@@ -160,7 +160,7 @@ $footer_focus_height: 10;
   padding: 0;
 }
 
-AutoImage {
+#image_preview {
   width: auto;
   height: auto;
   align: center bottom;
@@ -175,6 +175,17 @@ AutoImage {
   min-width: 15;
   PinnedSidebar {
     scrollbar-size: 0 0 !important;
+    & > .option-list--option-highlighted {
+      color: $block-cursor-background;
+      background: transparent;
+    }
+    &:focus {
+      & > .option-list--option-highlighted {
+        color: $block-cursor-foreground;
+        background: $block-cursor-background;
+        text-style: $block-cursor-text-style;
+      }
+    }
   }
 }
 
@@ -224,7 +235,7 @@ Screen.-nopreview {
     height: 1fr;
     background: transparent;
     &:focus-within {
-    border: $border-style $border-active-color;
+      border: $border-style $border-active-color;
     }
   }
   &:focus-within {
@@ -248,10 +259,22 @@ Content.selected {
 FileList,
 Clipboard {
   padding: 0;
-
+  & > .option-list--option-highlighted {
+    color: $block-cursor-background;
+    background: transparent;
+  }
+  &:focus {
+    border: tall $border;
+    background-tint: $foreground 5%;
+    & > .option-list--option-highlighted {
+      color: $block-cursor-foreground;
+      background: $block-cursor-background;
+      text-style: $block-cursor-text-style;
+    }
+  }
   .selection-list--button {
     background: transparent;
-    color: $primary;
+    color: $foreground;
   }
   .selection-list--button-selected {
     background: transparent;
@@ -267,10 +290,11 @@ Clipboard {
   }
   &:blur {
     .selection-list--button-highlighted {
-      background: $primary-muted;
+      background: transparent;
+      color: $primary
     }
     .selection-list--button-selected-highlighted {
-      background: $primary-muted;
+      background: transparent;
     }
   }
 }
