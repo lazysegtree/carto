@@ -29,6 +29,7 @@ ASCII_ICONS = {
         "left": ["<", "white"],
         "right": [">", "white"],
         "home": ["~", "indigo"],
+        "check": ["/", "white"],
         "copy": ["C", "white"],
         "paste": ["P", "white"],
         "cut": ["X", "white"],
@@ -496,7 +497,7 @@ ASCII_TOGGLE_BUTTON_ICONS = {
     "left": " ",
     "right": "",
     "inner": "O",
-    "inner_fillex": "X",
+    "inner_filled": "X",
 }
 
 BORDER_BOTTOM = {
