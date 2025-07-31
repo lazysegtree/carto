@@ -30,7 +30,7 @@ def get_custom_themes() -> list:
                 surface=theme["surface"],
                 panel=theme["panel"],
                 dark=theme["is_dark"],
-                variables=theme["variables"] if "variables" in theme else {}
+                variables=theme["variables"] if "variables" in theme else {},
             )
         )
     return custom_themes

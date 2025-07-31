@@ -113,7 +113,7 @@ This is a list of features that I plan to add before releasing the appropriate v
 
 #### Version 1
 
-Status: 21/29
+Status: 22/29
 
 - [x] Directory Auto-completion (explorer)
 - [x] Button Navigation (explorer)
@@ -139,7 +139,7 @@ Status: 21/29
 - Multiple File Lists
   - [ ] Tabs
   - [ ] Vertical and Horizontal Splits
-- [ ] Active and Completed processes (superfile)
+- [x] Active and Completed processes (superfile)
 - Actions bar (explorer)
   - [ ] Change sort order of files
   - [x] Copy files

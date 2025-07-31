@@ -35,6 +35,13 @@ classifiers = [
     "Topic :: Desktop Environment :: File Managers"
 ]
 
+[project.scripts]
+rovr = "rovr.__main__:main"
+
+[project.urls]
+Source = "https://github.com/NSPC911/rovr"
+Issues = "https://github.com/NSPC911/rovr/issues"
+
 [dependency-groups]
 dev = [
     "commitizen>=4.8.3",
@@ -46,38 +53,18 @@ dev = [
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
-[project.scripts]
-rovr = "rovr.__main__:main"
-
-[project.urls]
-Source = "https://github.com/NSPC911/rovr"
-Issues = "https://github.com/NSPC911/rovr/issues"
-
-# [tool.hatch.build.targets.wheel]
-# # This wouldn't be something you see in every UV based
-# # project. I need two packages, the first for hatch,
-# # and the second for uv. I'm not entirely sure why this
-# # happens, but if it ain't broke, dont fix it :shrug:
-# packages = [
-#   "rovr",
-#   "src/rovr"
-# ]
-
-# [tool.hatch.build.targets.sdist]
-# packages = ["src/rovr"]
-
 [tool.ruff.lint]
 select = [
   "ASYNC251",
   "COM819",
-  "E4", "E7", "E9",
+  "E",
   "F",
   "I",
   "Q",
-  "SIM201", "SIM202",
-  "W191", "W291", "W293", "W391", "W605",
+  "SIM",
+  "W",
 ]
-ignore = []
+ignore = ["W505"]
 
 [tool.ruff.format]
 quote-style = "double"
