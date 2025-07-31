@@ -65,11 +65,13 @@ select = [
   "W",
 ]
 ignore = ["W505", "E501"]
+preview = true
 
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
 line-ending = "auto"
+preview = true
 
 [tool.commitizen]
 name = "cz_conventional_commits"

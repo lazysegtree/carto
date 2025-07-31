@@ -2,11 +2,11 @@ from subprocess import run
 
 from textual import events, on, work
 from textual.app import ComposeResult
-from textual.containers import Container, Grid, VerticalGroup
+from textual.containers import Container, Grid, HorizontalGroup, VerticalGroup
 from textual.content import Content
 from textual.screen import ModalScreen
 from textual.types import DuplicateID
-from textual.widgets import Button, Input, Label, OptionList
+from textual.widgets import Button, Input, Label, OptionList, Switch
 from textual.widgets.option_list import Option
 
 from . import utils
@@ -26,7 +26,7 @@ class Dismissable(ModalScreen):
         padding: 1 3;
         width: 50vw;
         max-height: 13;
-        border: round $primary-lighten-3;
+        border: $border-style $border;
         column-span: 3;
     }
     #message {
@@ -88,7 +88,7 @@ class YesOrNo(ModalScreen):
         padding: 1 2 0 2;
         width: 50vw;
         max-height: 13;
-        border: panel $primary-lighten-3;
+        border: $border-style $border;
     }
     #question_container {
         column-span: 2;
@@ -153,7 +153,7 @@ class CopyOverwrite(ModalScreen):
         padding: 1 3;
         max-width: 50vw;
         max-height: 15;
-        border: round $primary-lighten-3;
+        border: $border-style $border;
     }
     #question {
         column-span: 2;
@@ -211,7 +211,7 @@ class DeleteFiles(ModalScreen):
         padding: 1 3;
         max-width: 50vw;
         max-height: 15;
-        border: round $primary-lighten-3;
+        border: $border-style $border;
     }
     #question {
         column-span: 2;
@@ -383,7 +383,7 @@ class ModalInput(ModalScreen):
         align: center middle;
     }
     Container {
-        border: round $primary-lighten-3;
+        border: $border-style $border;
         width: 50vw;
         max-width: 50vw;
         max-height: 3;

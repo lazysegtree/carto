@@ -1,6 +1,7 @@
 import platform
 import shutil
 import stat
+from contextlib import suppress
 from datetime import datetime
 from os import DirEntry, getcwd, lstat, makedirs, path, remove, walk
 from typing import ClassVar
@@ -168,20 +169,18 @@ class Clipboard(SelectionList, inherit_bindings=False):
         side_style += Style(meta={"option": selection_index})
         button_style += Style(meta={"option": selection_index})
 
-        return Strip(
-            [
-                Segment(utils.get_toggle_button_icon("left"), style=side_style),
-                Segment(
-                    utils.get_toggle_button_icon("inner_filled")
-                    if selection.value in self._selected
-                    else utils.get_toggle_button_icon("inner"),
-                    style=button_style,
-                ),
-                Segment(utils.get_toggle_button_icon("right"), style=side_style),
-                Segment(" ", style=underlying_style),
-                *line,
-            ]
-        )
+        return Strip([
+            Segment(utils.get_toggle_button_icon("left"), style=side_style),
+            Segment(
+                utils.get_toggle_button_icon("inner_filled")
+                if selection.value in self._selected
+                else utils.get_toggle_button_icon("inner"),
+                style=button_style,
+            ),
+            Segment(utils.get_toggle_button_icon("right"), style=side_style),
+            Segment(" ", style=underlying_style),
+            *line,
+        ])
 
     # Why isnt this already a thing
     def insert_selection_at_beginning(self, content: ClipboardSelection) -> None:
@@ -412,10 +411,8 @@ class MetadataContainer(VerticalScroll):
                 for f in filenames:
                     fp = path.join(dirpath, f)
                     if not path.islink(fp):
-                        try:
+                        with suppress(OSError, FileNotFoundError):
                             total_size += lstat(fp).st_size
-                        except (OSError, FileNotFoundError):
-                            pass  # File might have been removed
         except (OSError, FileNotFoundError):
             self.call_later(size_widget.update, "Error")
             return
@@ -746,14 +743,12 @@ class ProcessContainer(VerticalScroll):
                 return
         # remove from clipboard
         for item in cutted:
-            try:
+            # cant bother to figure out how this happens,
+            # just catch it
+            with suppress(OptionDoesNotExist):
                 self.app.call_from_thread(
                     self.app.query_one(Clipboard).remove_option, utils.compress(item)
                 )
-            except OptionDoesNotExist:
-                # cant bother to figure out how this happens,
-                # just catch it
-                pass
         self.app.call_from_thread(bar.progress_bar.advance)
         self.app.call_from_thread(bar.add_class, "done")
 

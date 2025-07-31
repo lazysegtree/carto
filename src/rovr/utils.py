@@ -133,21 +133,17 @@ def get_cwd_object(cwd: str, sort_order: str, sort_by: str) -> (list[dict], list
         return [PermissionError], [PermissionError]
     for item in listed_dir:
         if item.is_dir():
-            folders.append(
-                {
-                    "name": f"{item.name}",
-                    "icon": get_icon_for_folder(item.name),
-                    "dir_entry": item,
-                }
-            )
+            folders.append({
+                "name": f"{item.name}",
+                "icon": get_icon_for_folder(item.name),
+                "dir_entry": item,
+            })
         else:
-            files.append(
-                {
-                    "name": item.name,
-                    "icon": get_icon_for_file(item.name),
-                    "dir_entry": item,
-                }
-            )
+            files.append({
+                "name": item.name,
+                "icon": get_icon_for_file(item.name),
+                "dir_entry": item,
+            })
     # Sort folders and files properly
     folders.sort(key=lambda x: x["name"].lower(), reverse=(sort_order == "descending"))
     files.sort(key=lambda x: x["name"].lower(), reverse=(sort_order == "descending"))
@@ -209,14 +205,12 @@ def get_recursive_files(object_path: str) -> list[str]:
                 ):  # ie we passed over a symlink
                     pass  # will hopefully be taken by shutil.rmtree
                 else:
-                    files.append(
-                        {
-                            "path": full_path,
-                            "relative_loc": normalise(
-                                path.relpath(full_path, object_path + "/..")
-                            ),
-                        }
-                    )
+                    files.append({
+                        "path": full_path,
+                        "relative_loc": normalise(
+                            path.relpath(full_path, object_path + "/..")
+                        ),
+                    })
         return files
 
 
@@ -450,12 +444,10 @@ def add_pin(pin_name: str, pin_path: str) -> None:
     pins_to_write = ujson.loads(ujson.dumps(pins))
 
     pin_path_normalized = normalise(pin_path)
-    pins_to_write.setdefault("pins", []).append(
-        {
-            "name": pin_name,
-            "path": pin_path_normalized,
-        }
-    )
+    pins_to_write.setdefault("pins", []).append({
+        "name": pin_name,
+        "path": pin_path_normalized,
+    })
 
     sorted_vars = sorted(VAR_TO_DIR.items(), key=lambda x: len(x[1]), reverse=True)
     for section_key in ["default", "pins"]:

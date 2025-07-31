@@ -1,4 +1,5 @@
 import shutil
+from contextlib import suppress
 from os import getcwd, path
 from types import SimpleNamespace
 
@@ -205,10 +206,8 @@ class Application(App, inherit_bindings=False):
                 ):
                     self.query_one("#file_list").focus()
                 elif self.query_one("#preview_sidebar").display:
-                    try:
+                    with suppress(NoMatches):
                         self.query_one("#preview_sidebar > *").focus()
-                    except NoMatches:
-                        pass
             # Focus path switcher
             case key if key in config["keybinds"]["focus_toggle_path_switcher"]:
                 self.query_one("#path_switcher").focus()

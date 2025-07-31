@@ -630,11 +630,9 @@ class FileList(SelectionList, inherit_bindings=False):
                 utils.state.sessionDirectories = utils.state.sessionDirectories[
                     : utils.state.sessionHistoryIndex + 1
                 ]
-            utils.state.sessionDirectories.append(
-                {
-                    "path": cwd,
-                }
-            )
+            utils.state.sessionDirectories.append({
+                "path": cwd,
+            })
             if utils.state.sessionLastHighlighted.get(cwd) is None:
                 # Hard coding is my passion (referring to the id)
                 utils.state.sessionLastHighlighted[cwd] = (
@@ -845,20 +843,18 @@ class FileList(SelectionList, inherit_bindings=False):
         side_style += Style(meta={"option": selection_index})
         button_style += Style(meta={"option": selection_index})
 
-        return Strip(
-            [
-                Segment(utils.get_toggle_button_icon("left"), style=side_style),
-                Segment(
-                    utils.get_toggle_button_icon("inner_filled")
-                    if selection.value in self._selected
-                    else utils.get_toggle_button_icon("inner"),
-                    style=button_style,
-                ),
-                Segment(utils.get_toggle_button_icon("right"), style=side_style),
-                Segment(" ", style=underlying_style),
-                *line,
-            ]
-        )
+        return Strip([
+            Segment(utils.get_toggle_button_icon("left"), style=side_style),
+            Segment(
+                utils.get_toggle_button_icon("inner_filled")
+                if selection.value in self._selected
+                else utils.get_toggle_button_icon("inner"),
+                style=button_style,
+            ),
+            Segment(utils.get_toggle_button_icon("right"), style=side_style),
+            Segment(" ", style=underlying_style),
+            *line,
+        ])
 
     async def toggle_mode(self) -> None:
         """Toggle the selection mode between select and normal."""
