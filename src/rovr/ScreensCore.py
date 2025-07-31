@@ -15,34 +15,6 @@ from . import utils
 class Dismissable(ModalScreen):
     """Super simple screen that can be dismissed."""
 
-    DEFAULT_CSS = """
-    Dismissable {
-        align: center middle;
-    }
-    #dialog {
-        grid-size: 1;
-        grid-gutter: 1 2;
-        grid-rows: 1fr 3;
-        padding: 1 3;
-        width: 50vw;
-        max-height: 13;
-        border: $border-style $border;
-        column-span: 3;
-    }
-    #message {
-        height: 1fr;
-        width: 1fr;
-        content-align: center middle;
-        text-align: center
-    }
-    Container {
-        align: center middle;
-    }
-    Button {
-        width: 50%;
-    }
-    """
-
     def __init__(self, message: str, **kwargs):
         super().__init__(**kwargs)
         self.message = message
@@ -76,36 +48,6 @@ class Dismissable(ModalScreen):
 
 class YesOrNo(ModalScreen):
     """Screen with a dialog that asks whether you accept or deny"""
-
-    DEFAULT_CSS = """
-    YesOrNo {
-        align: center middle;
-    }
-    #dialog {
-        grid-size: 2;
-        grid-gutter: 1 2;
-        grid-rows: 1fr 3;
-        padding: 1 2 0 2;
-        width: 50vw;
-        max-height: 13;
-        border: $border-style $border;
-    }
-    #question_container {
-        column-span: 2;
-        height: 1fr;
-        width: 1fr;
-        content-align: center middle;
-    }
-    .question {
-        content-align: center middle;
-        width: 1fr;
-        height: 1fr;
-        text-align: center;
-    }
-    Button {
-        width: 100%;
-    }
-    """
 
     def __init__(self, message: str, reverse_color: bool = False, **kwargs):
         super().__init__(**kwargs)
@@ -142,30 +84,6 @@ class YesOrNo(ModalScreen):
 class CopyOverwrite(ModalScreen):
     """Screen with a dialog to confirm whether to overwrite, rename, skip or cancel."""
 
-    DEFAULT_CSS = """
-    CopyOverwrite {
-        align: center middle;
-    }
-    #dialog {
-        grid-size: 2;
-        grid-gutter: 1 2;
-        grid-rows: 1fr 3 3;
-        padding: 1 3;
-        max-width: 50vw;
-        max-height: 15;
-        border: $border-style $border;
-    }
-    #question {
-        column-span: 2;
-        height: 1fr;
-        width: 1fr;
-        content-align: center middle;
-    }
-    Button {
-        width: 100%;
-    }
-    """
-
     def __init__(self, message: str, **kwargs):
         super().__init__(**kwargs)
         self.message = message
@@ -199,37 +117,6 @@ class CopyOverwrite(ModalScreen):
 
 class DeleteFiles(ModalScreen):
     """Screen with a dialog to confirm whether to delete files."""
-
-    DEFAULT_CSS = """
-    DeleteFiles {
-        align: center middle;
-    }
-    #dialog {
-        grid-size: 2;
-        grid-gutter: 1 2;
-        grid-rows: 1fr 3;
-        padding: 1 3;
-        max-width: 50vw;
-        max-height: 15;
-        border: $border-style $border;
-    }
-    #question {
-        column-span: 2;
-        height: 1fr;
-        width: 1fr;
-        content-align: center middle;
-    }
-    Button {
-        width: 100%;
-    }
-    Container {
-        column-span: 2;
-        align: center middle;
-    }
-    Button#cancel {
-        width: 50%;
-    }
-    """
 
     def __init__(self, message: str, **kwargs):
         super().__init__(**kwargs)
@@ -329,7 +216,13 @@ class ZToDirectory(ModalScreen):
                     Option("  --No matches found--", disabled=True),
                 )
         except DuplicateID:
-            return
+            # if this function runs again somehow, this helps solve it partially
+            # testing it here, before I can see what I can do in other places
+            if self._search_task:
+                self._search_task.cancel()
+            self._search_task = self.set_timer(
+                0.25, self.query_one(Input).action_submit
+            )
 
     def on_input_submitted(self, event: Input.Submitted) -> None:
         zoxide_options = self.query_one("#zoxide_options")
@@ -378,23 +271,6 @@ class ZToDirectory(ModalScreen):
 
 
 class ModalInput(ModalScreen):
-    DEFAULT_CSS = """
-    ModalInput {
-        align: center middle;
-    }
-    Container {
-        border: $border-style $border;
-        width: 50vw;
-        max-width: 50vw;
-        max-height: 3;
-        padding: 0 1;
-        background: transparent !important;
-    }
-    Input {
-        background: transparent !important
-    }
-    """
-
     def __init__(
         self,
         border_title: str,
