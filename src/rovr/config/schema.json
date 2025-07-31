@@ -180,6 +180,11 @@
           "is_dark": {
             "type": "boolean",
             "description": "Whether or not this theme is a dark type theme."
+          },
+          "variables": {
+            "type": "object",
+            "description": "Extra variables to set unique to the theme.\nRefer to https://textual.textualize.io/guide/design/#additional-variables for more information.",
+            "additionalProperties": true
           }
         },
         "required": [

@@ -80,6 +80,9 @@ background = "<hex>"
 surface = "<hex>"
 panel = "<hex>"
 is_dark = "<bool>"
+variables = {
+  "<key>" = "<value>"
+}
 ```
 
 2. Why is it considered post-modern?
