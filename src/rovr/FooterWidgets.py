@@ -517,7 +517,7 @@ class ProcessContainer(VerticalScroll):
         for item_dict in files_to_delete:
             self.app.call_from_thread(
                 bar.update_label,
-                f"{utils.get_icon('general', 'delete')[0]} {"/".join(item_dict['relative_loc'].split("/")[1:])}",
+                f"{utils.get_icon('general', 'delete')[0]} {item_dict['relative_loc']}",
                 step=True,
             )
             if path.exists(item_dict["path"]):
@@ -594,6 +594,13 @@ class ProcessContainer(VerticalScroll):
                 )
                 self.app.call_from_thread(bar.add_class, "error")
                 return
+        # if there werent any files, show something useful
+        # aside from 'Getting files to delete...'
+        if files_to_delete == []:
+            self.app.call_from_thread(
+                bar.update_label,
+                f"{utils.get_icon('general', 'delete')[0]} {folders_to_delete[-1]}"
+            )
         # finished successfully
         self.app.call_from_thread(
             bar.update_label,
@@ -640,7 +647,7 @@ class ProcessContainer(VerticalScroll):
         for item_dict in files_to_copy:
             self.app.call_from_thread(
                 bar.update_label,
-                f"{utils.get_icon('general', 'copy')[0]} {"/".join(item_dict['relative_loc'].split("/")[1:])}",
+                f"{utils.get_icon('general', 'copy')[0]} {item_dict['relative_loc']}",
                 step=True,
             )
             if path.exists(item_dict["path"]):
@@ -782,7 +789,7 @@ class ProcessContainer(VerticalScroll):
         for item_dict in files_to_cut:
             self.app.call_from_thread(
                 bar.update_label,
-                f"{utils.get_icon('general', 'cut')[0]} {"/".join(item_dict['relative_loc'].split("/")[1:])}",
+                f"{utils.get_icon('general', 'cut')[0]} {item_dict['relative_loc']}",
                 step=True,
             )
             if path.exists(item_dict["path"]):
