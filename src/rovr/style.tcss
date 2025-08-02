@@ -112,9 +112,7 @@ $footer_focus_height: 10;
 
 #pinned_sidebar,
 #file_list,
-#file_list_visual {
-  height: 1fr;
-}
+#file_list_visual { height: 1fr }
 
 #menu,
 #below_menu,
@@ -156,9 +154,7 @@ $footer_focus_height: 10;
 }
 
 #preview_sidebar,
-#pinned_sidebar {
-  padding: 0;
-}
+#pinned_sidebar { padding: 0 }
 
 #image_preview {
   width: auto;
@@ -167,9 +163,7 @@ $footer_focus_height: 10;
 }
 
 .hide,
-.hidden {
-  display: none;
-}
+.hidden { display: none }
 
 #pinned_sidebar_container {
   min-width: 15;
@@ -197,22 +191,14 @@ OptionList {
 Screen.-filelistonly {
   #pinned_sidebar_container,
   #preview_sidebar,
-  #below_menu Button {
-    display: none !important;
-  }
-  #below_menu PathAutoCompleteInput {
-    margin: -1 1 0 1 !important
-  }
+  #below_menu Button { display: none !important }
+  #below_menu PathAutoCompleteInput { margin: -1 1 0 1 !important }
 }
 
 Screen.-nopreview {
   #preview_sidebar,
-  #below_menu Button {
-    display: none !important;
-  }
-  #below_menu PathAutoCompleteInput {
-    margin: -1 1 0 1 !important
-  }
+  #below_menu Button { display: none !important }
+  #below_menu PathAutoCompleteInput { margin: -1 1 0 1 !important }
 }
 
 .zen {
@@ -222,9 +208,7 @@ Screen.-nopreview {
   #below_menu Button,
   #pinned_sidebar_container,
   #preview_sidebar,
-  #footer {
-    display: none !important;
-  }
+  #footer { display: none !important }
 }
 
 #footer {
@@ -234,27 +218,14 @@ Screen.-nopreview {
     border: $border-style $border-blurred;
     height: 1fr;
     background: transparent;
-    &:focus-within {
-      border: $border-style $border;
-    }
+    &:focus-within { border: $border-style $border }
   }
-  &:focus-within {
-    height: $footer_focus_height;
-  }
+  &:focus-within { height: $footer_focus_height }
 }
 
+#processes { padding: 0 1 }
 
-RichLog {
-  scrollbar-size: 0 0 !important;
-}
-
-#processes {
-  padding: 0 1;
-}
-
-Content.selected {
-  color: red;
-}
+Content.selected { color: red }
 
 FileList,
 Clipboard {
@@ -262,6 +233,9 @@ Clipboard {
   & > .option-list--option-highlighted {
     color: $block-cursor-background;
     background: transparent;
+  }
+  & > .option-list--option-highlighted:hover {
+    background: $accent
   }
   &:focus {
     border: tall $border;
@@ -346,12 +320,8 @@ Dismissable {
     content-align: center middle;
     text-align: center
   }
-  Container {
-    align: center middle;
-  }
-  Button {
-    width: 50%;
-  }
+  Container { align: center middle }
+  Button { width: 50% }
 }
 
 
@@ -361,7 +331,7 @@ YesOrNo {
     grid-size: 2;
     grid-gutter: 1 2;
     grid-rows: 1fr 3;
-    padding: 1 2 0 2;
+    padding: 1 3;
     width: 50vw;
     max-height: 13;
     border: $border-style $border;
@@ -378,9 +348,7 @@ YesOrNo {
     height: 1fr;
     text-align: center;
   }
-  Button {
-    width: 100%;
-  }
+  Button { width: 100% }
 }
 
 
@@ -401,12 +369,8 @@ CopyOverwrite {
       margin: 0 2 0 0;
       &:focus {
         border: none;
-        & > .switch--slider {
-          color: $panel-lighten-1
-        }
-        &.-on > .switch--slider {
-          color: $success-lighten-1;
-        }
+        & > .switch--slider { color: $panel-lighten-1 }
+        &.-on > .switch--slider { color: $success-lighten-1 }
       }
     }
   }
@@ -416,9 +380,7 @@ CopyOverwrite {
     width: 1fr;
     content-align: center middle;
   }
-  Button {
-    width: 100%;
-  }
+  Button { width: 100% }
   #dontAskAgain {
     column-span: 2;
     content-align: center middle;
@@ -443,9 +405,7 @@ DeleteFiles {
     width: 1fr;
     content-align: center middle;
   }
-  Button {
-    width: 100%;
-  }
+  Button { width: 100% }
   Container {
     column-span: 2;
     align: center middle;
@@ -466,19 +426,13 @@ ModalInput {
     padding: 0 1;
     background: transparent !important;
   }
-  Input {
-    background: transparent !important
-  }
+  Input { background: transparent !important }
 }
 
 
-Tooltip {
-  background: $background-lighten-1;
-}
+Tooltip { background: $background-lighten-1 }
 
-CommandInput {
-  border: blank !important;
-}
+CommandInput { border: blank !important }
 
 #metadata {
   layout: horizontal;
@@ -491,22 +445,12 @@ CommandInput {
   }
 }
 
-Bar {
-  width: 1fr;
-}
+Bar { width: 1fr }
 
 ProgressBarContainer {
   &.error .bar--bar,
-  &.error .bar--complete {
-    color: $error
-  }
-  &.done .bar--complete {
-    color: $success
-  }
-  .bar--indeterminate {
-    color: $accent
-  }
-  .bar--bar {
-    color: $warning
-  }
+  &.error .bar--complete { color: $error }
+  &.done .bar--complete { color: $success }
+  .bar--indeterminate { color: $accent }
+  .bar--bar { color: $warning }
 }

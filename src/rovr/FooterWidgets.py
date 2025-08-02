@@ -24,7 +24,7 @@ from textual.widgets.option_list import OptionDoesNotExist
 from textual.widgets.selection_list import Selection
 
 from . import utils
-from .ScreensCore import Dismissable, YesOrNo
+from .ScreensCore import CopyOverwrite, Dismissable, YesOrNo
 from .utils import config
 
 
@@ -226,7 +226,7 @@ class Clipboard(SelectionList, inherit_bindings=False):
         if self.has_focus:
             if event.key in config["keybinds"]["delete"]:
                 """Delete the selected files from the clipboard."""
-                if not self.selected:
+                if self.highlighted is None:
                     self.app.notify(
                         "No files selected to delete from the clipboard.",
                         title="Clipboard",
@@ -455,12 +455,12 @@ class ProgressBarContainer(VerticalGroup):
     async def on_mount(self) -> None:
         await self.mount_all([self.label, self.progress_bar])
 
-    def update_label(self, label: str, step: bool = True) -> None:
+    def update_label(self, label: str, step: bool = False) -> None:
         """
         Updates the label, and optionally steps it
         Args:
-            label(str): The new label
-            step(bool): Whether or not to increase the progress by 1
+            label (str): The new label
+            step (bool) = False: Whether or not to increase the progress by 1
         """
         self.label.update(label)
         if step:
@@ -503,7 +503,6 @@ class ProcessContainer(VerticalScroll):
         self.app.call_from_thread(
             bar.update_label,
             f"{utils.get_icon('general', 'delete')[0]} Getting files to delete...",
-            step=False,
         )
         # get files to delete
         files_to_delete = []
@@ -515,18 +514,19 @@ class ProcessContainer(VerticalScroll):
                 folders_to_delete.append(file)
             files_to_delete.extend(utils.get_recursive_files(file))
         self.app.call_from_thread(bar.update_progress, total=len(files_to_delete) + 1)
-        for file_dict in files_to_delete:
+        for item_dict in files_to_delete:
             self.app.call_from_thread(
                 bar.update_label,
-                f"{utils.get_icon('general', 'delete')[0]} {file_dict['relative_loc']}",
+                f"{utils.get_icon('general', 'delete')[0]} {"/".join(item_dict['relative_loc'].split("/")[1:])}",
+                step=True,
             )
-            if path.exists(file_dict["path"]):
+            if path.exists(item_dict["path"]):
                 # I know that it `path.exists` prevents issues, but on the
                 # off chance that anything happens, this should help
                 try:
                     if config["settings"]["use_recycle_bin"] and not ignore_trash:
                         try:
-                            path_to_trash = file_dict["path"]
+                            path_to_trash = item_dict["path"]
                             if (
                                 platform.system() == "Windows"
                                 and path_to_trash.startswith("\\\\\\\\?\\\\")
@@ -548,19 +548,19 @@ class ProcessContainer(VerticalScroll):
                             else:
                                 self.app.call_from_thread(
                                     bar.update_label,
-                                    f"{utils.get_icon('general', 'close')[0]} Process Interrupted",
+                                    f"{utils.get_icon('general', 'delete')[0]} {utils.get_icon('general', 'close')[0]} Process Interrupted",
                                 )
                                 self.app.call_from_thread(bar.add_class, "error")
                                 return
                     else:
-                        remove(file_dict["path"])
+                        remove(item_dict["path"])
                 except FileNotFoundError:
                     pass
                 except PermissionError:
                     do_continue = self.app.call_from_thread(
                         self.app.push_screen_wait,
                         YesOrNo(
-                            f"{file_dict['path']} could not be deleted due to PermissionError.\nContinue?"
+                            f"{item_dict['path']} could not be deleted due to PermissionError.\nContinue?"
                         ),
                     )
                     if not do_continue:
@@ -590,10 +590,16 @@ class ProcessContainer(VerticalScroll):
                 )
                 self.app.call_from_thread(
                     bar.update_label,
-                    f"{utils.get_icon('general', 'delete')[0]} {utils.get_icon('general', 'close')[0]} {path.basename(files[-1])}",
+                    f"{utils.get_icon('general', 'delete')[0]} {utils.get_icon('general', 'close')[0]} {bar.label._content[2:]}",
                 )
                 self.app.call_from_thread(bar.add_class, "error")
                 return
+        # finished successfully
+        self.app.call_from_thread(
+            bar.update_label,
+            f"{utils.get_icon('general', 'delete')[0]} {utils.get_icon('general', 'check')[0]} {bar.label._content[2:]}",
+            step=True,
+        )
         self.app.call_from_thread(bar.progress_bar.advance)
         self.app.call_from_thread(bar.add_class, "done")
 
@@ -612,7 +618,7 @@ class ProcessContainer(VerticalScroll):
         # the end, then compress, then get option by id, remove item
         if dest == "":
             dest = getcwd()
-        bar = self.app.call_from_thread(self.new_process_bar, classes="active")
+        bar: ProgressBarContainer = self.app.call_from_thread(self.new_process_bar, classes="active")
         self.app.call_from_thread(
             bar.update_label,
             f"{utils.get_icon('general', 'paste')[0]} Getting items to paste...",
@@ -629,20 +635,111 @@ class ProcessContainer(VerticalScroll):
         self.app.call_from_thread(
             bar.update_progress, total=int(len(files_to_copy) + len(files_to_cut)) + 1
         )
+        # can be either 'ask', 'skip' or 'overwrite'
+        action_on_existance = "ask"
         for item_dict in files_to_copy:
             self.app.call_from_thread(
                 bar.update_label,
-                f"{utils.get_icon('general', 'copy')[0]} {item_dict['relative_loc']}",
+                f"{utils.get_icon('general', 'copy')[0]} {"/".join(item_dict['relative_loc'].split("/")[1:])}",
+                step=True,
             )
             if path.exists(item_dict["path"]):
                 # again checks just in case something goes wrong
                 try:
                     makedirs(
-                        utils.normalise(
-                            path.join(dest, item_dict["relative_loc"], "..")
-                        ),
+                        utils.normalise(path.join(dest, item_dict["relative_loc"], "..")),
                         exist_ok=True,
                     )
+                    if path.exists(path.join(dest, item_dict["relative_loc"])):
+                        # check if overwrite
+                        match action_on_existance:
+                            case "overwrite":
+                                pass
+                            case "skip":
+                                continue
+                            case "rename":
+                                exists = True
+                                base = ".".join(
+                                    item_dict["relative_loc"].split(".")[:-1]
+                                )
+                                extension = item_dict["relative_loc"].split(".")[-1]
+                                tested_number = 1
+                                while exists:
+                                    # similar to how explorer does it
+                                    if path.exists(
+                                        path.join(
+                                            dest,
+                                            ".".join([
+                                                base + f" ({tested_number})",
+                                                extension,
+                                            ]),
+                                        )
+                                    ):
+                                        tested_number += 1
+                                    else:
+                                        exists = False
+                                item_dict["relative_loc"] = utils.normalise(
+                                    path.join(
+                                        dest,
+                                        ".".join([
+                                            base + f" ({tested_number})",
+                                            extension,
+                                        ]),
+                                    )
+                                )
+                            case _:
+                                response = self.app.call_from_thread(
+                                    self.app.push_screen_wait,
+                                    CopyOverwrite("copy merge"),
+                                )
+                                if response["same_for_next"]:
+                                    action_on_existance = response["value"]
+                                match response["value"]:
+                                    case "overwrite":
+                                        pass
+                                    case "skip":
+                                        continue
+                                    case "rename":
+                                        exists = True
+                                        base = ".".join(
+                                            item_dict["relative_loc"].split(".")[:-1]
+                                        )
+                                        extension = item_dict["relative_loc"].split(
+                                            "."
+                                        )[-1]
+                                        tested_number = 1
+                                        while exists:
+                                            # similar to how explorer does it
+                                            if path.exists(
+                                                path.join(
+                                                    dest,
+                                                    ".".join([
+                                                        base + f" ({tested_number})",
+                                                        extension,
+                                                    ]),
+                                                )
+                                            ):
+                                                tested_number += 1
+                                            else:
+                                                exists = False
+                                        item_dict["relative_loc"] = utils.normalise(
+                                            path.join(
+                                                dest,
+                                                ".".join([
+                                                    base + f" ({tested_number})",
+                                                    extension,
+                                                ]),
+                                            )
+                                        )
+                                    case "cancel":
+                                        self.app.call_from_thread(
+                                            bar.update_label,
+                                            f"{utils.get_icon('general', 'copy')[0]} {utils.get_icon('general', 'close')[0]} Process cancelled",
+                                        )
+                                        self.app.call_from_thread(
+                                            bar.add_class, "error"
+                                        )
+                                        return
                     if config["settings"]["copy_includes_metadata"]:
                         shutil.copy2(
                             item_dict["path"],
@@ -653,13 +750,13 @@ class ProcessContainer(VerticalScroll):
                             item_dict["path"],
                             path.join(dest, item_dict["relative_loc"]),
                         )
-                except (OSError, PermissionError):
+                except (OSError, PermissionError) as e:
                     # OSError from shutil: The destination location must be writable; otherwise, an OSError exception will be raised
                     # Permission Error just in case
                     do_continue = self.app.call_from_thread(
                         self.app.push_screen_wait,
                         YesOrNo(
-                            f"{item_dict['path']} could not be copied due to Permission Errors.\nContinue?"
+                            f"{item_dict['path']} could not be copied due to {e}.\nContinue?"
                         ),
                     )
                     if not do_continue:
@@ -678,23 +775,112 @@ class ProcessContainer(VerticalScroll):
                     self.app.call_from_thread(bar.add_class, "error")
                     self.app.call_from_thread(
                         self.app.push_screen_wait,
-                        Dismissable(f"Deleting failed due to \n{e}\nProcess Aborted."),
+                        Dismissable(f"Deleting failed due to\n{e}\nProcess Aborted."),
                     )
                     return
+
         for item_dict in files_to_cut:
             self.app.call_from_thread(
                 bar.update_label,
-                f"{utils.get_icon('general', 'cut')[0]} {item_dict['relative_loc']}",
+                f"{utils.get_icon('general', 'cut')[0]} {"/".join(item_dict['relative_loc'].split("/")[1:])}",
+                step=True,
             )
             if path.exists(item_dict["path"]):
                 # again checks just in case something goes wrong
                 try:
                     makedirs(
-                        utils.normalise(
-                            path.join(dest, item_dict["relative_loc"], "..")
-                        ),
+                        utils.normalise(path.join(dest, item_dict["relative_loc"], "..")),
                         exist_ok=True,
                     )
+                    if path.exists(path.join(dest, item_dict["relative_loc"])):
+                        match action_on_existance:
+                            case "overwrite":
+                                pass
+                            case "skip":
+                                continue
+                            case "rename":
+                                exists = True
+                                base = ".".join(
+                                    item_dict["relative_loc"].split(".")[:-1]
+                                )
+                                extension = item_dict["relative_loc"].split(".")[-1]
+                                tested_number = 1
+                                while exists:
+                                    # similar to how explorer does it
+                                    if path.exists(
+                                        path.join(
+                                            dest,
+                                            ".".join([
+                                                base + f" ({tested_number})",
+                                                extension,
+                                            ]),
+                                        )
+                                    ):
+                                        tested_number += 1
+                                    else:
+                                        exists = False
+                                item_dict["relative_loc"] = utils.normalise(
+                                    path.join(
+                                        dest,
+                                        ".".join([
+                                            base + f" ({tested_number})",
+                                            extension,
+                                        ]),
+                                    )
+                                )
+                            case _:
+                                response = self.app.call_from_thread(
+                                    self.app.push_screen_wait,
+                                    CopyOverwrite("copy merge"),
+                                )
+                                if response["same_for_next"]:
+                                    action_on_existance = response["value"]
+                                match response["value"]:
+                                    case "overwrite":
+                                        pass
+                                    case "skip":
+                                        continue
+                                    case "rename":
+                                        exists = True
+                                        base = ".".join(
+                                            item_dict["relative_loc"].split(".")[:-1]
+                                        )
+                                        extension = item_dict["relative_loc"].split(
+                                            "."
+                                        )[-1]
+                                        tested_number = 1
+                                        while exists:
+                                            # similar to how explorer does it
+                                            if path.exists(
+                                                path.join(
+                                                    dest,
+                                                    ".".join([
+                                                        base + f" ({tested_number})",
+                                                        extension,
+                                                    ]),
+                                                )
+                                            ):
+                                                tested_number += 1
+                                            else:
+                                                exists = False
+                                        item_dict["relative_loc"] = utils.normalise(
+                                            path.join(
+                                                dest,
+                                                ".".join([
+                                                    base + f" ({tested_number})",
+                                                    extension,
+                                                ]),
+                                            )
+                                        )
+                                    case "cancel":
+                                        self.app.call_from_thread(
+                                            bar.update_label,
+                                            f"{utils.get_icon('general', 'copy')[0]} {utils.get_icon('general', 'close')[0]} Process cancelled",
+                                        )
+                                        self.app.call_from_thread(
+                                            bar.add_class, "error"
+                                        )
+                                        return
                     shutil.move(
                         item_dict["path"],
                         path.join(dest, item_dict["relative_loc"]),
@@ -749,7 +935,11 @@ class ProcessContainer(VerticalScroll):
                 self.app.call_from_thread(
                     self.app.query_one(Clipboard).remove_option, utils.compress(item)
                 )
-        self.app.call_from_thread(bar.progress_bar.advance)
+        self.app.call_from_thread(
+            bar.update_label,
+            f"{utils.get_icon('general', 'cut' if len(cutted) else 'copy')[0]} {utils.get_icon('general', 'check')[0]} {bar.label._content[2:]}",
+            step=True,
+        )
         self.app.call_from_thread(bar.add_class, "done")
 
     async def on_key(self, event: events.Key):

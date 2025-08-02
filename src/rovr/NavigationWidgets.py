@@ -6,7 +6,7 @@ from textual.validation import Function
 from textual.widgets import Button, Input
 from textual_autocomplete import DropdownItem, PathAutoComplete, TargetState
 
-from .utils import get_icon, state
+from .utils import get_icon, normalise, state
 
 
 class PathDropdownItem(DropdownItem):
@@ -114,10 +114,17 @@ class PathInput(Input):
     def on_input_submitted(self, event: Input.Submitted) -> None:
         """Use a custom path entered as the current working directory"""
         if path.exists(event.value):
-            chdir(event.value)
-            self.app.query_one("#file_list").update_file_list(
-                self.app.main_sort_by, self.app.main_sort_order
-            )
+            if normalise(getcwd()) != normalise(event.value):
+                chdir(event.value)
+                self.app.query_one("#file_list").update_file_list(
+                    self.app.main_sort_by, self.app.main_sort_order
+                )
+            else:
+                self.app.query_one("#file_list").update_file_list(
+                    self.app.main_sort_by,
+                    self.app.main_sort_order,
+                    add_to_session=False,
+                )
 
     def on_key(self, event: events.Key) -> None:
         if event.key == "backspace":
@@ -132,7 +139,7 @@ class BackButton(Button):
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """Go back in the sesison's history"""
         state.sessionHistoryIndex -= 1
-        #! reminder to add a check for path!
+        # ! reminder to add a check for path!
         chdir(state.sessionDirectories[state.sessionHistoryIndex]["path"])
         self.app.query_one("#file_list").update_file_list(
             self.app.main_sort_by, self.app.main_sort_order, add_to_session=False
@@ -146,7 +153,7 @@ class ForwardButton(Button):
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """Go forward in the session's history"""
         state.sessionHistoryIndex += 1
-        #! reminder to add a check for path!
+        # ! reminder to add a check for path!
         chdir(state.sessionDirectories[state.sessionHistoryIndex]["path"])
         self.app.query_one("#file_list").update_file_list(
             self.app.main_sort_by, self.app.main_sort_order, add_to_session=False
@@ -159,7 +166,7 @@ class UpButton(Button):
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """Go up the current location's directory"""
-        #! on the off chance that the parent's parent got nuked, might need to check if the parent exists
+        # ! on the off chance that the parent's parent got nuked, might need to check if the parent exists
         chdir(path.sep.join(getcwd().split(path.sep)[:-1]))
         self.app.query_one("#file_list").update_file_list(
             self.app.main_sort_by, self.app.main_sort_order

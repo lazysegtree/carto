@@ -95,24 +95,42 @@ class CopyOverwrite(ModalScreen):
             yield Button("\\[R]ename", variant="warning", id="rename")
             yield Button("\\[S]kip", variant="default", id="skip")
             yield Button("\\[C]ancel", variant="primary", id="cancel")
+            with HorizontalGroup(id="dontAskAgain"):
+                yield Switch()
+                yield Label("Don't ask again")
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
-        self.dismiss(event.button.id)
+        self.dismiss({
+            "value": event.button.id,
+            "same_for_next": self.query_one(Switch).value,
+        })
 
     def on_key(self, event) -> None:
         """Handle key presses."""
         if event.key.lower() == "o":
             event.stop()
-            self.dismiss("overwrite")
+            self.dismiss({
+                "value": "overwrite",
+                "same_for_next": self.query_one(Switch).value,
+            })
         elif event.key.lower() == "r":
             event.stop()
-            self.dismiss("rename")
+            self.dismiss({
+                "value": "rename",
+                "same_for_next": self.query_one(Switch).value,
+            })
         elif event.key.lower() == "s":
             event.stop()
-            self.dismiss("skip")
+            self.dismiss({
+                "value": "skip",
+                "same_for_next": self.query_one(Switch).value,
+            })
         elif event.key.lower() in ["c", "escape"]:
             event.stop()
-            self.dismiss("cancel")
+            self.dismiss({
+                "value": "cancel",
+                "same_for_next": self.query_one(Switch).value,
+            })
 
 
 class DeleteFiles(ModalScreen):

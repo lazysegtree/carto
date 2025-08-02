@@ -113,7 +113,7 @@ This is a list of features that I plan to add before releasing the appropriate v
 
 #### Version 1
 
-Status: 22/29
+Status: 24/29
 
 - [x] Directory Auto-completion (explorer)
 - [x] Button Navigation (explorer)
@@ -135,7 +135,7 @@ Status: 22/29
   - [x] Copy files and folders
   - [x] Cut files and folders
   - [x] Paste files and folders
-    - [ ] Warn when overwriting same named files
+    - [x] Warn when overwriting same named files
 - Multiple File Lists
   - [ ] Tabs
   - [ ] Vertical and Horizontal Splits
