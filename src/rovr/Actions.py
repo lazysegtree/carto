@@ -18,7 +18,11 @@ async def create_new_item(appInstance: App, location: str) -> None:
         appInstance(App): The current app class
         location(str): The path that you want to create a new item at
     """
-    location = utils.normalise(location.strip())
+    location = (
+        utils.normalise(path.join(getcwd(), location)) + "/"
+        if location.endswith("/") or location.endswith("\\")
+        else ""
+    )
     if location == "":
         return
     elif path.exists(location):
