@@ -637,7 +637,7 @@ class ProcessContainer(VerticalScroll):
             files_to_copy.extend(utils.get_recursive_files(file))
         for file in cutted:
             if path.isdir(file):
-                cut_files__folders.append(file)
+                cut_files__folders.append(utils.normalise(file))
             files_to_cut.extend(utils.get_recursive_files(file))
         self.app.call_from_thread(
             bar.update_progress, total=int(len(files_to_copy) + len(files_to_cut)) + 1
@@ -786,6 +786,7 @@ class ProcessContainer(VerticalScroll):
                     )
                     return
 
+        cut_ignore = []
         for item_dict in files_to_cut:
             self.app.call_from_thread(
                 bar.update_label,
@@ -804,6 +805,7 @@ class ProcessContainer(VerticalScroll):
                             case "overwrite":
                                 pass
                             case "skip":
+                                cut_ignore.append(item_dict["path"])
                                 continue
                             case "rename":
                                 exists = True
@@ -846,6 +848,7 @@ class ProcessContainer(VerticalScroll):
                                     case "overwrite":
                                         pass
                                     case "skip":
+                                        cut_ignore.append(item_dict["path"])
                                         continue
                                     case "rename":
                                         exists = True
@@ -922,7 +925,13 @@ class ProcessContainer(VerticalScroll):
         # delete the folders
         for folder in cut_files__folders:
             try:
-                shutil.rmtree(folder)
+                skip = False
+                for file in cut_ignore:
+                    if folder in file:
+                        skip = True
+                        break
+                if not skip:
+                    shutil.rmtree(folder)
             except PermissionError:
                 # TODO: allow continuation and not return on error
                 self.app.notify(
