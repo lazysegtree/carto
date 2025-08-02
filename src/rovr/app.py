@@ -244,6 +244,11 @@ class Application(App, inherit_bindings=False):
             ):
                 await self.query_one(CutButton).on_button_pressed(CutButton.Pressed)
             case key if (
+                key in config["keybinds"]["paste"]
+                and self.query_one("#file_list").has_focus
+            ):
+                await self.query_one(PasteButton).on_button_pressed(PasteButton.Pressed)
+            case key if (
                 key in config["keybinds"]["new"]
                 and self.query_one("#file_list").has_focus
             ):
