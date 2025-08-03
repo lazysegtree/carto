@@ -414,9 +414,7 @@ DeleteFiles {
   Container {
     column-span: 2;
     align: center middle;
-  }
-  Button#cancel {
-    width: 50%;
+    Button#cancel { width: 50% }
   }
 }
 

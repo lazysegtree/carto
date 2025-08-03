@@ -10,6 +10,7 @@ from textual.widgets import Button, Input, Label, OptionList, Switch
 from textual.widgets.option_list import Option
 
 from . import utils
+from .utils import config
 
 
 class Dismissable(ModalScreen):
@@ -144,8 +145,11 @@ class DeleteFiles(ModalScreen):
         with Grid(id="dialog"):
             yield Label(self.message, id="question")
             yield Button("\\[D]elete", variant="error", id="delete")
-            yield Button("\\[T]rash", variant="warning", id="trash")
-            with Container():
+            if config["settings"]["use_recycle_bin"]:
+                yield Button("\\[T]rash", variant="warning", id="trash")
+                with Container():
+                    yield Button("\\[C]ancel", variant="primary", id="cancel")
+            else:
                 yield Button("\\[C]ancel", variant="primary", id="cancel")
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
@@ -160,7 +164,7 @@ class DeleteFiles(ModalScreen):
         elif event.key.lower() in ["c", "escape"]:
             event.stop()
             self.dismiss("cancel")
-        elif event.key.lower() == "t":
+        elif event.key.lower() == "t" and config["settings"]["use_recycle_bin"]:
             event.stop()
             self.dismiss("trash")
         elif event.key == "tab":

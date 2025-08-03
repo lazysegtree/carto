@@ -642,7 +642,3 @@ def start_watcher():
         target=watch_config_file,
         daemon=True,
     ).start()
-
-
-if __name__ == "__main__":
-    start_watcher()
