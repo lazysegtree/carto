@@ -203,9 +203,9 @@ class Application(App, inherit_bindings=False):
                     or "hide" in self.query_one("#preview_sidebar").classes
                 ):
                     self.query_one("#file_list").focus()
-                elif self.query_one("#preview_sidebar").display:
+                elif self.query_one(PreviewContainer).display:
                     with suppress(NoMatches):
-                        self.query_one("#preview_sidebar > *").focus()
+                        self.query_one("PreviewContainer > *").focus()
             # Focus path switcher
             case key if key in config["keybinds"]["focus_toggle_path_switcher"]:
                 self.query_one("#path_switcher").focus()
@@ -280,10 +280,10 @@ class Application(App, inherit_bindings=False):
                     self.query_one("#pinned_sidebar_container").remove_class("hide")
             case key if key in config["keybinds"]["toggle_preview_sidebar"]:
                 self.query_one("#file_list").focus()
-                if self.query_one("#preview_sidebar").display:
-                    self.query_one("#preview_sidebar").add_class("hide")
+                if self.query_one(PreviewContainer).display:
+                    self.query_one(PreviewContainer).add_class("hide")
                 else:
-                    self.query_one("#preview_sidebar").remove_class("hide")
+                    self.query_one(PreviewContainer).remove_class("hide")
             case key if key in config["keybinds"]["toggle_footer"]:
                 self.query_one("#file_list").focus()
                 if self.query_one("#footer").display:

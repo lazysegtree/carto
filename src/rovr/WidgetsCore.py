@@ -601,7 +601,7 @@ class FileList(SelectionList, inherit_bindings=False):
             file_list_options = [".."]
         elif folders == [] and files == []:
             self.add_option(Selection("  --no-files--", value="", id="", disabled=True))
-            self.app.query_one("PreviewContainer").remove_children()
+            self.app.query_one(PreviewContainer).remove_children()
             # nothing inside
         else:
             file_list_options = (
@@ -751,7 +751,7 @@ class FileList(SelectionList, inherit_bindings=False):
         if self.dummy:
             return
         elif event.option.value == "HTI":
-            self.app.query_one("#preview_sidebar").remove_children()
+            self.app.query_one(PreviewContainer).remove_children()
             return  # ignore folders that go to prev dir
         if self.select_mode_enabled:
             utils.set_scuffed_subtitle(
@@ -778,7 +778,7 @@ class FileList(SelectionList, inherit_bindings=False):
         if self.highlighted is None:
             self.highlighted = 0
         # preview
-        self.app.query_one("#preview_sidebar").show_preview(
+        self.app.query_one(PreviewContainer).show_preview(
             utils.normalise(path.join(getcwd(), file_name))
         )
         self.app.query_one("MetadataContainer").update_metadata(event.option.dir_entry)
