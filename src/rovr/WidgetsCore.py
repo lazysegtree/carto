@@ -33,8 +33,8 @@ class PreviewContainer(Container):
         self._is_image = False
 
     def compose(self) -> ComposeResult:
-        ## for some unknown reason, it started causing KeyErrors
-        ## and I just cannot catch the exception
+        # for some unknown reason, it started causing KeyErrors
+        # and I just cannot catch the exception
         # yield TextArea(
         #     id="text_preview",
         #     show_line_numbers=True,
@@ -1064,4 +1064,4 @@ class FileList(SelectionList, inherit_bindings=False):
             # Toggle pin on current directory
             elif event.key in config["keybinds"]["toggle_pin"]:
                 utils.toggle_pin(path.basename(getcwd()), getcwd())
-                self.query_one(PinnedSidebar).reload_pins()
+                self.app.query_one(PinnedSidebar).reload_pins()
