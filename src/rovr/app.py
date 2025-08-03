@@ -250,14 +250,12 @@ class Application(App, inherit_bindings=False):
                 key in config["keybinds"]["new"]
                 and self.query_one("#file_list").has_focus
             ):
-                await self.query_one(NewItemButton).on_button_pressed(
-                    NewItemButton.Pressed
-                )
+                self.query_one(NewItemButton).on_button_pressed(NewItemButton.Pressed)
             case key if (
                 key in config["keybinds"]["rename"]
                 and self.query_one("#file_list").has_focus
             ):
-                await self.query_one(RenameItemButton).on_button_pressed(
+                self.query_one(RenameItemButton).on_button_pressed(
                     RenameItemButton.Pressed
                 )
             case key if (

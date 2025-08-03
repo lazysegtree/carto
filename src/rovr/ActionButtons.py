@@ -140,6 +140,7 @@ class NewItemButton(Button):
         if config["interface"]["tooltips"]:
             self.tooltip = "Create a new file or directory"
 
+    @work
     async def on_button_pressed(self, event: Button.Pressed) -> None:
         response: str = await self.app.push_screen(
             ModalInput(
@@ -210,6 +211,7 @@ class RenameItemButton(Button):
         if config["interface"]["tooltips"]:
             self.tooltip = "Rename selected files"
 
+    @work
     async def on_button_pressed(self, event: Button.Pressed) -> None:
         selected_files = await self.app.query_one("#file_list").get_selected_objects()
         if selected_files is None or len(selected_files) != 1:
