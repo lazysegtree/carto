@@ -599,7 +599,7 @@ class ProcessContainer(VerticalScroll):
         if files_to_delete == []:
             self.app.call_from_thread(
                 bar.update_label,
-                f"{utils.get_icon('general', 'delete')[0]} {folders_to_delete[-1]}"
+                f"{utils.get_icon('general', 'delete')[0]} {folders_to_delete[-1]}",
             )
         # finished successfully
         self.app.call_from_thread(
@@ -625,7 +625,9 @@ class ProcessContainer(VerticalScroll):
         # the end, then compress, then get option by id, remove item
         if dest == "":
             dest = getcwd()
-        bar: ProgressBarContainer = self.app.call_from_thread(self.new_process_bar, classes="active")
+        bar: ProgressBarContainer = self.app.call_from_thread(
+            self.new_process_bar, classes="active"
+        )
         self.app.call_from_thread(
             bar.update_label,
             f"{utils.get_icon('general', 'paste')[0]} Getting items to paste...",
@@ -654,7 +656,9 @@ class ProcessContainer(VerticalScroll):
                 # again checks just in case something goes wrong
                 try:
                     makedirs(
-                        utils.normalise(path.join(dest, item_dict["relative_loc"], "..")),
+                        utils.normalise(
+                            path.join(dest, item_dict["relative_loc"], "..")
+                        ),
                         exist_ok=True,
                     )
                     if path.exists(path.join(dest, item_dict["relative_loc"])):
@@ -797,7 +801,9 @@ class ProcessContainer(VerticalScroll):
                 # again checks just in case something goes wrong
                 try:
                     makedirs(
-                        utils.normalise(path.join(dest, item_dict["relative_loc"], "..")),
+                        utils.normalise(
+                            path.join(dest, item_dict["relative_loc"], "..")
+                        ),
                         exist_ok=True,
                     )
                     if path.exists(path.join(dest, item_dict["relative_loc"])):

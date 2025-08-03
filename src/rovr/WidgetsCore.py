@@ -1,4 +1,5 @@
 import asyncio
+from contextlib import suppress
 from os import DirEntry, chdir, getcwd, path
 from os import system as cmd
 from typing import ClassVar
@@ -21,8 +22,6 @@ from textual.widgets.selection_list import Selection
 from . import utils
 from .maps import EXT_TO_LANG_MAP, PIL_EXTENSIONS
 from .utils import config
-
-utils.load_config()
 
 
 class PreviewContainer(Container):
@@ -561,10 +560,8 @@ class FileList(SelectionList, inherit_bindings=False):
 
     async def on_mount(self, add_to_history: bool = True) -> None:
         """Initialize the file list."""
-        try:
+        with suppress(NoMatches):
             self.query_one("Static").remove()
-        except NoMatches:
-            pass
         if not self.dummy:
             self.update_file_list(
                 sort_by=self.sort_by,
@@ -640,13 +637,10 @@ class FileList(SelectionList, inherit_bindings=False):
                 )
             utils.state.sessionHistoryIndex = len(utils.state.sessionDirectories) - 1
         self.app.query_one("Button#back").disabled = (
-            True if utils.state.sessionHistoryIndex == 0 else False
+            utils.state.sessionHistoryIndex == 0
         )
         self.app.query_one("Button#forward").disabled = (
-            True
-            if utils.state.sessionHistoryIndex
-            == len(utils.state.sessionDirectories) - 1
-            else False
+            utils.state.sessionHistoryIndex == len(utils.state.sessionDirectories) - 1
         )
         try:
             self.highlighted = self.get_option_index(

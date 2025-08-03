@@ -1,10 +1,12 @@
-from os import path
+from os import getcwd, makedirs, path
+from shutil import move
 
+from textual import work
+from textual.content import Content
 from textual.widgets import Button
 
-from .Actions import create_new_item, rename_object
 from .ScreensCore import DeleteFiles, ModalInput, YesOrNo
-from .utils import config, decompress, get_icon
+from .utils import config, decompress, get_icon, normalise
 
 
 class SortOrderButton(Button):
@@ -139,13 +141,57 @@ class NewItemButton(Button):
             self.tooltip = "Create a new file or directory"
 
     async def on_button_pressed(self, event: Button.Pressed) -> None:
-        self.app.push_screen(
+        response: str = await self.app.push_screen(
             ModalInput(
                 border_title="Create New Item",
                 border_subtitle="End with a slash (/) to create a directory",
             ),
-            callback=lambda response: create_new_item(self.app, response),
+            wait_for_dismiss=True,
         )
+        if response == "":
+            return
+        location = normalise(path.join(getcwd(), response)) + (
+            "/" if response.endswith("/") or response.endswith("\\") else ""
+        )
+        if path.exists(location):
+            self.app.notify(message=f"Location '{response}' already exists.")
+        elif location.endswith("/"):
+            # recursive directory creation
+            try:
+                makedirs(location)
+            except Exception as e:
+                self.app.notify(
+                    message=Content(f"Error creating directory '{response}': {e}"),
+                    severity="error",
+                )
+        elif len(location.split("/")) > 1:
+            # recursive directory until file creation
+            location_parts = location.split("/")
+            dir_path = "/".join(location_parts[:-1])
+            try:
+                makedirs(dir_path)
+                with open(location, "w") as f:
+                    f.write("")  # Create an empty file
+            except FileExistsError:
+                with open(location, "w") as f:
+                    f.write("")
+            except Exception as e:
+                self.app.notify(
+                    message=Content(f"Error creating file '{location}': {e}"),
+                    severity="error",
+                )
+        else:
+            # normal file creation I hope
+            try:
+                with open(location, "w") as f:
+                    f.write("")  # Create an empty file
+            except Exception as e:
+                self.app.notify(
+                    message=Content(f"Error creating file '{location}': {e}"),
+                    severity="error",
+                )
+        self.app.query_one("#refresh").action_press()
+        self.app.query_one("#file_list").focus()
 
 
 class RenameItemButton(Button):
@@ -175,16 +221,32 @@ class RenameItemButton(Button):
         else:
             selected_file = selected_files[0]
             type_of_file = "Folder" if path.isdir(selected_file) else "File"
-            self.app.push_screen(
+            response: str = await self.app.push_screen(
                 ModalInput(
                     border_title=f"Rename {type_of_file}",
                     border_subtitle=f"Current name: {path.basename(selected_file)}",
                     initial_value=path.basename(selected_file),
                 ),
-                callback=lambda response: rename_object(
-                    self.app, selected_file, response
-                ),
+                wait_for_dismiss=True,
             )
+            old_name = normalise(path.realpath(path.join(getcwd(), selected_file)))
+            new_name = normalise(path.realpath(path.join(getcwd(), response)))
+            if not path.exists(old_name):
+                self.app.notify(message=f"'{selected_file}' no longer exists.")
+                return
+            if path.exists(new_name):
+                self.app.notify(message=f"'{response}' already exists.")
+                return
+            try:
+                move(old_name, new_name)
+            except Exception as e:
+                self.app.notify(
+                    message=Content(
+                        f"Error renaming '{selected_file}' to '{response}': {e}"
+                    )
+                )
+        self.app.query_one("#refresh").action_press()
+        self.app.query_one("#file_list").focus()
 
 
 class DeleteButton(Button):

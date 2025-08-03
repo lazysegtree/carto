@@ -48,8 +48,6 @@ from .WidgetsCore import (
     PreviewContainer,
 )
 
-utils.load_config()
-
 
 class Application(App, inherit_bindings=False):
     # dont need ctrl+c

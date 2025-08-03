@@ -353,6 +353,9 @@ def load_config() -> None:
     config = deep_merge(template_config, user_config)
 
 
+load_config()
+
+
 def load_pins() -> dict:
     """
     Load the pinned files from a JSON file in the user's config directory.

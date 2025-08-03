@@ -1,8 +1,6 @@
 from textual.theme import Theme
 
-from .utils import config, load_config
-
-load_config()
+from .utils import config
 
 
 def get_custom_themes() -> list:
@@ -30,7 +28,7 @@ def get_custom_themes() -> list:
                 surface=theme["surface"],
                 panel=theme["panel"],
                 dark=theme["is_dark"],
-                variables=theme["variables"] if "variables" in theme else {},
+                variables=theme.get("variables", {}),
             )
         )
     return custom_themes
