@@ -2,6 +2,7 @@ import os
 import platform
 import stat
 import subprocess
+from functools import lru_cache
 from os import path
 from threading import Thread
 from time import sleep
@@ -214,6 +215,7 @@ def get_recursive_files(object_path: str) -> list[str]:
         return files
 
 
+@lru_cache(maxsize=128)
 def get_icon_for_file(location: str) -> list:
     """
     Get the icon and color for a file based on its name or extension.
@@ -245,6 +247,7 @@ def get_icon_for_file(location: str) -> list:
     return ICONS["file"]["default"]
 
 
+@lru_cache(maxsize=128)
 def get_icon_for_folder(location: str) -> list:
     """Get the icon and color for a folder based on its name.
 
@@ -265,6 +268,7 @@ def get_icon_for_folder(location: str) -> list:
         return ICONS["folder"]["default"]
 
 
+@lru_cache(maxsize=128)
 def get_icon(outer_key: str, inner_key: str) -> list:
     """
     Get an icon from double keys.
@@ -280,6 +284,7 @@ def get_icon(outer_key: str, inner_key: str) -> list:
         return ICONS[outer_key][inner_key]
 
 
+@lru_cache(maxsize=128)
 def get_toggle_button_icon(key: str) -> str:
     if not config["interface"]["nerd_font"]:
         return ASCII_TOGGLE_BUTTON_ICONS[key]
