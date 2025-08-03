@@ -11,7 +11,7 @@ from rich.text import Text
 from textual import events, on, work
 from textual.app import ComposeResult
 from textual.binding import Binding, BindingType
-from textual.containers import Container, VerticalScroll
+from textual.containers import Container
 from textual.content import Content
 from textual.css.query import NoMatches
 from textual.strip import Strip
@@ -31,6 +31,7 @@ class PreviewContainer(Container):
         self._current_content = None
         self._current_file_path = None
         self._is_image = False
+        self._initial_height = self.size.height
 
     def compose(self) -> ComposeResult:
         # for some unknown reason, it started causing KeyErrors
@@ -94,6 +95,7 @@ class PreviewContainer(Container):
             return
 
         await self.remove_children()
+        self.remove_class("bat", "full")
 
         if self._is_image:
             try:
@@ -144,8 +146,8 @@ class PreviewContainer(Container):
         bat_failed = False
         error_message = ""
 
+        preview_full = config["settings"]["preview_full"]
         if config["plugins"]["bat"]["enabled"] and not is_special_content:
-            preview_full = config["settings"]["preview_full"]
             bat_executable = config["plugins"]["bat"]["executable"]
 
             command = [
@@ -182,18 +184,17 @@ class PreviewContainer(Container):
                 error_message = str(e)
 
         if bat_output is not None:
-            scrollable_container = VerticalScroll(
-                Static(
-                    Text.from_ansi(bat_output),
-                    id="text_preview",
-                    classes="inner_preview",
-                ),
-                id="previewContainerInnnerForBat",
+            scrollable_container = Static(
+                Text.from_ansi(bat_output),
+                id="text_preview",
+                classes="inner_preview" + (" clip" if not preview_full else ""),
             )
-            scrollable_container.can_focus = True
-
             await self.mount(scrollable_container)
+            scrollable_container.can_focus = True
             self.border_title = "File Preview (bat)"
+            self.add_class("bar")
+            if preview_full:
+                self.add_class("full")
             return
 
         # Fallback! This guy doesn't have bat
@@ -201,12 +202,12 @@ class PreviewContainer(Container):
             self.app.notify(
                 f"bat preview failed: {error_message}",
                 severity="warning",
-                timeout=10,
+                timeout=5,
             )
 
         text_to_display = self._current_content
 
-        if not config["settings"]["preview_full"]:
+        if not preview_full:
             lines = text_to_display.splitlines()
 
             max_lines = self.size.height
@@ -290,30 +291,31 @@ class PreviewContainer(Container):
 
     @on(events.Resize)
     async def on_resize(self, event: events.Resize) -> None:
-        """Re-render the preview on resize if it's a text file."""
-        if self._current_content is not None:
+        """Re-render the preview on resize if it's was rendered by batcat and height changed"""
+        if (
+            self._current_content is not None
+            and "clip" in self.classes
+            and event.size.height != self._initial_height
+        ):
             await self._render_preview()
 
     @on(events.Key)
     async def on_key(self, event: events.Key) -> None:
         """Check for vim keybinds"""
         if self.border_title == "File Preview (bat)":
-            vscroll = self.query_one("VerticalScroll")
             match event.key:
-                # the rest still have animation, no clue why as well :husk:
                 case key if key in config["keybinds"]["up"]:
-                    vscroll.scroll_up(animate=False)
+                    self.scroll_up(animate=False)
                 case key if key in config["keybinds"]["down"]:
-                    vscroll.scroll_down(animate=False)
+                    self.scroll_down(animate=False)
                 case key if key in config["keybinds"]["page_up"]:
-                    vscroll.scroll_page_up(animate=False)
+                    self.scroll_page_up(animate=False)
                 case key if key in config["keybinds"]["page_down"]:
-                    vscroll.scroll_page_down(animate=False)
+                    self.scroll_page_down(animate=False)
                 case key if key in config["keybinds"]["home"]:
-                    # Still kinda confused why this still doesn't have an animation
-                    vscroll.scroll_home(animate=False)
+                    self.scroll_home(animate=False)
                 case key if key in config["keybinds"]["end"]:
-                    vscroll.scroll_end(animate=False)
+                    self.scroll_end(animate=False)
 
 
 class FolderNotFileError(Exception):

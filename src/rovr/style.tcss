@@ -4,8 +4,8 @@ $border: $primary-lighten-3;
 $border-style: round;
 
 $pinned_sidebar_width: 20;
-$file_list_width: 3fr;
-$preview_sidebar_width: 2fr;
+$file_list_width: 1fr;
+$preview_sidebar_width: 35vw;
 $footer_unfocus_height: 8;
 $footer_focus_height: 10;
 
@@ -51,14 +51,26 @@ $footer_focus_height: 10;
   }
 }
 
-
 #preview_sidebar {
   height: 1fr;
   margin: 0;
   width: $preview_sidebar_width;
   border: none;
-  width: 2fr;
   padding: 0 1;
+  overflow-x: auto !important;
+  overflow-y: auto !important;
+  scrollbar-size: 0 1;
+  & > Static {
+    text-overflow: clip;
+    overflow-x: hidden;
+    text-wrap: nowrap;
+  }
+  & > * {
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+  }
 }
 
 #below_menu {
@@ -144,13 +156,6 @@ $footer_focus_height: 10;
 #preview_sidebar .inner_preview.-maximized {
   border: $border-style $border;
   border-subtitle-background: $border;
-}
-
-#preview_sidebar > * {
-  background: transparent;
-  border: none;
-  padding: 0;
-  margin: 0;
 }
 
 #preview_sidebar,
