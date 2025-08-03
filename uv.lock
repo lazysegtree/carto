@@ -655,7 +655,6 @@ dependencies = [
     { name = "lzstring" },
     { name = "pillow" },
     { name = "platformdirs" },
-    { name = "poethepoet" },
     { name = "psutil" },
     { name = "send2trash" },
     { name = "textual", extra = ["syntax"] },
@@ -671,6 +670,7 @@ dependencies = [
 [package.dev-dependencies]
 dev = [
     { name = "commitizen" },
+    { name = "poethepoet" },
     { name = "ruff" },
     { name = "textual-dev" },
 ]
@@ -681,7 +681,6 @@ requires-dist = [
     { name = "lzstring", specifier = ">=1.0.4" },
     { name = "pillow", specifier = ">=11.2.1" },
     { name = "platformdirs", specifier = ">=4.3.8" },
-    { name = "poethepoet", specifier = ">=0.36.0" },
     { name = "psutil", specifier = ">=7.0.0" },
     { name = "send2trash", specifier = ">=1.8.3" },
     { name = "textual", extras = ["syntax"], specifier = ">=3.3.0,<=4.0.0" },
@@ -697,6 +696,7 @@ requires-dist = [
 [package.metadata.requires-dev]
 dev = [
     { name = "commitizen", specifier = ">=4.8.3" },
+    { name = "poethepoet", specifier = ">=0.36.0" },
     { name = "ruff", specifier = ">=0.11.12" },
     { name = "textual-dev", specifier = ">=1.7.0" },
 ]

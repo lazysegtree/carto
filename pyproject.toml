@@ -14,7 +14,6 @@ dependencies = [
     "lzstring>=1.0.4",
     "pillow>=11.2.1",
     "platformdirs>=4.3.8",
-    "poethepoet>=0.36.0",
     "psutil>=7.0.0",
     "send2trash>=1.8.3",
     "textual-autocomplete>=4.0.4",
@@ -45,6 +44,7 @@ Issues = "https://github.com/NSPC911/rovr/issues"
 [dependency-groups]
 dev = [
     "commitizen>=4.8.3",
+    "poethepoet>=0.36.0",
     "ruff>=0.11.12",
     "textual-dev>=1.7.0",
 ]
