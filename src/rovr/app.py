@@ -322,5 +322,4 @@ class Application(App, inherit_bindings=False):
                     self.add_class("zen")
 
 
-utils.start_watcher()
 app = Application(watch_css=True)

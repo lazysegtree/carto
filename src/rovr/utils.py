@@ -4,16 +4,12 @@ import stat
 import subprocess
 from functools import lru_cache
 from os import path
-from threading import Thread
-from time import sleep
 
 import psutil
 import toml
 import ujson
 from lzstring import LZString
 from textual.widget import Widget
-from watchdog.events import FileSystemEventHandler
-from watchdog.observers import Observer
 
 from .maps import (
     ASCII_ICONS,
@@ -604,41 +600,3 @@ if not path.exists(VAR_TO_DIR["CONFIG"]):
 if not path.exists(path.join(VAR_TO_DIR["CONFIG"], "style.tcss")):
     with open(path.join(VAR_TO_DIR["CONFIG"], "style.tcss"), "a") as _:
         pass
-
-
-# watchers
-class FileEventHandler(FileSystemEventHandler):
-    @staticmethod
-    def on_modified(event):
-        if event.is_directory:
-            return
-        src_path_basename = path.basename(event.src_path)
-        if src_path_basename == "config.toml":
-            load_config()
-        elif src_path_basename == "pins.json":
-            load_pins()
-
-
-def watch_config_file() -> None:
-    event_handler = FileEventHandler()
-    observer = Observer()
-    observer.schedule(
-        event_handler, path=path.join(path.dirname(__file__), "config"), recursive=False
-    )
-    user_config_dir = VAR_TO_DIR["CONFIG"]
-    if path.exists(user_config_dir):
-        observer.schedule(event_handler, path=user_config_dir, recursive=False)
-    observer.start()
-    try:
-        while True:
-            sleep(1)
-    except Exception:
-        observer.stop()
-    observer.join()
-
-
-def start_watcher():
-    Thread(
-        target=watch_config_file,
-        daemon=True,
-    ).start()
