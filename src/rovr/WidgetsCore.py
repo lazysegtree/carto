@@ -859,49 +859,6 @@ class FileList(SelectionList, inherit_bindings=False):
         await self.on_mount(add_to_history=False)
         self.highlighted = highlighted
 
-    @on(events.Focus)
-    @work
-    async def event_on_focus(self, event: events.Focus) -> None:
-        """Handle the focus event to update the border style."""
-        if self.dummy:
-            return
-        elif self.select_mode_enabled:
-            utils.set_scuffed_subtitle(
-                self.parent, "SELECT", f"{len(self.selected)}/{len(self.options)}", True
-            )
-        else:
-            if self.highlighted is None:
-                self.highlighted = 0
-            utils.set_scuffed_subtitle(
-                self.parent,
-                "NORMAL",
-                f"{self.highlighted + 1}/{self.option_count}",
-                True,
-            )
-
-    @on(events.Blur)
-    @work
-    async def event_on_blur(self, event: events.Blur) -> None:
-        """Handle the leave event to update the border style"""
-        if self.dummy:
-            return
-        if self.select_mode_enabled:
-            utils.set_scuffed_subtitle(
-                self.parent,
-                "SELECT",
-                f"{len(self.selected)}/{len(self.options)}",
-                False,
-            )
-        else:
-            if self.highlighted is None:
-                self.highlighted = 0
-            utils.set_scuffed_subtitle(
-                self.parent,
-                "NORMAL",
-                f"{self.highlighted + 1}/{self.option_count}",
-                False,
-            )
-
     async def get_selected_objects(self) -> list[str] | None:
         """Get the selected objects in the file list."""
         cwd = utils.normalise(getcwd())
