@@ -156,6 +156,18 @@ class Application(App, inherit_bindings=False):
             self.query_one("#up").tooltip = "Go up the directory tree"
             self.query_one("#refresh").tooltip = "Refresh the file list"
 
+    def action_focus_next(self) -> None:
+        if config["settings"]["allow_tab_nav"]:
+            super().action_focus_next()
+        else:
+            return
+
+    def action_focus_previous(self) -> None:
+        if config["settings"]["allow_tab_nav"]:
+            super().action_focus_previous()
+        else:
+            return
+
     async def on_key(self, event: events.Key) -> None:
         # Not really sure why this can happen, but I will still handle this
         if self.focused is None or not self.focused.id:

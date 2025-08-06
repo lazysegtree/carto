@@ -18,6 +18,7 @@ filelist_sort_order = "ascending"
 preview_full = false
 copy_includes_metadata = true
 image_protocol = "Auto"
+allow_tab_nav = true
 
 [metadata]
 fields = ["type", "permissions", "size", "modified", "accessed", "created"]

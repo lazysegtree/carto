@@ -79,6 +79,11 @@
           "type": "boolean",
           "default": false,
           "description": "Whether or not you want to view the full file. It sort of works, not sure why it doesnt properly work, looking into it."
+        },
+        "allow_tab_nav": {
+          "type": "boolean",
+          "default": false,
+          "description": "Allow navigating the main app screen with `tab` and `shift+tab`"
         }
       }
     },
