@@ -1,6 +1,6 @@
 import shutil
 from contextlib import suppress
-from os import getcwd, path
+from os import path
 from types import SimpleNamespace
 
 from textual import events
@@ -13,7 +13,7 @@ from textual.containers import (
     VerticalGroup,
 )
 from textual.css.query import NoMatches
-from textual.widgets import Header, Input
+from textual.widgets import Input
 
 from . import utils
 from .ActionButtons import (
@@ -30,6 +30,7 @@ from .FooterWidgets import (
     MetadataContainer,
     ProcessContainer,
 )
+from .HeaderArea import HeaderArea
 from .maps import VAR_TO_DIR
 from .NavigationWidgets import (
     BackButton,
@@ -65,6 +66,7 @@ class Application(App, inherit_bindings=False):
     CSS_PATH = ["style.tcss", path.join(VAR_TO_DIR["CONFIG"], "style.tcss")]
     # reactivity
     HORIZONTAL_BREAKPOINTS = [(0, "-filelistonly"), (60, "-nopreview"), (90, "-all")]
+    # VERTICAL_BREAKPOINTS = [(0, "-footerless"), ()]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -75,12 +77,8 @@ class Application(App, inherit_bindings=False):
 
     def compose(self) -> ComposeResult:
         print("Starting Rovr...")
-        yield Header(
-            name="rovr",
-            show_clock=True,
-            icon="📁" if config["interface"]["nerd_font"] else "fs",
-        )
         with Vertical(id="root"):
+            yield HeaderArea(id="headerArea")
             with HorizontalScroll(id="menu"):
                 yield SortOrderButton()
                 yield CopyButton()
@@ -144,7 +142,6 @@ class Application(App, inherit_bindings=False):
         self.query_one("#processes").border_title = "Processes"
         self.query_one("#metadata").border_title = "Metadata"
         self.query_one("#clipboard").border_title = "Clipboard"
-        self.title = "Rovr - " + getcwd().replace(path.sep, "/")
         # themes
         for theme in get_custom_themes():
             self.register_theme(theme)
@@ -155,6 +152,10 @@ class Application(App, inherit_bindings=False):
             self.query_one("#forward").tooltip = "Go forward in history"
             self.query_one("#up").tooltip = "Go up the directory tree"
             self.query_one("#refresh").tooltip = "Refresh the file list"
+        self.tabWidget = self.query_one("Tabline")
+        # make the file list
+        self.query_one("#file_list").update_file_list()
+        self.query_one("#file_list").focus()
 
     def action_focus_next(self) -> None:
         if config["settings"]["allow_tab_nav"]:
@@ -302,6 +303,22 @@ class Application(App, inherit_bindings=False):
                     self.query_one("#footer").add_class("hide")
                 else:
                     self.query_one("#footer").remove_class("hide")
+            case key if (
+                key in config["keybinds"]["tab_next"]
+                and self.tabWidget.active_tab is not None
+            ):
+                self.tabWidget.action_next_tab()
+            case key if (
+                key in config["keybinds"]["tab_previous"]
+                and self.tabWidget.active_tab is not None
+            ):
+                self.tabWidget.action_previous_tab()
+            case key if key in config["keybinds"]["tab_new"]:
+                await self.tabWidget.add_tab(after=self.tabWidget.active_tab)
+            case key if (
+                key in config["keybinds"]["tab_close"] and self.tabWidget.tab_count > 1
+            ):
+                await self.tabWidget.remove_tab(self.tabWidget.active_tab)
             # zoxide
             case key if (
                 event.key in config["plugins"]["zoxide"]["keybinds"]

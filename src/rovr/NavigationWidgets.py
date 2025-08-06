@@ -6,7 +6,7 @@ from textual.validation import Function
 from textual.widgets import Button, Input
 from textual_autocomplete import DropdownItem, PathAutoComplete, TargetState
 
-from .utils import get_icon, normalise, state
+from .utils import get_icon, normalise
 
 
 class PathDropdownItem(DropdownItem):
@@ -138,6 +138,7 @@ class BackButton(Button):
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """Go back in the sesison's history"""
+        state = self.app.tabWidget.active_tab.session
         state.sessionHistoryIndex -= 1
         # ! reminder to add a check for path!
         chdir(state.sessionDirectories[state.sessionHistoryIndex]["path"])
@@ -152,6 +153,7 @@ class ForwardButton(Button):
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """Go forward in the session's history"""
+        state = self.app.tabWidget.active_tab.session
         state.sessionHistoryIndex += 1
         # ! reminder to add a check for path!
         chdir(state.sessionDirectories[state.sessionHistoryIndex]["path"])

@@ -457,3 +457,46 @@ ProgressBarContainer {
   .bar--indeterminate { color: $accent }
   .bar--bar { color: $warning }
 }
+#headerArea {
+  padding: 0 1 0 1;
+  #newTabRight {
+    width: 1fr;
+    Button {
+      max-width: 3;
+      background: transparent;
+      color: $foreground;
+      &.-primary.-active {
+        color: $foreground;
+        background: $background
+      }
+      &.-active {
+        background: $background;
+        color: $foreground
+      }
+    }
+  }
+  Tabline {
+    TablineTab {
+      &:hover {
+        background: $boost-lighten-3;
+        color: $foreground;
+      }
+      &.-active {
+        background: $primary;
+        color: $background;
+      }
+    }
+  }
+  &:focus-within > HeaderClock,
+  &:focus-within > #newTabRight {
+    border-bottom: heavy $foreground 30%;
+  }
+  &:focus-within > Tabline .underline--bar {
+    background: $foreground 30%;
+  }
+  HeaderClock, #newTabRight {
+    background: transparent;
+    border-bottom: heavy $foreground 10%;
+    dock: none;
+  }
+}

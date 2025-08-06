@@ -1,5 +1,4 @@
 import asyncio
-from contextlib import suppress
 from os import DirEntry, chdir, getcwd, path
 from os import system as cmd
 from typing import ClassVar
@@ -13,7 +12,6 @@ from textual.app import ComposeResult
 from textual.binding import Binding, BindingType
 from textual.containers import Container
 from textual.content import Content
-from textual.css.query import NoMatches
 from textual.strip import Strip
 from textual.widgets import Button, OptionList, SelectionList, Static, TextArea
 from textual.widgets.option_list import Option, OptionDoesNotExist
@@ -557,22 +555,8 @@ class FileList(SelectionList, inherit_bindings=False):
             else:
                 self.highlighted = clicked_option
 
-    def compose(self) -> ComposeResult:
-        yield Static()
-
-    async def on_mount(self, add_to_history: bool = True) -> None:
-        """Initialize the file list."""
-        with suppress(NoMatches):
-            self.query_one("Static").remove()
-        if not self.dummy:
-            self.update_file_list(
-                sort_by=self.sort_by,
-                sort_order=self.sort_order,
-                add_to_session=add_to_history,
-            )
-            self.focus()
-
-    def update_file_list(
+    @work(exclusive=True)
+    async def update_file_list(
         self,
         sort_by: str = "name",
         sort_order: str = "ascending",
@@ -587,6 +571,12 @@ class FileList(SelectionList, inherit_bindings=False):
         """
         cwd = utils.normalise(getcwd())
         self.clear_options()
+        # get sessionstate
+        try:
+            session = self.app.tabWidget.active_tab.session
+        except AttributeError:  # before mounting
+            return
+        print(self.app.tabWidget.active_tab)
         # Separate folders and files
         folders, files = utils.get_cwd_object(cwd, sort_order, sort_by)
         if folders == [PermissionError] or files == [PermissionError]:
@@ -621,43 +611,48 @@ class FileList(SelectionList, inherit_bindings=False):
                 )
         # session handler
         self.app.query_one("#path_switcher").value = cwd + "/"
+        # I question to myself why sessionDirectories isnt a list[str]
+        # but is a list[dict], so I'm down to take some PRs, because
+        # I have other things that are more important.
+        # TODO: use list[str] instead of list[dict] for sessionDirectories
         if add_to_session:
-            if (
-                utils.state.sessionHistoryIndex
-                != len(utils.state.sessionDirectories) - 1
-            ):
-                utils.state.sessionDirectories = utils.state.sessionDirectories[
-                    : utils.state.sessionHistoryIndex + 1
+            if session.sessionHistoryIndex != len(session.sessionDirectories) - 1:
+                session.sessionDirectories = session.sessionDirectories[
+                    : session.sessionHistoryIndex + 1
                 ]
-            utils.state.sessionDirectories.append({
+            session.sessionDirectories.append({
                 "path": cwd,
             })
-            if utils.state.sessionLastHighlighted.get(cwd) is None:
+            if session.sessionLastHighlighted.get(cwd) is None:
                 # Hard coding is my passion (referring to the id)
-                utils.state.sessionLastHighlighted[cwd] = (
+                session.sessionLastHighlighted[cwd] = (
                     self.app.query_one("#file_list").options[0].value
                 )
-            utils.state.sessionHistoryIndex = len(utils.state.sessionDirectories) - 1
-        self.app.query_one("Button#back").disabled = (
-            utils.state.sessionHistoryIndex == 0
-        )
+            session.sessionHistoryIndex = len(session.sessionDirectories) - 1
+        elif session.sessionDirectories == []:
+            session.sessionDirectories = [{"path": utils.normalise(getcwd())}]
+        self.app.query_one("Button#back").disabled = session.sessionHistoryIndex == 0
+        print("sessionHistoryIndex", session.sessionHistoryIndex)
+        print("sessionDirectories", session.sessionDirectories)
         self.app.query_one("Button#forward").disabled = (
-            utils.state.sessionHistoryIndex == len(utils.state.sessionDirectories) - 1
+            session.sessionHistoryIndex == len(session.sessionDirectories) - 1
         )
         try:
             self.highlighted = self.get_option_index(
-                utils.state.sessionLastHighlighted[cwd]
+                session.sessionLastHighlighted[cwd]
             )
         except OptionDoesNotExist:
             self.highlighted = 0
-            utils.state.sessionLastHighlighted[cwd] = (
+            session.sessionLastHighlighted[cwd] = (
                 self.app.query_one("#file_list").options[0].value
             )
         except KeyError:
             self.highlighted = 0
-            utils.state.sessionLastHighlighted[cwd] = (
+            session.sessionLastHighlighted[cwd] = (
                 self.app.query_one("#file_list").options[0].value
             )
+        self.app.tabWidget.active_tab.label = path.basename(getcwd())
+        self.app.tabWidget.parent.on_resize()
 
     def dummy_update_file_list(
         self,
@@ -773,9 +768,9 @@ class FileList(SelectionList, inherit_bindings=False):
             )
         # Get the highlighted option
         highlighted_option = event.option
-        utils.state.sessionLastHighlighted[utils.normalise(getcwd())] = (
-            highlighted_option.value
-        )
+        self.app.tabWidget.active_tab.session.sessionLastHighlighted[
+            utils.normalise(getcwd())
+        ] = highlighted_option.value
         # Get the filename from the option id
         file_name = utils.decompress(highlighted_option.value)
         # total files as footer

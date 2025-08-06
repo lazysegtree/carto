@@ -113,13 +113,13 @@ This is a list of features that I plan to add before releasing the appropriate v
 
 #### Version 1
 
-Status: 24/29
+Status: 26/29
 
 - [x] Directory Auto-completion (explorer)
 - [x] Button Navigation (explorer)
 - Keyboard Navigation
   - [x] Directory Navigation (explorer)
-  - [ ] Others (superfile)
+  - [x] Others (superfile)
 - [x] Double Click to enter into directories (explorer)
 - Configuration (superfile)
   - [x] Base
@@ -137,7 +137,7 @@ Status: 24/29
   - [x] Paste files and folders
     - [x] Warn when overwriting same named files
 - Multiple File Lists
-  - [ ] Tabs
+  - [x] Tabs
   - [ ] Vertical and Horizontal Splits
 - [x] Active and Completed processes (superfile)
 - Actions bar (explorer)

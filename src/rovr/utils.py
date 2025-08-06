@@ -57,8 +57,6 @@ class ConfigError(Exception):
         super().__init__(self.message)
 
 
-state = SessionManager()
-
 config = {}
 pins = {}
 

@@ -42,6 +42,23 @@
           "type": "string",
           "default": "print(\"Hello, world!\")",
           "description": "This is shown when the rovr starts up. You may see it for a split second, but it will never appear afterwards."
+        },
+        "clock": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true,
+              "description": "Show a clock in the tabs bar."
+            },
+            "align": {
+              "type": "string",
+              "default": "right",
+              "description": "Align the clock to either the 'right' or 'left' of the tabs bar.",
+              "enum": ["left", "right"]
+            }
+          }
         }
       }
     },
@@ -84,6 +101,11 @@
           "type": "boolean",
           "default": false,
           "description": "Allow navigating the main app screen with `tab` and `shift+tab`"
+        },
+        "append_new_tabs": {
+          "type": "boolean",
+          "default": true,
+          "description": "Choose whether or not to append new tabs instead of inserting them.\n`true` => Append to the end of the tab list.\n`false` => Insert after the active tab."
         }
       }
     },
@@ -470,6 +492,34 @@
             "type": "string"
           },
           "description": "While in visual mode, extend the selection to the last option."
+        },
+        "tab_next": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Go to the next tab, if it is available."
+        },
+        "tab_previous": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Go to the previous tab, if it is available."
+        },
+        "tab_new": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Create a new tab."
+        },
+        "tab_close": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Close the current tab."
         }
       }
     },
