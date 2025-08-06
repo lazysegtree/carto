@@ -16,6 +16,8 @@ from textual.strip import Strip
 from textual.widgets import Button, OptionList, SelectionList, Static, TextArea
 from textual.widgets.option_list import Option, OptionDoesNotExist
 from textual.widgets.selection_list import Selection
+from watchdog.events import FileSystemEvent, FileSystemEventHandler
+from watchdog.observers import Observer
 
 from . import utils
 from .maps import EXT_TO_LANG_MAP, PIL_EXTENSIONS
@@ -477,6 +479,23 @@ class FileListSelectionWidget(Selection):
         self.dir_entry = dir_entry
 
 
+class FileListEventHandler(FileSystemEventHandler):
+    """Handles file system events and notifies the FileList widget."""
+
+    def __init__(self, file_list_widget: "FileList"):
+        super().__init__()
+        self.file_list_widget = file_list_widget
+
+    def on_any_event(self, event: FileSystemEvent) -> None:
+        """
+        Called when any event is detected.
+
+        Args:
+            event: The event object.
+        """
+        self.file_list_widget.app.call_from_thread(self.file_list_widget.queue_refresh)
+
+
 class FileList(SelectionList, inherit_bindings=False):
     """
     OptionList but can multi-select files and folders.
@@ -538,6 +557,39 @@ class FileList(SelectionList, inherit_bindings=False):
         self.dummy = dummy
         self.enter_into = enter_into
         self.select_mode_enabled = select
+        self.observer = None
+        self._refresh_task = None
+
+    def on_unmount(self) -> None:
+        """Stop the directory watcher when the widget is unmounted."""
+        self.stop_watching()
+
+    def start_watching(self, path: str) -> None:
+        """
+        Start watching a directory for changes.
+
+        Args:
+            path (str): The path to the directory to watch.
+        """
+        self.stop_watching()
+        self.observer = Observer()
+        event_handler = FileListEventHandler(self)
+        self.observer.schedule(event_handler, path, recursive=False)
+        self.observer.start()
+
+    def stop_watching(self) -> None:
+        """Stop watching the current directory."""
+        if self.observer:
+            self.observer.stop()
+            self.observer.join()
+            self.observer = None
+
+    @work(exclusive=True)
+    async def queue_refresh(self) -> None:
+        """Queue a refresh of the file list."""
+        if self._refresh_task:
+            self._refresh_task.stop()
+        self._refresh_task = self.set_timer(0.1, self.update_file_list)
 
     # ignore single clicks
     async def _on_click(self, event: events.Click) -> None:
@@ -631,6 +683,7 @@ class FileList(SelectionList, inherit_bindings=False):
             session.sessionHistoryIndex = len(session.sessionDirectories) - 1
         elif session.sessionDirectories == []:
             session.sessionDirectories = [{"path": utils.normalise(getcwd())}]
+        self.start_watching(cwd)
         self.app.query_one("Button#back").disabled = session.sessionHistoryIndex == 0
         print("sessionHistoryIndex", session.sessionHistoryIndex)
         print("sessionDirectories", session.sessionDirectories)
