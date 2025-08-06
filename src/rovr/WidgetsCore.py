@@ -653,7 +653,11 @@ class FileList(SelectionList, inherit_bindings=False):
             utils.state.sessionLastHighlighted[cwd] = (
                 self.app.query_one("#file_list").options[0].value
             )
-        self.app.title = f"rovr - {utils.normalise(cwd)}"
+        except KeyError:
+            self.highlighted = 0
+            utils.state.sessionLastHighlighted[cwd] = (
+                self.app.query_one("#file_list").options[0].value
+            )
 
     def dummy_update_file_list(
         self,
