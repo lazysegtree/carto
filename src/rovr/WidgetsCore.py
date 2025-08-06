@@ -652,6 +652,7 @@ class FileList(SelectionList, inherit_bindings=False):
                 self.app.query_one("#file_list").options[0].value
             )
         self.app.tabWidget.active_tab.label = path.basename(getcwd())
+        self.app.tabWidget.active_tab.directory = getcwd()
         self.app.tabWidget.parent.on_resize()
 
     def dummy_update_file_list(
