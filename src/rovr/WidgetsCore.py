@@ -651,8 +651,8 @@ class FileList(SelectionList, inherit_bindings=False):
             session.sessionLastHighlighted[cwd] = (
                 self.app.query_one("#file_list").options[0].value
             )
-        self.app.tabWidget.active_tab.label = path.basename(getcwd())
-        self.app.tabWidget.active_tab.directory = getcwd()
+        self.app.tabWidget.active_tab.label = path.basename(cwd)
+        self.app.tabWidget.active_tab.directory = cwd
         self.app.tabWidget.parent.on_resize()
 
     def dummy_update_file_list(
