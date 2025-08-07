@@ -62,6 +62,18 @@ class Tabline(Tabs):
         # redo max-width
         self.parent.on_resize()
 
+    async def remove_tab(self, tab_or_id: Tab | str | None) -> AwaitComplete:
+        """Remove a tab.
+
+        Args:
+            tab_or_id: The Tab to remove or its id.
+
+        Returns:
+            An optionally awaitable object that waits for the tab to be removed.
+        """
+        super().remove_tab(tab_or_id=tab_or_id)
+        self.parent.on_resize()
+
     @on(Tab.Clicked)
     @on(Tabs.TabActivated)
     async def check_tab_click(self, event: TablineTab.Clicked | Tab.Clicked):
