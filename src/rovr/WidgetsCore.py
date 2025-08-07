@@ -607,8 +607,7 @@ class FileList(SelectionList, inherit_bindings=False):
             else:
                 self.highlighted = clicked_option
 
-    @work(exclusive=True)
-    async def update_file_list(
+    def update_file_list(
         self,
         sort_by: str = "name",
         sort_order: str = "ascending",
