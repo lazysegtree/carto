@@ -854,7 +854,7 @@ class FileList(SelectionList, inherit_bindings=False):
         """Toggle the selection mode between select and normal."""
         self.select_mode_enabled = not self.select_mode_enabled
         highlighted = self.highlighted
-        await self.on_mount(add_to_history=False)
+        self.update_file_list(add_to_session=False)
         self.highlighted = highlighted
 
     async def get_selected_objects(self) -> list[str] | None:
