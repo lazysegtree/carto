@@ -12,9 +12,8 @@
 <!--toc:start-->
 
 - [What and Why?](#what-and-why)
+- [Installation](#installation)
 - [Screenshots](#screenshots)
-- [Test run with uv](#test-run-with-uv)
-- [Install from PyPI's test server](#install-from-pypis-test-server)
 - [FAQ](#faq)
 - [Road map](#road-map)
   - [Version 1](#version-1)
@@ -29,6 +28,20 @@
   - Because I can :3
   - I'm using this as a learning opportunity to learn more about Textual, and designing a neat little app for myself.
 
+### Installation
+
+```pwsh
+# Test the main branch
+uvx --from git+https://github.com/NSPC911/rovr.git -q rovr --python 3.13
+# Install
+## uv (my fav)
+uv tool install rovr
+## or pipx
+pipx install rovr
+## or plain old pip
+pip install rovr
+```
+
 ### Screenshots
 
 Startup
@@ -42,23 +55,6 @@ Delete selected items
 
 Zoxide integration
 <img alt="Version 0.0.0.4" src="https://github.com/NSPC911/rovr/blob/master/img/0.0.0.4/rovr_zoxide.png?raw=true">
-
-### Test run with uv
-
-```pwsh
-uvx --from git+https://github.com/NSPC911/rovr.git -q rovr --python 3.13
-```
-
-### Install from PyPI's test server
-
-```pwsh
-# uv (my fav)
-uv tool install rovr
-# or pipx
-pipx install rovr
-# or plain old pip
-pip install rovr
-```
 
 ### FAQ
 
@@ -93,18 +89,16 @@ variables = {
    - Refer to the road map. There is many features yet to be completed. Pull Requests are appreciated
 4. What can I contribute?
    - Themes, and features can be contributed.
-   - Refactors will be frowned on, and may take a longer time before merging
+   - Refactors will be frowned on, and may take a longer time before merging.
 5. I want to add a feature/theme/etc! How do I do so?
    - You need [uv](https://docs.astral.sh/uv) at minimum. [pre-commit](https://pre-commit.com/) and [ruff](https://docs.astral.sh/ruff) are recommended to be installed.
-   - Clone the repo, and inside it, run `uv sync` and `pre-commit install`
-   - Make your changes, ensure that your changes are properly formatted (via the pre-commit hook), before pushing to a **custom** branch on your fork
+   - Clone the repo, and inside it, run `uv sync` and `pre-commit install`.
+   - Make your changes, ensure that your changes are properly formatted (via the pre-commit hook), before pushing to a **custom** branch on your fork.
 6. How do I make a feature suggestion?
    - Open an issue using the `feature-request` tag. Issue templates will come soon.
-7. Why is it on [test.pypi.org](https://test.pypi.org) and not [pypi.org](https://pypi.org)
-   - I need somewhere to act as a mini sadbox to learn more about pypi before I make any permenant mistakes in the actual app to be listed on the main pypi repository
-8. Why not ratatui or bubbletea??? <sub><i>angry noises</i></sub>
+7. Why not ratatui or bubbletea??? <sub><i>angry noises</i></sub>
    - I like python.
-9. When will it be completed?
+8. When will it be completed?
    - When it is completed.
 
 ### Road map
@@ -113,7 +107,7 @@ This is a list of features that I plan to add before releasing the appropriate v
 
 #### Version 1
 
-Status: 26/29
+Status: 26/28
 
 - [x] Directory Auto-completion (explorer)
 - [x] Button Navigation (explorer)
@@ -138,7 +132,6 @@ Status: 26/29
     - [x] Warn when overwriting same named files
 - Multiple File Lists
   - [x] Tabs
-  - [ ] Vertical and Horizontal Splits
 - [x] Active and Completed processes (superfile)
 - Actions bar (explorer)
   - [ ] Change sort order of files
@@ -155,3 +148,8 @@ Status: 26/29
 - [ ] Plugins using [pytest-dev/pluggy](https://github.com/pytest-dev/pluggy) or a custom way (I wish not)
 - [ ] Cross process clipboard sync (two rovr instances should have synced clipboards)
 - [ ] Recycle Bin of 1-day when files get overwritten (Currently handled with `sendtotrash` but it doesn't work at times, so not a reliable solution)
+
+#### Declined Features
+
+- Horizontal and Vertical Splits
+- Transparent UI
