@@ -5,7 +5,6 @@ from textual.app import ComposeResult
 from textual.containers import Container, Grid, HorizontalGroup, VerticalGroup
 from textual.content import Content
 from textual.screen import ModalScreen
-from textual.types import DuplicateID
 from textual.widgets import Button, Input, Label, OptionList, Switch
 from textual.widgets.option_list import Option
 
@@ -183,7 +182,7 @@ class ZToDirectory(ModalScreen):
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
-        self._search_task = None  # To hold the current search task
+        self._queued_task = None
 
     def compose(self) -> ComposeResult:
         with VerticalGroup(id="zoxide_group", classes="zoxide_group"):
@@ -204,47 +203,78 @@ class ZToDirectory(ModalScreen):
         zoxide_options = self.query_one("#zoxide_options")
         zoxide_options.border_title = "Folders"
         zoxide_options.can_focus = False
-        self.on_input_changed(Input.Changed(zoxide_input, value=""))
+        self.zoxide_updater(Input.Changed(zoxide_input, value=""))
 
-    @work(thread=True, exclusive=True)
     def on_input_changed(self, event: Input.Changed) -> None:
+        if any(
+            worker.is_running and worker.node is self for worker in self.app.workers
+        ):
+            print("Worker is apparently running I think")
+            self._queued_task = lambda: self.zoxide_updater(event=event)
+        else:
+            self.zoxide_updater(event=event)
+
+    def any_in_queue(self) -> bool:
+        if self._queued_task is not None:
+            self._queued_task()
+            self._queued_task = None
+            return True
+        return False
+
+    @work(thread=True)
+    def zoxide_updater(self, event: Input.Changed) -> None:
         """Update the list"""
         search_term = self.query_one("#zoxide_input").value.strip()
+        # check 1 for queue, to ignore subprocess as a whole
+        if self.any_in_queue():
+            print("Pre subprocess")
+            return
         zoxide_output = run(
             ["zoxide", "query", "--list"] + search_term.split(),
             capture_output=True,
             text=True,
         )
-        zoxide_options = self.query_one("#zoxide_options")
+        # check 2 for queue, to ignore mounting as a whole
+        if self.any_in_queue():
+            print("Post subprocess, pre mount")
+            return
+        zoxide_options = self.query_one("#zoxide_options", OptionList)
         zoxide_options.add_class("empty")
         options = []
-        try:
-            if zoxide_output.stdout:
+        if zoxide_output.stdout:
+            for line in zoxide_output.stdout.splitlines():
+                options.append(Option(Content(f" {line}"), id=utils.compress(line)))
+            if len(options) == len(zoxide_options.options) and all(
+                options[i].id == zoxide_options.options[i].id
+                for i in range(len(options))
+            ):  # ie same~ish query
+                print("Same-ish~ results found")
+                # Sameish result found
+                pass
+            else:
                 # unline normally, im using an add_option**s** function
                 # using it without has a likelyhood of DuplicateID being
                 # raised, or just nothing showing up. By having the clear
                 # options and add options functions nearby, it hopefully
                 # reduces the likelihood of an empty option list
-                for line in zoxide_output.stdout.splitlines():
-                    options.append(Option(Content(f" {line}"), id=utils.compress(line)))
                 self.app.call_from_thread(zoxide_options.clear_options)
                 self.app.call_from_thread(zoxide_options.add_options, options)
                 zoxide_options.remove_class("empty")
                 zoxide_options.highlighted = 0
-            else:
-                self.app.call_from_thread(zoxide_options.clear_options)
-                self.app.call_from_thread(
-                    zoxide_options.add_option,
-                    Option("  --No matches found--", disabled=True),
-                )
-        except DuplicateID:
-            # if this function runs again somehow, this helps solve it partially
-            # testing it here, before I can see what I can do in other places
-            if self._search_task:
-                self._search_task.cancel()
-            self._search_task = self.set_timer(
-                0.25, self.query_one(Input).action_submit
+        else:
+            # No Matches to the query text
+            print("No matches found")
+            self.app.call_from_thread(zoxide_options.clear_options)
+            self.app.call_from_thread(
+                zoxide_options.add_option,
+                Option("  --No matches found--", disabled=True),
             )
+        # check 3, if somehow theres a new request after the mount
+        if self.any_in_queue():
+            print("Post mount")
+            return  # nothing much to do now
+        else:
+            self._queued_task = None
 
     def on_input_submitted(self, event: Input.Submitted) -> None:
         zoxide_options = self.query_one("#zoxide_options")
