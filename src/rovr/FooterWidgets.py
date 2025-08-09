@@ -6,7 +6,6 @@ from datetime import datetime
 from os import DirEntry, getcwd, lstat, makedirs, path, remove, walk
 from typing import ClassVar
 
-from humanize import naturalsize
 from rich.segment import Segment
 from rich.style import Style
 from send2trash import send2trash
@@ -339,7 +338,7 @@ class MetadataContainer(VerticalScroll):
                 case "size":
                     values_list.append(
                         Static(
-                            naturalsize(file_stat.st_size)
+                            utils.natural_size(file_stat.st_size)
                             if type_str == "File"
                             else "--",
                             id="metadata-size",
@@ -416,14 +415,16 @@ class MetadataContainer(VerticalScroll):
                 self.app.call_from_thread(
                     self.set_timer,
                     0.1,
-                    lambda: size_widget.update(naturalsize(total_size)),
+                    lambda: size_widget.update(utils.natural_size(total_size)),
                 )
         except (OSError, FileNotFoundError):
             self.app.call_from_thread(size_widget.update, "Error")
             return
 
         if not self._size_worker.is_cancelled:
-            self.app.call_from_thread(size_widget.update, naturalsize(total_size))
+            self.app.call_from_thread(
+                size_widget.update, utils.natural_size(total_size)
+            )
 
     @on(events.Focus)
     def on_focus(self) -> None:

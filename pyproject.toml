@@ -23,6 +23,7 @@ dependencies = [
     "tree-sitter<=0.24.0",
     "toml>=0.10.2",
     "ujson>=5.10.0",
+    "jsonschema>=4.25.0",
 ]
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
