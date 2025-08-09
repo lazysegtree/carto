@@ -140,6 +140,17 @@
           "type": "string",
           "default": "%Y-%m-%d %H:%M",
           "description": "The datetime format for Metadata. Refer to https://docs.python.org/3/library/datetime.html#format-codes for more information."
+        },
+        "filesize_decimals": {
+          "type": "integer",
+          "default": 1,
+          "description": "The number of decimals you want to see in the humanized file size"
+        },
+        "filesize_suffix": {
+          "type": "string",
+          "default": "decimal",
+          "description": "The filesize suffix to follow.\n`decimal`: 1024 -> 1.024kB\n`binary`: 1024 -> 1KiB\n`gnu`: 1024 -> 1K",
+          "enum": ["decimal", "binary", "gnu"]
         }
       }
     },

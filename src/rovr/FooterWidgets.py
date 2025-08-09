@@ -22,6 +22,7 @@ from textual.types import UnusedParameter
 from textual.widgets import Label, ProgressBar, SelectionList, Static
 from textual.widgets.option_list import OptionDoesNotExist
 from textual.widgets.selection_list import Selection
+from textual.worker import WorkerState
 
 from . import utils
 from .ScreensCore import CopyOverwrite, Dismissable, YesOrNo
@@ -396,29 +397,33 @@ class MetadataContainer(VerticalScroll):
         if type_str == "Directory" and self.has_focus:
             self._size_worker = self.calculate_folder_size(dir_entry.path)
 
-    @work
+    @work(thread=True)
     async def calculate_folder_size(self, folder_path: str) -> None:
         """Calculate the size of a folder and update the metadata."""
         size_widget = self.query_one("#metadata-size", Static)
-        self.call_later(size_widget.update, "Calculating...")
+        self.app.call_from_thread(size_widget.update, "Calculating...")
 
         total_size = 0
         try:
             for dirpath, _, filenames in walk(folder_path):
-                if self._size_worker.is_cancelled:
-                    self.call_later(size_widget.update, "--")
-                    return
                 for f in filenames:
+                    if self._size_worker.is_cancelled:
+                        return
                     fp = path.join(dirpath, f)
                     if not path.islink(fp):
                         with suppress(OSError, FileNotFoundError):
                             total_size += lstat(fp).st_size
+                self.app.call_from_thread(
+                    self.set_timer,
+                    0.1,
+                    lambda: size_widget.update(naturalsize(total_size)),
+                )
         except (OSError, FileNotFoundError):
-            self.call_later(size_widget.update, "Error")
+            self.app.call_from_thread(size_widget.update, "Error")
             return
 
         if not self._size_worker.is_cancelled:
-            self.call_later(size_widget.update, naturalsize(total_size))
+            self.app.call_from_thread(size_widget.update, naturalsize(total_size))
 
     @on(events.Focus)
     def on_focus(self) -> None:
@@ -429,9 +434,14 @@ class MetadataContainer(VerticalScroll):
 
     @on(events.Blur)
     def on_blur(self) -> None:
-        if self._size_worker:
+        if self._size_worker.state == WorkerState.SUCCESS:
+            self._size_worker = None
+        else:
             self._size_worker.cancel()
             self._size_worker = None
+            self.set_timer(
+                0.1, lambda: self.query_one("#metadata-size", Static).update("--")
+            )
 
 
 class ProgressBarContainer(VerticalGroup):
