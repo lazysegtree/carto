@@ -4,74 +4,52 @@ version = "0.0.3-post3"
 description = "A post-modern terminal file explorer"
 readme = "README.md"
 requires-python = ">= 3.13"
-authors = [
-    { name = "NSPC911" }
-]
 license = { text = "MIT" }
-keywords = ["python", "textual", "tui", "filemanager", "fs"]
-dependencies = [
-    "humanize>=4.12.3",
-    "lzstring>=1.0.4",
-    "pillow>=11.2.1",
-    "platformdirs>=4.3.8",
-    "psutil>=7.0.0",
-    "send2trash>=1.8.3",
-    "textual-autocomplete>=4.0.4",
-    "textual-image[textual]>=0.8.2",
-    "textual[syntax]>=3.3.0,<=4.0.0",
-    "thefuzz>=0.22.1",
-    "tree-sitter<=0.24.0",
-    "toml>=0.10.2",
-    "ujson>=5.10.0",
-    "jsonschema>=4.25.0",
-]
+authors = [{ name = "NSPC911" }]
+keywords = ["filemanager", "fs", "python", "textual", "tui"]
 classifiers = [
-    "Development Status :: 2 - Pre-Alpha",
-    "License :: OSI Approved :: MIT License",
-    "Programming Language :: Python :: 3.13",
-    "Topic :: Utilities",
-    # "Framework :: Textual", # I highly believe textual deserves its own category
-    "Topic :: Desktop Environment :: File Managers"
+  "Development Status :: 2 - Pre-Alpha",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3.13",
+  # "Framework :: Textual", # I highly believe textual deserves its own category
+  "Topic :: Desktop Environment :: File Managers",
+  "Topic :: Utilities",
 ]
+dependencies = [
+  "humanize>=4.12.3",
+  "jsonschema>=4.25.0",
+  "lzstring>=1.0.4",
+  "pillow>=11.2.1",
+  "platformdirs>=4.3.8",
+  "psutil>=7.0.0",
+  "send2trash>=1.8.3",
+  "textual-autocomplete>=4.0.4",
+  "textual-image[textual]>=0.8.2",
+  "textual[syntax]>=3.3.0,<=4.0.0",
+  "thefuzz>=0.22.1",
+  "toml>=0.10.2",
+  "tree-sitter<=0.24.0",
+  "ujson>=5.10.0",
+]
+
+[project.urls]
+Issues = "https://github.com/NSPC911/rovr/issues"
+Source = "https://github.com/NSPC911/rovr"
 
 [project.scripts]
 rovr = "rovr.__main__:main"
 
-[project.urls]
-Source = "https://github.com/NSPC911/rovr"
-Issues = "https://github.com/NSPC911/rovr/issues"
-
 [dependency-groups]
 dev = [
-    "commitizen>=4.8.3",
-    "poethepoet>=0.36.0",
-    "ruff>=0.11.12",
-    "textual-dev>=1.7.0",
+  "commitizen>=4.8.3",
+  "poethepoet>=0.36.0",
+  "ruff>=0.11.12",
+  "textual-dev>=1.7.0",
 ]
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
-
-[tool.ruff.lint]
-select = [
-  "ASYNC251",
-  "COM819",
-  "E",
-  "F",
-  "I",
-  "Q",
-  "SIM",
-  "W",
-]
-ignore = ["W505", "E501"]
-preview = true
-
-[tool.ruff.format]
-quote-style = "double"
-indent-style = "space"
-line-ending = "auto"
-preview = true
 
 [tool.commitizen]
 name = "cz_conventional_commits"
@@ -85,3 +63,31 @@ major_version_zero = false
 dev = "textual run --dev rovr.app:Application"
 run = "rovr.__main__:main"
 log = "textual console -x WORKER -x SYSTEM -x DEBUG -x EVENT"
+
+[tool.ruff.lint]
+select = [
+  "ASYNC251",
+  "ANN",
+  "COM819",
+  "C400",
+  "DOC",
+  "D404",
+  "E",
+  "F",
+  "I",
+  "N801", "N802", "N805",
+  "PLE1142",
+  "Q",
+  "SIM",
+  "TD",
+  "W",
+]
+ignore = ["W505", "E501", "ANN002", "ANN003", "TD002", "TD003"]
+preview = true
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+preview = true
+

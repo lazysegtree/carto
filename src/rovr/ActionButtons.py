@@ -12,7 +12,7 @@ from .utils import config, decompress, get_icon, normalise
 class SortOrderButton(Button):
     ALLOW_MAXIMIZE = False
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(
             get_icon("general", "up")[0],
             classes="option",
@@ -31,7 +31,7 @@ class SortOrderButton(Button):
 class CopyButton(Button):
     ALLOW_MAXIMIZE = False
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(
             get_icon("general", "copy")[0], classes="option", id="copy", *args, **kwargs
         )
@@ -52,7 +52,7 @@ class CopyButton(Button):
 class CutButton(Button):
     ALLOW_MAXIMIZE = False
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(
             get_icon("general", "cut")[0], classes="option", id="cut", *args, **kwargs
         )
@@ -73,7 +73,7 @@ class CutButton(Button):
 class PasteButton(Button):
     ALLOW_MAXIMIZE = False
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(
             get_icon("general", "paste")[0],
             classes="option",
@@ -86,7 +86,7 @@ class PasteButton(Button):
         if config["interface"]["tooltips"]:
             self.tooltip = "Paste files from clipboard"
 
-    async def on_button_pressed(self, event: Button.Pressed):
+    async def on_button_pressed(self, event: Button.Pressed) -> None:
         """Paste files from clipboard"""
         selected_items = self.app.query_one(
             "Clipboard"
@@ -131,7 +131,7 @@ class PasteButton(Button):
 class NewItemButton(Button):
     ALLOW_MAXIMIZE = False
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(
             get_icon("general", "new")[0], classes="option", id="new", *args, **kwargs
         )
@@ -198,7 +198,7 @@ class NewItemButton(Button):
 class RenameItemButton(Button):
     ALLOW_MAXIMIZE = False
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(
             get_icon("general", "rename")[0],
             classes="option",
@@ -254,7 +254,7 @@ class RenameItemButton(Button):
 class DeleteButton(Button):
     ALLOW_MAXIMIZE = False
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(
             get_icon("general", "delete")[0],
             classes="option",

@@ -16,7 +16,7 @@ class PathDropdownItem(DropdownItem):
 
 
 class PathAutoCompleteInput(PathAutoComplete):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(
             path=getcwd().split(path.sep)[0],
             folder_prefix=get_icon("folder", "default")[0] + " ",
@@ -35,7 +35,12 @@ class PathAutoCompleteInput(PathAutoComplete):
         )
 
     def get_candidates(self, target_state: TargetState) -> list[DropdownItem]:
-        """Get the candidates for the current path segment, folders only."""
+        """Get the candidates for the current path segment, folders only.
+        Args:
+            target_state (TargetState): The current state of the Input element
+
+        Returns:
+            list[DropdownItem]: A list of DropdownItems to use as AutoComplete"""
         current_input = target_state.text[: target_state.cursor_position]
 
         if "/" in current_input:
@@ -104,7 +109,7 @@ class PathAutoCompleteInput(PathAutoComplete):
 class PathInput(Input):
     ALLOW_MAXIMIZE = False
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(
             id="path_switcher",
             validators=[Function(lambda x: path.exists(x), "Path does not exist")],
@@ -133,7 +138,7 @@ class PathInput(Input):
 
 
 class BackButton(Button):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(get_icon("general", "left")[0], id="back", *args, **kwargs)
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
@@ -148,7 +153,7 @@ class BackButton(Button):
 
 
 class ForwardButton(Button):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(get_icon("general", "right")[0], id="forward", *args, **kwargs)
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
@@ -163,7 +168,7 @@ class ForwardButton(Button):
 
 
 class UpButton(Button):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(get_icon("general", "up")[0], id="up", *args, **kwargs)
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
@@ -176,7 +181,7 @@ class UpButton(Button):
 
 
 class RefreshButton(Button):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(
             get_icon("general", "refresh")[0], id="refresh", *args, **kwargs
         )

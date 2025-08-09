@@ -16,7 +16,7 @@ from .utils import config
 class Dismissable(ModalScreen):
     """Super simple screen that can be dismissed."""
 
-    def __init__(self, message: str, **kwargs):
+    def __init__(self, message: str, **kwargs) -> None:
         super().__init__(**kwargs)
         self.message = message
 
@@ -50,7 +50,7 @@ class Dismissable(ModalScreen):
 class YesOrNo(ModalScreen):
     """Screen with a dialog that asks whether you accept or deny"""
 
-    def __init__(self, message: str, reverse_color: bool = False, **kwargs):
+    def __init__(self, message: str, reverse_color: bool = False, **kwargs) -> None:
         super().__init__(**kwargs)
         self.message = message
         self.reverse_color = reverse_color
@@ -85,7 +85,7 @@ class YesOrNo(ModalScreen):
 class CopyOverwrite(ModalScreen):
     """Screen with a dialog to confirm whether to overwrite, rename, skip or cancel."""
 
-    def __init__(self, message: str, **kwargs):
+    def __init__(self, message: str, **kwargs) -> None:
         super().__init__(**kwargs)
         self.message = message
 
@@ -106,7 +106,7 @@ class CopyOverwrite(ModalScreen):
             "same_for_next": self.query_one(Switch).value,
         })
 
-    def on_key(self, event) -> None:
+    def on_key(self, event: events.Key) -> None:
         """Handle key presses."""
         if event.key.lower() == "o":
             event.stop()
@@ -137,7 +137,7 @@ class CopyOverwrite(ModalScreen):
 class DeleteFiles(ModalScreen):
     """Screen with a dialog to confirm whether to delete files."""
 
-    def __init__(self, message: str, **kwargs):
+    def __init__(self, message: str, **kwargs) -> None:
         super().__init__(**kwargs)
         self.message = message
 
@@ -156,7 +156,7 @@ class DeleteFiles(ModalScreen):
         """Handle button presses."""
         self.dismiss(event.button.id)
 
-    def on_key(self, event) -> None:
+    def on_key(self, event: events.Key) -> None:
         """Handle key presses."""
         if event.key.lower() == "d":
             event.stop()
@@ -181,7 +181,7 @@ class DeleteFiles(ModalScreen):
 class ZToDirectory(ModalScreen):
     """Screen with a dialog to z to a directory, using zoxide"""
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
         self._search_task = None  # To hold the current search task
 
@@ -299,7 +299,7 @@ class ModalInput(ModalScreen):
         border_subtitle: str = "",
         initial_value: str = "",
         **kwargs,
-    ):
+    ) -> None:
         super().__init__(**kwargs)
         self.border_title = border_title
         self.border_subtitle = border_subtitle

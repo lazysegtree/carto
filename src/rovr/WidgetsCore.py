@@ -24,7 +24,7 @@ from .utils import config
 
 
 class PreviewContainer(Container):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self._update_task = None
         self._current_content = None
@@ -98,24 +98,13 @@ class PreviewContainer(Container):
 
         if self._is_image:
             try:
-                if config["settings"]["image_protocol"] in [
-                    "Auto",
-                    "TGP",
-                    "Sixel",
-                    "Halfcell",
-                    "Unicode",
-                ]:
-                    await self.mount(
-                        timg.__dict__[f"{config['settings']['image_protocol']}Image"](
-                            self._current_file_path,
-                            id="image_preview",
-                            classes="inner_preview",
-                        )
+                await self.mount(
+                    timg.__dict__[f"{config['settings']['image_protocol']}Image"](
+                        self._current_file_path,
+                        id="image_preview",
+                        classes="inner_preview",
                     )
-                else:
-                    raise utils.ConfigError(
-                        f"settings.image_protocol needs to be either `Auto`, `TGP`, `Sixel`, `Halfcell` or `Unicode`, but `{config['settings']['image_protocol']}` was received"
-                    )
+                )
             # at times, when travelling too fast, this can happen
             except FileNotFoundError:
                 await self.mount(
@@ -320,7 +309,7 @@ class PreviewContainer(Container):
 class FolderNotFileError(Exception):
     """Raised when a folder is expected but a file is provided instead."""
 
-    def __init__(self, message: str):
+    def __init__(self, message: str) -> None:
         super().__init__(message)
         self.message = message
 
@@ -358,7 +347,7 @@ class PinnedSidebar(OptionList, inherit_bindings=False):
         ]
     )
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
 
     def compose(self) -> ComposeResult:
@@ -366,7 +355,11 @@ class PinnedSidebar(OptionList, inherit_bindings=False):
 
     @work(exclusive=True)
     async def reload_pins(self) -> None:
-        """Reload pins shown"""
+        """Reload pins shown
+
+        Raises:
+            FolderNotFileError: If the pin location is a file, and not a folder.
+        """
         # be extra sure
         available_pins = utils.load_pins()
         pins = available_pins["pins"]
@@ -445,7 +438,13 @@ class PinnedSidebar(OptionList, inherit_bindings=False):
     async def on_option_list_option_selected(
         self, event: OptionList.OptionSelected
     ) -> None:
-        """Handle the selection of an option in the pinned sidebar."""
+        """Handle the selection of an option in the pinned sidebar.
+        Args:
+            event (OptionList.OptionSelected): The event
+
+        Raises:
+            FolderNotFileError: If the pin found is a file and not a folder.
+        """
         selected_option = event.option
         # Get the file path from the option id
         file_path = utils.decompress(selected_option.id.split("-")[0])
@@ -462,7 +461,7 @@ class PinnedSidebar(OptionList, inherit_bindings=False):
 
 
 class FileListSelectionWidget(Selection):
-    def __init__(self, dir_entry: DirEntry, *args, **kwargs):
+    def __init__(self, dir_entry: DirEntry, *args, **kwargs) -> None:
         """
         Initialise the selection.
 
@@ -523,7 +522,7 @@ class FileList(SelectionList, inherit_bindings=False):
         select: bool = False,
         *args,
         **kwargs,
-    ):
+    ) -> None:
         """
         Initialize the FileList widget.
         Args:
@@ -858,7 +857,11 @@ class FileList(SelectionList, inherit_bindings=False):
         self.highlighted = highlighted
 
     async def get_selected_objects(self) -> list[str] | None:
-        """Get the selected objects in the file list."""
+        """Get the selected objects in the file list.
+        Returns:
+            list[str]: If there are objects at that given location.
+            None: If there are no objects at that given location.
+        """
         cwd = utils.normalise(getcwd())
         if self.get_option_at_index(self.highlighted).value == "HTI":
             return None

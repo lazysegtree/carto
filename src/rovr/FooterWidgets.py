@@ -29,7 +29,7 @@ from .utils import config
 
 
 class ClipboardSelection(Selection):
-    def __init__(self, prompt: ContentText, *args, **kwargs):
+    def __init__(self, prompt: ContentText, *args, **kwargs) -> None:
         """
         Initialise the selection.
 
@@ -78,7 +78,7 @@ class Clipboard(SelectionList, inherit_bindings=False):
         ]
     )
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
         self.clipboard_contents = []
 
@@ -243,18 +243,19 @@ class Clipboard(SelectionList, inherit_bindings=False):
 
 
 class MetadataContainer(VerticalScroll):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.current_path: str | None = None
         self._size_worker = None
         self._update_task = None
 
     def info_of_dir_entry(self, dir_entry: DirEntry, type_string: str) -> str:
-        """
-        Get the permission line from a given DirEntry object
+        """Get the permission line from a given DirEntry object
         Args:
             dir_entry (DirEntry): The nt.DirEntry class
             type_string (str): The type of file. It should already be handled.
+        Returns:
+            str: A permission string.
         """
         try:
             file_stat = lstat(dir_entry.path)
@@ -453,7 +454,7 @@ class ProgressBarContainer(VerticalGroup):
         gradient: Gradient | None = None,
         *args,
         **kwargs,
-    ):
+    ) -> None:
         super().__init__(*args, **kwargs)
         self.progress_bar = ProgressBar(
             total=total,
@@ -487,7 +488,7 @@ class ProgressBarContainer(VerticalGroup):
 
 
 class ProcessContainer(VerticalScroll):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(id="processes", *args, **kwargs)
 
     async def new_process_bar(
@@ -622,7 +623,7 @@ class ProcessContainer(VerticalScroll):
         self.app.call_from_thread(bar.add_class, "done")
 
     @work(thread=True)
-    def paste_items(self, copied: list[str], cutted: list[str], dest: str = ""):
+    def paste_items(self, copied: list[str], cutted: list[str], dest: str = "") -> None:
         """
         Paste copied or cut files to the current directory
         Args:
@@ -975,7 +976,7 @@ class ProcessContainer(VerticalScroll):
         )
         self.app.call_from_thread(bar.add_class, "done")
 
-    async def on_key(self, event: events.Key):
+    async def on_key(self, event: events.Key) -> None:
         if event.key in config["keybinds"]["delete"]:
             await self.remove_children(".done")
             await self.remove_children(".error")

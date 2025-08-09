@@ -68,7 +68,7 @@ class Application(App, inherit_bindings=False):
     HORIZONTAL_BREAKPOINTS = [(0, "-filelistonly"), (60, "-nopreview"), (90, "-all")]
     # VERTICAL_BREAKPOINTS = [(0, "-footerless"), ()]
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.prev_selected_option = None
         # TODO: need to actually do this.

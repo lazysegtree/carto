@@ -43,22 +43,10 @@ class SessionManager:
             last highlighted item. If a directory is not in the dictionary, the default is 0.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.sessionDirectories = []
         self.sessionHistoryIndex = 0
         self.sessionLastHighlighted = {}
-
-
-class ConfigError(Exception):
-    """Exception raised for config related errors.
-
-    Attributes:
-        message -- explanation of the error
-    """
-
-    def __init__(self, message):
-        self.message = message
-        super().__init__(self.message)
 
 
 config = {}
@@ -66,10 +54,10 @@ pins = {}
 
 
 def normalise(location: str) -> str:
-    """
-    "Normalise" the path
+    """'Normalise' the path
     Args:
         location (str): The location to the item
+
     Returns:
         str: A normalised path
     """
@@ -151,10 +139,10 @@ def get_cwd_object(cwd: str, sort_order: str, sort_by: str) -> (list[dict], list
 
 
 def file_is_type(file_path: str) -> str:
-    """
-    Get a given path's type
+    """Get a given path's type
     Args:
         file_path(str): The file path to check
+
     Returns:
         str: The string that says what type it is (unknown, symlink, directory, junction or file)
     """
@@ -178,10 +166,10 @@ def file_is_type(file_path: str) -> str:
 
 
 def get_recursive_files(object_path: str) -> list[str]:
-    """
-    Get the files available at a directory recursively, regardless of whether it is a directory or not
+    """Get the files available at a directory recursively, regardless of whether it is a directory or not
     Args:
         object_path (str): The object's path
+
     Returns:
         list: A list of dictionaries, with a "path" key and "relative_loc" key
     """
@@ -268,11 +256,11 @@ def get_icon_for_folder(location: str) -> list:
 
 @lru_cache(maxsize=128)
 def get_icon(outer_key: str, inner_key: str) -> list:
-    """
-    Get an icon from double keys.
+    """Get an icon from double keys.
     Args:
         outer_key (str): The category name (general/folder/file)
         inner_key (str): The icon's name
+
     Returns:
         list[str,str]: The icon and color for the icon
     """
@@ -290,29 +278,12 @@ def get_toggle_button_icon(key: str) -> str:
         return TOGGLE_BUTTON_ICONS[key]
 
 
-def update_session_utils(directories, index, lastHighlighted={}) -> None:
-    """
-    Update the session utils with the given directories and index.
-
-    Args:
-        directories (list): List of directories in the session.
-        index (int): Current index in the session history.
-        lastHighlighted (str): The last highlighted file or directory.
-    """
-    global sessionDirectories
-    global sessionHistoryIndex
-    global sessionLastHighlighted
-    sessionDirectories = directories
-    sessionHistoryIndex = index
-    sessionLastHighlighted = lastHighlighted
-
-
-def deep_merge(d, u) -> dict:
-    """
-    Mini lodash merge
+def deep_merge(d: dict, u: dict) -> dict:
+    """Mini lodash merge
     Args:
         d (dict): old dictionary
         u (dict): new dictionary, to merge on top of d
+
     Returns:
         dict: Merged dictionary
     """
@@ -360,7 +331,7 @@ def load_config() -> None:
         schema = ujson.load(f)
 
     # fix schema with 'required' keys
-    def add_required_recursively(node):
+    def add_required_recursively(node: dict) -> None:
         if isinstance(node, dict):
             if (
                 node.get("type") == "object" and "properties" in node
@@ -652,7 +623,7 @@ if not path.exists(path.join(VAR_TO_DIR["CONFIG"], "style.tcss")):
         pass
 
 
-def natural_size(integer: int):
+def natural_size(integer: int) -> str:
     match config["metadata"]["filesize_suffix"]:
         case "decimal":
             return naturalsize(
