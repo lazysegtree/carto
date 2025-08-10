@@ -183,6 +183,7 @@ class ZToDirectory(ModalScreen):
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
         self._queued_task = None
+        self._queued_task_args: str | None = None
 
     def compose(self) -> ComposeResult:
         with VerticalGroup(id="zoxide_group", classes="zoxide_group"):
@@ -209,15 +210,15 @@ class ZToDirectory(ModalScreen):
         if any(
             worker.is_running and worker.node is self for worker in self.app.workers
         ):
-            print("Worker is apparently running I think")
-            self._queued_task = lambda: self.zoxide_updater(event=event)
+            self._queued_task = self.zoxide_updater
+            self._queued_task_args = event
         else:
             self.zoxide_updater(event=event)
 
     def any_in_queue(self) -> bool:
         if self._queued_task is not None:
-            self._queued_task()
-            self._queued_task = None
+            self._queued_task(self._queued_task_args)
+            self._queued_task, self._queued_task_args = None, None
             return True
         return False
 
@@ -227,7 +228,6 @@ class ZToDirectory(ModalScreen):
         search_term = self.query_one("#zoxide_input").value.strip()
         # check 1 for queue, to ignore subprocess as a whole
         if self.any_in_queue():
-            print("Pre subprocess")
             return
         zoxide_output = run(
             ["zoxide", "query", "--list"] + search_term.split(),
@@ -236,7 +236,6 @@ class ZToDirectory(ModalScreen):
         )
         # check 2 for queue, to ignore mounting as a whole
         if self.any_in_queue():
-            print("Post subprocess, pre mount")
             return
         zoxide_options = self.query_one("#zoxide_options", OptionList)
         zoxide_options.add_class("empty")
@@ -247,9 +246,7 @@ class ZToDirectory(ModalScreen):
             if len(options) == len(zoxide_options.options) and all(
                 options[i].id == zoxide_options.options[i].id
                 for i in range(len(options))
-            ):  # ie same~ish query
-                print("Same-ish~ results found")
-                # Sameish result found
+            ):  # ie same~ish query, resulting in same result
                 pass
             else:
                 # unline normally, im using an add_option**s** function
@@ -263,7 +260,6 @@ class ZToDirectory(ModalScreen):
                 zoxide_options.highlighted = 0
         else:
             # No Matches to the query text
-            print("No matches found")
             self.app.call_from_thread(zoxide_options.clear_options)
             self.app.call_from_thread(
                 zoxide_options.add_option,
@@ -271,7 +267,6 @@ class ZToDirectory(ModalScreen):
             )
         # check 3, if somehow theres a new request after the mount
         if self.any_in_queue():
-            print("Post mount")
             return  # nothing much to do now
         else:
             self._queued_task = None
