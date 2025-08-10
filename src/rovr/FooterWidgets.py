@@ -547,7 +547,26 @@ class ProcessContainer(VerticalScroll):
                                 path_to_trash = path_to_trash[6:]
                             send2trash(path_to_trash)
                         except FileNotFoundError:
-                            self.app.notify("FileNotFoundError")
+                            if path.exists(path_to_trash):
+                                # edge case: have no write access
+                                msg = (
+                                    "Trashing failed due to no write access.\nContinue?"
+                                )
+                            else:
+                                # really isn't found
+                                msg = f"{path_to_trash} could not be found.\nContinue?"
+                            do_continue = self.app.call_from_thread(
+                                self.app.push_screen_wait, YesOrNo(msg)
+                            )
+                            if do_continue:
+                                continue
+                            else:
+                                self.app.call_from_thread(
+                                    bar.update_label,
+                                    f"{utils.get_icon('general', 'delete')[0]} {utils.get_icon('general', 'close')[0]} Process Cancelled",
+                                )
+                                self.app.call_from_thread(bar.add_class, "error")
+                                return
                         except Exception as e:
                             perma_delete = self.app.call_from_thread(
                                 self.app.push_screen_wait,
