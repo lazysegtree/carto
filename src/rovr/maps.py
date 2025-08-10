@@ -519,3 +519,5 @@ BORDER_BOTTOM = {
     "vkey": "▔",
     "wide": "▔",
 }
+
+SPINNER = ["\\", "|", "/", "-"]

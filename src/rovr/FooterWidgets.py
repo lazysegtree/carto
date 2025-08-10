@@ -1,6 +1,7 @@
 import platform
 import shutil
 import stat
+import time
 from contextlib import suppress
 from datetime import datetime
 from os import DirEntry, getcwd, lstat, makedirs, path, remove, walk
@@ -24,6 +25,7 @@ from textual.widgets.selection_list import Selection
 from textual.worker import WorkerState
 
 from . import utils
+from .maps import SPINNER
 from .ScreensCore import CopyOverwrite, Dismissable, YesOrNo
 from .utils import config
 
@@ -248,6 +250,8 @@ class MetadataContainer(VerticalScroll):
         self.current_path: str | None = None
         self._size_worker = None
         self._update_task = None
+        self._queued_task = None
+        self._queued_task_args: None | DirEntry = None
 
     def info_of_dir_entry(self, dir_entry: DirEntry, type_string: str) -> str:
         """Get the permission line from a given DirEntry object
@@ -274,7 +278,7 @@ class MetadataContainer(VerticalScroll):
             case "File":
                 permission_string = "-"
             case "Unknown":
-                return "????????"
+                return "???????"
 
         permission_string += "r" if mode & stat.S_IRUSR else "-"
         permission_string += "w" if mode & stat.S_IWUSR else "-"
@@ -289,32 +293,44 @@ class MetadataContainer(VerticalScroll):
         permission_string += "x" if mode & stat.S_IXOTH else "-"
         return permission_string
 
-    @work(exclusive=True)
-    async def update_metadata(self, dir_entry: DirEntry) -> None:
+    def any_in_queue(self) -> bool:
+        if self._queued_task is not None:
+            self._queued_task(self._queued_task_args)
+            self._queued_task, self._queued_task_args = None, None
+            return True
+        return False
+
+    def update_metadata(self, dir_entry: DirEntry) -> None:
         """
         Debounce the update, because some people can be speed travellers
         Args:
             dir_entry (DirEntry): The nt.DirEntry object
         """
-        if self._update_task:
-            self._update_task.stop()
-        self._update_task = self.set_timer(
-            0.25, lambda: self._perform_update(dir_entry)
-        )
+        if any(
+            worker.is_running
+            and worker.node is self
+            and worker.name == "_perform_update"
+            for worker in self.app.workers
+        ):
+            self._queued_task = self._perform_update
+            self._queued_task_args = dir_entry
+        else:
+            self._perform_update(dir_entry)
 
+    @work(thread=True)
     async def _perform_update(self, dir_entry: DirEntry) -> None:
         """
         After debouncing the update
         Args:
             dir_entry (DirEntry): The nt.DirEntry object
         """
-        if self._size_worker:
-            self._size_worker.cancel()
-            self._size_worker = None
-
+        if self.any_in_queue():
+            return
         if not path.exists(dir_entry.path):
-            await self.remove_children()
-            await self.mount(Static("Item not found or inaccessible."))
+            self.app.call_from_thread(self.remove_children)
+            self.app.call_from_thread(
+                self.mount, Static("Item not found or inaccessible.")
+            )
             return
 
         type_str = "Unknown"
@@ -369,33 +385,46 @@ class MetadataContainer(VerticalScroll):
                             )
                         )
                     )
-
+        if self.any_in_queue():
+            return
         values = VerticalGroup(*values_list, id="metadata-values")
 
         try:
-            await self.query_one("#metadata-values").remove()
-            await self.mount(values)
+            for index, child_widget in enumerate(
+                self.query_one("#metadata-values").children
+            ):
+                self.app.call_from_thread(
+                    child_widget.update, values_list[index]._content
+                )
         except NoMatches:
-            await self.remove_children()
+            self.app.call_from_thread(self.remove_children)
             keys_list = []
             for field in config["metadata"]["fields"]:
-                if field == "type":
-                    keys_list.append(Static("Type"))
-                elif field == "permissions":
-                    keys_list.append(Static("Permissions"))
-                elif field == "size":
-                    keys_list.append(Static("Size"))
-                elif field == "modified":
-                    keys_list.append(Static("Modified"))
-                elif field == "accessed":
-                    keys_list.append(Static("Accessed"))
-                elif field == "created":
-                    keys_list.append(Static("Created"))
+                match field:
+                    case "type":
+                        keys_list.append(Static("Type"))
+                    case "permissions":
+                        keys_list.append(Static("Permissions"))
+                    case "size":
+                        keys_list.append(Static("Size"))
+                    case "modified":
+                        keys_list.append(Static("Modified"))
+                    case "accessed":
+                        keys_list.append(Static("Accessed"))
+                    case "created":
+                        keys_list.append(Static("Created"))
             keys = VerticalGroup(*keys_list, id="metadata-keys")
-            await self.mount(keys, values)
+            self.app.call_from_thread(self.mount, keys, values)
+        finally:
+            if self.any_in_queue():
+                return
         self.current_path = dir_entry.path
         if type_str == "Directory" and self.has_focus:
             self._size_worker = self.calculate_folder_size(dir_entry.path)
+        if self.any_in_queue():
+            return
+        else:
+            self._queued_task = None
 
     @work(thread=True)
     async def calculate_folder_size(self, folder_path: str) -> None:
@@ -404,20 +433,24 @@ class MetadataContainer(VerticalScroll):
         self.app.call_from_thread(size_widget.update, "Calculating...")
 
         total_size = 0
+        spinner_index = -1
+        last_update_time = time.monotonic()
         try:
             for dirpath, _, filenames in walk(folder_path):
                 for f in filenames:
-                    if self._size_worker.is_cancelled:
+                    if self._size_worker is None or self._size_worker.is_cancelled:
                         return
                     fp = path.join(dirpath, f)
                     if not path.islink(fp):
                         with suppress(OSError, FileNotFoundError):
                             total_size += lstat(fp).st_size
-                self.app.call_from_thread(
-                    self.set_timer,
-                    0.1,
-                    lambda: size_widget.update(utils.natural_size(total_size)),
-                )
+                if time.monotonic() - last_update_time > 0.25:
+                    spinner_index = spinner_index + 1 if spinner_index // 3 == 0 else 0
+                    self.app.call_from_thread(
+                        size_widget.update,
+                        f"{utils.natural_size(total_size)} {SPINNER[spinner_index]}",
+                    )
+                    last_update_time = time.monotonic()
         except (OSError, FileNotFoundError):
             self.app.call_from_thread(size_widget.update, "Error")
             return
@@ -432,6 +465,7 @@ class MetadataContainer(VerticalScroll):
         if self.current_path and path.isdir(self.current_path):
             if self._size_worker:
                 self._size_worker.cancel()
+                self._size_worker = None
             self._size_worker = self.calculate_folder_size(self.current_path)
 
     @on(events.Blur)
