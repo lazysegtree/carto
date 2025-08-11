@@ -31,6 +31,7 @@ class PreviewContainer(Container):
         self._current_file_path = None
         self._is_image = False
         self._initial_height = self.size.height
+        self._current_preview_type = "none"
 
     def compose(self) -> ComposeResult:
         # for some unknown reason, it started causing KeyErrors
@@ -47,40 +48,46 @@ class PreviewContainer(Container):
         yield Static(config["interface"]["preview_start"])
 
     async def _show_image_preview(self) -> None:
-        """Render image preview"""
-        try:
-            await self.mount(
-                timg.__dict__[f"{config['settings']['image_protocol']}Image"](
-                    self._current_file_path,
-                    id="image_preview",
-                    classes="inner_preview",
+        """Ensure image preview widget exists and is updated."""
+        if self._current_preview_type != "image":
+            await self.remove_children()
+            self.remove_class("bat", "full", "clip")
+            try:
+                await self.mount(
+                    timg.__dict__[f"{config['settings']['image_protocol']}Image"](
+                        self._current_file_path,
+                        id="image_preview",
+                        classes="inner_preview",
+                    )
                 )
-            )
-        # at times, when travelling too fast, this can happen
-        except FileNotFoundError:
-            await self.mount(
-                TextArea(
-                    id="text_preview",
-                    show_line_numbers=True,
-                    soft_wrap=False,
-                    read_only=True,
-                    text=config["interface"]["preview_error"],
-                    language="markdown",
-                    compact=True,
+                self.query_one("#image_preview").can_focus = True
+            except FileNotFoundError:
+                await self.mount(
+                    TextArea(
+                        id="text_preview",
+                        show_line_numbers=True,
+                        soft_wrap=False,
+                        read_only=True,
+                        text=config["interface"]["preview_error"],
+                        language="markdown",
+                        compact=True,
+                    )
                 )
-            )
+            self._current_preview_type = "image"
+        else:
+            try:
+                self.query_one("#image_preview").image = self._current_file_path
+            except Exception:
+                self._current_preview_type = "none"
+                await self._show_image_preview()
         self.border_title = "Image Preview"
-        self.query_one("#image_preview").can_focus = True
 
     async def _show_bat_file_preview(self) -> bool:
-        """
-        Render file preview using bat.
+        """Render file preview using bat, updating in place if possible.
         Returns:
-            bool: True if bat preview was successful, False otherwise.
-        """
+            bool: whether or not the action was successful"""
         bat_executable = config["plugins"]["bat"]["executable"]
         preview_full = config["settings"]["preview_full"]
-
         command = [
             bat_executable,
             "--force-colorization",
@@ -89,12 +96,10 @@ class PreviewContainer(Container):
             if config["plugins"]["bat"]["show_line_numbers"]
             else "--style=plain",
         ]
-
         if not preview_full:
             max_lines = self.size.height
             if max_lines > 0:
                 command.append(f"--line-range=:{max_lines}")
-
         command.append(self._current_file_path)
 
         try:
@@ -107,15 +112,21 @@ class PreviewContainer(Container):
 
             if process.returncode == 0:
                 bat_output = stdout.decode("utf-8", errors="ignore")
-                scrollable_container = Static(
-                    Text.from_ansi(bat_output),
-                    id="text_preview",
-                    classes="inner_preview" + (" clip" if not preview_full else ""),
-                )
-                await self.mount(scrollable_container)
-                scrollable_container.can_focus = True
+                new_content = Text.from_ansi(bat_output)
+
+                if self._current_preview_type != "bat":
+                    await self.remove_children()
+                    self.remove_class("full", "clip")
+                    await self.mount(
+                        Static(new_content, id="text_preview", classes="inner_preview")
+                    )
+                    self.add_class("bar")
+                    self._current_preview_type = "bat"
+                else:
+                    self.query_one("#text_preview", Static).update(new_content)
+
                 self.border_title = "File Preview (bat)"
-                self.add_class("bar")
+                self.remove_class("full", "clip")
                 if preview_full:
                     self.add_class("full")
                 else:
@@ -130,29 +141,21 @@ class PreviewContainer(Container):
                 )
                 return False
         except (FileNotFoundError, Exception) as e:
-            self.notify(
-                f"bat preview failed: {e}",
-                severity="warning",
-                timeout=5,
-            )
+            self.notify(f"bat preview failed: {e}", severity="warning", timeout=5)
             return False
 
     async def _show_normal_file_preview(self) -> None:
-        """Render file preview using TextArea"""
+        """Render file preview using TextArea, updating in place if possible."""
         text_to_display = self._current_content
         preview_full = config["settings"]["preview_full"]
-
         if not preview_full:
             lines = text_to_display.splitlines()
-
             max_lines = self.size.height
             if max_lines > 0:
                 if len(lines) > max_lines:
                     lines = lines[:max_lines]
             else:
                 lines = []
-
-            # No clue why it's 5 though
             max_width = self.size.width - 5
             if max_width > 0:
                 processed_lines = []
@@ -162,21 +165,23 @@ class PreviewContainer(Container):
                     else:
                         processed_lines.append(line)
                 lines = processed_lines
-
             text_to_display = "\n".join(lines)
 
         is_special_content = self._current_content in (
             config["interface"]["preview_binary"],
             config["interface"]["preview_error"],
         )
-
-        language = "markdown"
-        if not is_special_content:
-            language = EXT_TO_LANG_MAP.get(
+        language = (
+            "markdown"
+            if is_special_content
+            else EXT_TO_LANG_MAP.get(
                 path.splitext(self._current_file_path)[1], "markdown"
             )
+        )
 
-        try:
+        if self._current_preview_type != "normal_text":
+            await self.remove_children()
+            self.remove_class("bat", "full", "clip")
             await self.mount(
                 TextArea(
                     id="text_preview",
@@ -188,28 +193,22 @@ class PreviewContainer(Container):
                     classes="inner_preview",
                 )
             )
-        # travelling fast also causes this
-        except KeyError:
-            await self.mount(
-                TextArea(
-                    id="text_preview",
-                    show_line_numbers=True,
-                    soft_wrap=False,
-                    read_only=True,
-                    text=config["interface"]["preview_error"],
-                    language="markdown",
-                    compact=True,
-                )
-            )
+            self._current_preview_type = "normal_text"
+        else:
+            try:
+                text_area = self.query_one("#text_preview", TextArea)
+                text_area.text = text_to_display
+                text_area.language = language
+            except Exception:
+                self._current_preview_type = "none"
+                await self._show_normal_file_preview()
+
         self.border_title = "File Preview"
 
     async def _render_preview(self) -> None:
-        """Render function"""
+        """Render function dispatcher."""
         if self._current_file_path is None:
             return
-
-        await self.remove_children()
-        self.remove_class("bat", "full", "clip")
 
         if self._is_image:
             await self._show_image_preview()
@@ -238,20 +237,24 @@ class PreviewContainer(Container):
         Args:
             folder_path(str): The folder path
         """
-        if len(self.children) != 0:
+        if self._current_preview_type != "folder":
             await self.remove_children()
-        await self.mount(
-            FileList(
-                id="folder_preview",
-                name=folder_path,
-                classes="file-list inner_preview",
-                sort_by="name",
-                sort_order="ascending",
-                dummy=True,
-                enter_into=utils.normalise(path.relpath(getcwd(), folder_path)),
+            self.remove_class("bat", "full", "clip")
+            await self.mount(
+                FileList(
+                    id="folder_preview",
+                    name=folder_path,
+                    classes="file-list inner_preview",
+                    sort_by="name",
+                    sort_order="ascending",
+                    dummy=True,
+                    enter_into=utils.normalise(path.relpath(getcwd(), folder_path)),
+                )
             )
-        )
-        self.app.query_one("#folder_preview").dummy_update_file_list(
+            self._current_preview_type = "folder"
+
+        folder_preview = self.query_one("#folder_preview", FileList)
+        folder_preview.dummy_update_file_list(
             sort_by="name",
             sort_order="ascending",
             cwd=folder_path,
@@ -270,7 +273,7 @@ class PreviewContainer(Container):
 
         if path.isdir(file_path):
             self._current_content = None
-            self._current_file_path = None
+            self._current_file_path = file_path
             self._is_image = False
             self._update_task = self.set_timer(
                 0.25, lambda: self._show_folder_preview(file_path)
@@ -301,9 +304,9 @@ class PreviewContainer(Container):
         await self._render_preview()
 
     async def on_resize(self, event: events.Resize) -> None:
-        """Re-render the preview on resize if it's was rendered by batcat and height changed"""
+        """Re-render the preview on resize if it's was rendered by batcat and height changed."""
         if (
-            self._current_content is not None
+            self._current_preview_type == "bat"
             and "clip" in self.classes
             and event.size.height != self._initial_height
         ):
@@ -311,7 +314,7 @@ class PreviewContainer(Container):
             self._initial_height = event.size.height
 
     async def on_key(self, event: events.Key) -> None:
-        """Check for vim keybinds"""
+        """Check for vim keybinds."""
         if self.border_title == "File Preview (bat)":
             match event.key:
                 case key if key in config["keybinds"]["up"]:
