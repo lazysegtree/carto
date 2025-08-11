@@ -187,7 +187,7 @@ class PreviewContainer(Container):
 
         # Fallback! This guy doesn't have bat
         if bat_failed:
-            self.app.notify(
+            self.notify(
                 f"bat preview failed: {error_message}",
                 severity="warning",
                 timeout=5,

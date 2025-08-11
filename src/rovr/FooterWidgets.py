@@ -229,7 +229,7 @@ class Clipboard(SelectionList, inherit_bindings=False):
             if event.key in config["keybinds"]["delete"]:
                 """Delete the selected files from the clipboard."""
                 if self.highlighted is None:
-                    self.app.notify(
+                    self.notify(
                         "No files selected to delete from the clipboard.",
                         title="Clipboard",
                         severity="warning",
@@ -650,7 +650,7 @@ class ProcessContainer(VerticalScroll):
                 shutil.rmtree(folder)
             except PermissionError:
                 # TODO: allow continuation and not return on error
-                self.app.notify(
+                self.notify(
                     f"Certain files in {folder} could not be deleted.", severity="error"
                 )
                 self.app.call_from_thread(
@@ -1005,7 +1005,7 @@ class ProcessContainer(VerticalScroll):
                     shutil.rmtree(folder)
             except PermissionError:
                 # TODO: allow continuation and not return on error
-                self.app.notify(
+                self.notify(
                     f"Certain files in {folder} could not be moved.", severity="error"
                 )
                 self.app.call_from_thread(

@@ -46,7 +46,7 @@ class CopyButton(Button):
         if selected_files:
             await self.app.query_one("#clipboard").copy_to_clipboard(selected_files)
         else:
-            self.app.notify("No files selected to copy.")
+            self.notify("No files selected to copy.")
 
 
 class CutButton(Button):
@@ -67,7 +67,7 @@ class CutButton(Button):
         if selected_files:
             await self.app.query_one("#clipboard").cut_to_clipboard(selected_files)
         else:
-            self.app.notify("No files selected to cut.")
+            self.notify("No files selected to cut.")
 
 
 class PasteButton(Button):
@@ -105,7 +105,7 @@ class PasteButton(Button):
                 if response:
                     self.app.query_one("ProcessContainer").paste_items(to_copy, to_cut)
                 else:
-                    self.app.notify(
+                    self.notify(
                         "Paste operation cancelled", title="Paste Files", timeout=3
                     )
 
@@ -155,13 +155,13 @@ class NewItemButton(Button):
             "/" if response.endswith("/") or response.endswith("\\") else ""
         )
         if path.exists(location):
-            self.app.notify(message=f"Location '{response}' already exists.")
+            self.notify(message=f"Location '{response}' already exists.")
         elif location.endswith("/"):
             # recursive directory creation
             try:
                 makedirs(location)
             except Exception as e:
-                self.app.notify(
+                self.notify(
                     message=Content(f"Error creating directory '{response}': {e}"),
                     severity="error",
                 )
@@ -177,7 +177,7 @@ class NewItemButton(Button):
                 with open(location, "w") as f:
                     f.write("")
             except Exception as e:
-                self.app.notify(
+                self.notify(
                     message=Content(f"Error creating file '{location}': {e}"),
                     severity="error",
                 )
@@ -187,7 +187,7 @@ class NewItemButton(Button):
                 with open(location, "w") as f:
                     f.write("")  # Create an empty file
             except Exception as e:
-                self.app.notify(
+                self.notify(
                     message=Content(f"Error creating file '{location}': {e}"),
                     severity="error",
                 )
@@ -215,7 +215,7 @@ class RenameItemButton(Button):
     async def on_button_pressed(self, event: Button.Pressed) -> None:
         selected_files = await self.app.query_one("#file_list").get_selected_objects()
         if selected_files is None or len(selected_files) != 1:
-            self.app.notify(
+            self.notify(
                 "Please select exactly one file to rename.",
                 title="Rename File",
                 severity="warning",
@@ -234,15 +234,15 @@ class RenameItemButton(Button):
             old_name = normalise(path.realpath(path.join(getcwd(), selected_file)))
             new_name = normalise(path.realpath(path.join(getcwd(), response)))
             if not path.exists(old_name):
-                self.app.notify(message=f"'{selected_file}' no longer exists.")
+                self.notify(message=f"'{selected_file}' no longer exists.")
                 return
             if path.exists(new_name):
-                self.app.notify(message=f"'{response}' already exists.")
+                self.notify(message=f"'{response}' already exists.")
                 return
             try:
                 move(old_name, new_name)
             except Exception as e:
-                self.app.notify(
+                self.notify(
                     message=Content(
                         f"Error renaming '{selected_file}' to '{response}': {e}"
                     )
@@ -286,7 +286,7 @@ class DeleteButton(Button):
                         ignore_trash=False,
                     )
                 else:
-                    self.app.notify(
+                    self.notify(
                         "File deletion cancelled.", title="Delete Files", timeout=3
                     )
 
@@ -297,7 +297,7 @@ class DeleteButton(Button):
                 callback=callback,
             )
         else:
-            self.app.notify(
+            self.notify(
                 "No files selected to delete.",
                 title="Delete Files",
                 severity="warning",
