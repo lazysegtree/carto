@@ -9,6 +9,11 @@ $preview_sidebar_width: 35vw;
 $footer_unfocus_height: 8;
 $footer_focus_height: 10;
 
+* {
+  scrollbar-size: 1 2;
+  scrollbar-background: transparent;
+}
+
 #menu {
   align: left middle;
   height: 3;

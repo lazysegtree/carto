@@ -26,7 +26,8 @@ from .utils import config
 class PreviewContainer(Container):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self._update_task = None
+        self._queued_task = None
+        self._queued_task_args: str | None = None
         self._current_content = None
         self._current_file_path = None
         self._is_image = False
@@ -49,9 +50,13 @@ class PreviewContainer(Container):
 
     async def _show_image_preview(self) -> None:
         """Ensure image preview widget exists and is updated."""
+        if self.any_in_queue():
+            return
         if self._current_preview_type != "image":
             await self.remove_children()
             self.remove_class("bat", "full", "clip")
+            if self.any_in_queue():
+                return
             try:
                 await self.mount(
                     timg.__dict__[f"{config['settings']['image_protocol']}Image"](
@@ -79,6 +84,7 @@ class PreviewContainer(Container):
                 self.query_one("#image_preview").image = self._current_file_path
             except Exception:
                 self._current_preview_type = "none"
+                # re-make the widget itself
                 await self._show_image_preview()
         self.border_title = "Image Preview"
 
@@ -102,6 +108,9 @@ class PreviewContainer(Container):
                 command.append(f"--line-range=:{max_lines}")
         command.append(self._current_file_path)
 
+        if self.any_in_queue():
+            return
+
         try:
             process = await asyncio.create_subprocess_exec(
                 *command,
@@ -110,6 +119,9 @@ class PreviewContainer(Container):
             )
             stdout, stderr = await process.communicate()
 
+            if self.any_in_queue():
+                return
+
             if process.returncode == 0:
                 bat_output = stdout.decode("utf-8", errors="ignore")
                 new_content = Text.from_ansi(bat_output)
@@ -117,9 +129,14 @@ class PreviewContainer(Container):
                 if self._current_preview_type != "bat":
                     await self.remove_children()
                     self.remove_class("full", "clip")
+
+                    if self.any_in_queue():
+                        return
+
                     await self.mount(
                         Static(new_content, id="text_preview", classes="inner_preview")
                     )
+                    self.query_one(Static).can_focus = True
                     self.add_class("bar")
                     self._current_preview_type = "bat"
                 else:
@@ -134,6 +151,8 @@ class PreviewContainer(Container):
                 return True
             else:
                 error_message = stderr.decode("utf-8", errors="ignore")
+                await self.remove_children()
+                self._current_preview_type = "none"
                 self.notify(
                     f"bat preview failed: {error_message}",
                     severity="warning",
@@ -179,9 +198,16 @@ class PreviewContainer(Container):
             )
         )
 
+        if self.any_in_queue():
+            return
+
         if self._current_preview_type != "normal_text":
             await self.remove_children()
             self.remove_class("bat", "full", "clip")
+
+            if self.any_in_queue():
+                return
+
             await self.mount(
                 TextArea(
                     id="text_preview",
@@ -217,6 +243,7 @@ class PreviewContainer(Container):
         if self._current_content is None:
             return
 
+        # you wouldnt want to re-render a failed thing, would you?
         is_special_content = self._current_content in (
             config["interface"]["preview_binary"],
             config["interface"]["preview_error"],
@@ -240,6 +267,10 @@ class PreviewContainer(Container):
         if self._current_preview_type != "folder":
             await self.remove_children()
             self.remove_class("bat", "full", "clip")
+
+            if self.any_in_queue():
+                return
+
             await self.mount(
                 FileList(
                     id="folder_preview",
@@ -253,6 +284,9 @@ class PreviewContainer(Container):
             )
             self._current_preview_type = "folder"
 
+        if self.any_in_queue():
+            return
+
         folder_preview = self.query_one("#folder_preview", FileList)
         folder_preview.dummy_update_file_list(
             sort_by="name",
@@ -261,47 +295,89 @@ class PreviewContainer(Container):
         )
         self.border_title = "Folder Preview"
 
-    @work(exclusive=True)
-    async def show_preview(self, file_path: str) -> None:
+    def any_in_queue(self) -> bool:
+        if self._queued_task is not None:
+            self._queued_task(self._queued_task_args)
+            self._queued_task, self._queued_task_args = None, None
+            return True
+        return False
+
+    def show_preview(self, file_path: str) -> None:
         """
         Debounce requests, then show preview
         Args:
             file_path(str): The file path
         """
-        if self._update_task:
-            self._update_task.stop()
-
-        if path.isdir(file_path):
-            self._current_content = None
-            self._current_file_path = file_path
-            self._is_image = False
-            self._update_task = self.set_timer(
-                0.25, lambda: self._show_folder_preview(file_path)
-            )
+        if any(
+            worker.is_running
+            and worker.node is self
+            and worker.name == "_perform_show_preview"
+            for worker in self.app.workers
+        ):
+            self._queued_task = self._perform_show_preview
+            self._queued_task_args = file_path
         else:
-            self._update_task = self.set_timer(0.25, lambda: self.show_file(file_path))
+            self._perform_show_preview(file_path)
 
-    async def show_file(self, file_path: str) -> None:
+    @work(thread=True)
+    def _perform_show_preview(self, file_path: str) -> None:
         """
-        Load the file preview
+        Load file content in a worker and then render the preview.
         Args:
             file_path(str): The file path
         """
-        self._current_file_path = file_path
-        if any(file_path.endswith(ext) for ext in PIL_EXTENSIONS):
-            self._is_image = True
-            self._current_content = None
-        else:
-            self._is_image = False
-            try:
-                with open(file_path, "r", encoding="utf-8") as f:
-                    self._current_content = f.read()
-            except UnicodeDecodeError:
-                self._current_content = config["interface"]["preview_binary"]
-            except (FileNotFoundError, PermissionError, OSError):
-                self._current_content = config["interface"]["preview_error"]
+        if self.any_in_queue():
+            return
 
-        await self._render_preview()
+        if path.isdir(file_path):
+            self.app.call_from_thread(self._update_ui, file_path, is_dir=True)
+        else:
+            is_image = any(file_path.endswith(ext) for ext in PIL_EXTENSIONS)
+            content = None
+            if not is_image:
+                try:
+                    with open(file_path, "r", encoding="utf-8") as f:
+                        content = f.read()
+                except UnicodeDecodeError:
+                    content = config["interface"]["preview_binary"]
+                except (FileNotFoundError, PermissionError, OSError):
+                    content = config["interface"]["preview_error"]
+
+            if self.any_in_queue():
+                return
+
+            self.app.call_from_thread(
+                self._update_ui,
+                file_path,
+                is_dir=False,
+                is_image=is_image,
+                content=content,
+            )
+
+        if self.any_in_queue():
+            return
+        else:
+            self._queued_task = None
+
+    async def _update_ui(
+        self,
+        file_path: str,
+        is_dir: bool,
+        is_image: bool = False,
+        content: str | None = None,
+    ) -> None:
+        """
+        Update the preview UI. This runs on the main thread.
+        """
+        self._current_file_path = file_path
+        if is_dir:
+            self._is_image = False
+            self._current_content = None
+            await self._show_folder_preview(file_path)
+        else:
+            self._is_image = is_image
+            self._current_content = content
+            await self._render_preview()
 
     async def on_resize(self, event: events.Resize) -> None:
         """Re-render the preview on resize if it's was rendered by batcat and height changed."""
@@ -999,16 +1075,6 @@ class FileList(SelectionList, inherit_bindings=False):
                 config["plugins"]["editor"]["enabled"]
                 and event.key in config["plugins"]["editor"]["keybinds"]
             ):
-                print(
-                    path.isdir(
-                        path.join(
-                            getcwd(),
-                            utils.decompress(
-                                self.get_option_at_index(self.highlighted).id
-                            ),
-                        )
-                    )
-                )
                 if path.isdir(
                     path.join(
                         getcwd(),
