@@ -661,6 +661,7 @@ class FileList(SelectionList, inherit_bindings=False):
         sort_by: str = "name",
         sort_order: str = "ascending",
         add_to_session: bool = True,
+        focus_on: str | None = None,
     ) -> None:
         """Update the file list with the current directory contents.
 
@@ -668,6 +669,7 @@ class FileList(SelectionList, inherit_bindings=False):
             sort_by (str): The attribute to sort by ("name" or "size").
             sort_order (str): The order to sort by ("ascending" or "descending").
             add_to_session (bool): Whether to add the current directory to the session history.
+            focus_on (str | None): A custom item to set the focus as.
         """
         cwd = utils.normalise(getcwd())
         self.clear_options()
@@ -680,7 +682,7 @@ class FileList(SelectionList, inherit_bindings=False):
         if folders == [PermissionError] or files == [PermissionError]:
             self.add_option(
                 Selection(
-                    Content("  Permission Error: Unable to access this directory."),
+                    " Permission Error: Unable to access this directory.",
                     value="",
                     id="",
                     disabled=True,
@@ -688,7 +690,7 @@ class FileList(SelectionList, inherit_bindings=False):
             )
             file_list_options = [".."]
         elif folders == [] and files == []:
-            self.add_option(Selection("  --no-files--", value="", id="", disabled=True))
+            self.add_option(Selection(" --no-files--", value="", id="", disabled=True))
             self.app.query_one(PreviewContainer).remove_children()
             # nothing inside
         else:
@@ -736,9 +738,12 @@ class FileList(SelectionList, inherit_bindings=False):
             session.sessionHistoryIndex == len(session.sessionDirectories) - 1
         )
         try:
-            self.highlighted = self.get_option_index(
-                session.sessionLastHighlighted[cwd]
-            )
+            if focus_on:
+                self.highlighted = self.get_option_index(utils.compress(focus_on))
+            else:
+                self.highlighted = self.get_option_index(
+                    session.sessionLastHighlighted[cwd]
+                )
         except OptionDoesNotExist:
             self.highlighted = 0
             session.sessionLastHighlighted[cwd] = (
@@ -774,7 +779,7 @@ class FileList(SelectionList, inherit_bindings=False):
         if folders == [PermissionError] or files == [PermissionError]:
             self.add_option(
                 Selection(
-                    Content("  Permission Error: Unable to access this directory."),
+                    " Permission Error: Unable to access this directory.",
                     id="",
                     value="",
                     disabled=True,
@@ -782,7 +787,7 @@ class FileList(SelectionList, inherit_bindings=False):
             )
             return
         elif folders == [] and files == []:
-            self.add_option(Selection("  --no-files--", value="", id="", disabled=True))
+            self.add_option(Selection(" --no-files--", value="", id="", disabled=True))
             return
         file_list_options = (
             files + folders if sort_order == "descending" else folders + files
@@ -804,17 +809,25 @@ class FileList(SelectionList, inherit_bindings=False):
     async def on_selection_list_selected_changed(
         self, event: SelectionList.SelectedChanged
     ) -> None:
+        # Get the filename from the option id
+        event.prevent_default()
+        cwd = utils.normalise(getcwd())
+        # Get the selected option
+        selected_option = self.get_option_at_index(self.highlighted)
+        file_name = utils.decompress(selected_option.value)
         if self.dummy:
-            return
-        if not self.select_mode_enabled:
-            event.prevent_default()
-            cwd = utils.normalise(getcwd())
-            # Get the selected option
-            selected_option = self.get_option_at_index(
-                self.highlighted
-            )  # ? Trust me bro
-            # Get the filename from the option id
-            file_name = utils.decompress(selected_option.value)
+            # kinda complicated
+            if path.isdir(path.join(self.enter_into, file_name)):
+                try:
+                    chdir(path.join(self.enter_into, file_name))
+                except PermissionError:
+                    # cannot do anything about that
+                    return
+                self.app.query_one("#file_list").update_file_list(
+                    self.sort_by, self.sort_order
+                )
+                self.app.query_one("#file_list").focus()
+        elif not self.select_mode_enabled:
             # Check if it's a folder or a file
             if path.isdir(path.join(cwd, file_name)):
                 # If it's a folder, navigate into it
@@ -845,7 +858,6 @@ class FileList(SelectionList, inherit_bindings=False):
     async def on_option_list_option_highlighted(
         self, event: OptionList.OptionHighlighted
     ) -> None:
-        global utils
         if self.dummy:
             return
         elif event.option.value == "HTI":

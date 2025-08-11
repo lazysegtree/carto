@@ -173,10 +173,10 @@ class UpButton(Button):
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """Go up the current location's directory"""
-        # ! on the off chance that the parent's parent got nuked, might need to check if the parent exists
+        parent = getcwd().split(path.sep)[-1]
         chdir(path.sep.join(getcwd().split(path.sep)[:-1]))
         self.app.query_one("#file_list").update_file_list(
-            self.app.main_sort_by, self.app.main_sort_order
+            self.app.main_sort_by, self.app.main_sort_order, focus_on=parent
         )
 
 
