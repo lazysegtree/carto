@@ -31,14 +31,12 @@ class Dismissable(ModalScreen):
     def on_key(self, event: events.Key) -> None:
         """Handle key presses."""
         if event.key in ["escape", "enter"]:
-            event.stop()
             self.dismiss()
         elif event.key == "tab":
-            event.stop()
             self.focus_next()
         elif event.key == "shift+tab":
-            event.stop()
             self.focus_previous()
+        event.stop()
 
     @on(Button.Pressed, "#ok")
     def on_button_pressed(self, event: Button.Pressed) -> None:
@@ -71,11 +69,10 @@ class YesOrNo(ModalScreen):
     def on_key(self, event: events.Key) -> None:
         """Handle key presses."""
         if event.key.lower() == "y":
-            event.stop()
             self.dismiss(True)
         elif event.key.lower() in ["n", "escape"]:
-            event.stop()
             self.dismiss(False)
+        event.stop()
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         self.dismiss(event.button.id == "yes")
@@ -108,29 +105,26 @@ class CopyOverwrite(ModalScreen):
     def on_key(self, event: events.Key) -> None:
         """Handle key presses."""
         if event.key.lower() == "o":
-            event.stop()
             self.dismiss({
                 "value": "overwrite",
                 "same_for_next": self.query_one(Switch).value,
             })
         elif event.key.lower() == "r":
-            event.stop()
             self.dismiss({
                 "value": "rename",
                 "same_for_next": self.query_one(Switch).value,
             })
         elif event.key.lower() == "s":
-            event.stop()
             self.dismiss({
                 "value": "skip",
                 "same_for_next": self.query_one(Switch).value,
             })
         elif event.key.lower() in ["c", "escape"]:
-            event.stop()
             self.dismiss({
                 "value": "cancel",
                 "same_for_next": self.query_one(Switch).value,
             })
+        event.stop()
 
 
 class DeleteFiles(ModalScreen):
@@ -158,23 +152,18 @@ class DeleteFiles(ModalScreen):
     def on_key(self, event: events.Key) -> None:
         """Handle key presses."""
         if event.key.lower() == "d":
-            event.stop()
             self.dismiss("delete")
         elif event.key.lower() in ["c", "escape"]:
-            event.stop()
             self.dismiss("cancel")
         elif event.key.lower() == "t" and config["settings"]["use_recycle_bin"]:
-            event.stop()
             self.dismiss("trash")
         elif event.key == "tab":
-            event.stop()
             self.focus_next()
         elif event.key == "shift+tab":
-            event.stop()
             self.focus_previous()
         elif event.key == "enter":
-            event.stop()
             self.query_one(f"#{self.focused.id}").action_press()
+        event.stop()
 
 
 class ZToDirectory(ModalScreen):
@@ -297,24 +286,20 @@ class ZToDirectory(ModalScreen):
     def on_key(self, event: events.Key) -> None:
         """Handle key presses."""
         if event.key in ["escape"]:
-            event.stop()
             self.dismiss(None)
         elif event.key == "down":
-            event.stop()
             zoxide_options = self.query_one("#zoxide_options")
             if zoxide_options.options:
                 zoxide_options.action_cursor_down()
         elif event.key == "up":
-            event.stop()
             zoxide_options = self.query_one("#zoxide_options")
             if zoxide_options.options:
                 zoxide_options.action_cursor_up()
         elif event.key == "tab":
-            event.stop()
             self.focus_next()
         elif event.key == "shift+tab":
-            event.stop()
             self.focus_previous()
+        event.stop()
 
 
 class ModalInput(ModalScreen):
@@ -351,5 +336,5 @@ class ModalInput(ModalScreen):
     def on_key(self, event: events.Key) -> None:
         """Handle escape key to dismiss the dialog."""
         if event.key == "escape":
-            event.stop()
             self.dismiss("")
+        event.stop()

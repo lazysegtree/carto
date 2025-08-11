@@ -243,41 +243,6 @@ class Application(App, inherit_bindings=False):
                     self.query_one("#file_list").focus()
                 elif self.query_one("#footer").display:
                     self.query_one("#clipboard").focus()
-            # file list keybind stuff
-            case key if (
-                key in config["keybinds"]["copy"]
-                and self.query_one("#file_list").has_focus
-            ):
-                await self.query_one(CopyButton).on_button_pressed(CopyButton.Pressed)
-            case key if (
-                key in config["keybinds"]["cut"]
-                and self.query_one("#file_list").has_focus
-            ):
-                await self.query_one(CutButton).on_button_pressed(CutButton.Pressed)
-            case key if (
-                key in config["keybinds"]["paste"]
-                and self.query_one("#file_list").has_focus
-            ):
-                await self.query_one(PasteButton).on_button_pressed(PasteButton.Pressed)
-            case key if (
-                key in config["keybinds"]["new"]
-                and self.query_one("#file_list").has_focus
-            ):
-                self.query_one(NewItemButton).on_button_pressed(NewItemButton.Pressed)
-            case key if (
-                key in config["keybinds"]["rename"]
-                and self.query_one("#file_list").has_focus
-            ):
-                self.query_one(RenameItemButton).on_button_pressed(
-                    RenameItemButton.Pressed
-                )
-            case key if (
-                key in config["keybinds"]["delete"]
-                and self.query_one("#file_list").has_focus
-            ):
-                await self.query_one(DeleteButton).on_button_pressed(
-                    DeleteButton.Pressed
-                )
             # toggle select mode
             case key if (
                 key in config["keybinds"]["toggle_visual"]

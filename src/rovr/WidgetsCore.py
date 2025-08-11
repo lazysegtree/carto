@@ -1116,3 +1116,15 @@ class FileList(SelectionList, inherit_bindings=False):
             elif event.key in config["keybinds"]["toggle_pin"]:
                 utils.toggle_pin(path.basename(getcwd()), getcwd())
                 self.app.query_one(PinnedSidebar).reload_pins()
+            elif event.key in config["keybinds"]["copy"]:
+                await self.get_child_by_id("copy").on_button_pressed(Button.Pressed)
+            elif event.key in config["keybinds"]["cut"]:
+                await self.get_child_by_id("cut").on_button_pressed(Button.Pressed)
+            elif event.key in config["keybinds"]["paste"]:
+                await self.get_child_by_id("paste").on_button_pressed(Button.Pressed)
+            elif event.key in config["keybinds"]["new"]:
+                await self.get_child_by_id("new").on_button_pressed(Button.Pressed)
+            elif event.key in config["keybinds"]["rename"]:
+                await self.get_child_by_id("rename").on_button_pressed(Button.Pressed)
+            elif event.key in config["keybinds"]["delete"]:
+                await self.get_child_by_id("delete").on_button_pressed(Button.Pressed)
