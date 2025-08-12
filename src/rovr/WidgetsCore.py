@@ -53,8 +53,10 @@ class PreviewContainer(Container):
         if self.any_in_queue():
             return
         if self._current_preview_type != "image":
+            self._current_preview_type = "none"
             await self.remove_children()
             self.remove_class("bat", "full", "clip")
+
             if self.any_in_queue():
                 return
             try:
@@ -127,6 +129,7 @@ class PreviewContainer(Container):
                 new_content = Text.from_ansi(bat_output)
 
                 if self._current_preview_type != "bat":
+                    self._current_preview_type = "none"
                     await self.remove_children()
                     self.remove_class("full", "clip")
 
@@ -151,8 +154,8 @@ class PreviewContainer(Container):
                 return True
             else:
                 error_message = stderr.decode("utf-8", errors="ignore")
-                await self.remove_children()
                 self._current_preview_type = "none"
+                await self.remove_children()
                 self.notify(
                     f"bat preview failed: {error_message}",
                     severity="warning",
@@ -202,6 +205,7 @@ class PreviewContainer(Container):
             return
 
         if self._current_preview_type != "normal_text":
+            self._current_preview_type = "none"
             await self.remove_children()
             self.remove_class("bat", "full", "clip")
 
@@ -265,6 +269,7 @@ class PreviewContainer(Container):
             folder_path(str): The folder path
         """
         if self._current_preview_type != "folder":
+            self._current_preview_type = "none"
             await self.remove_children()
             self.remove_class("bat", "full", "clip")
 
@@ -279,7 +284,7 @@ class PreviewContainer(Container):
                     sort_by="name",
                     sort_order="ascending",
                     dummy=True,
-                    enter_into=utils.normalise(path.relpath(getcwd(), folder_path)),
+                    enter_into=folder_path,
                 )
             )
             self._current_preview_type = "folder"
@@ -760,19 +765,18 @@ class FileList(SelectionList, inherit_bindings=False):
 
     def dummy_update_file_list(
         self,
+        cwd: str,
         sort_by: str = "name",
         sort_order: str = "ascending",
-        cwd: str = "",
     ) -> None:
         """Update the file list with the current directory contents.
 
         Args:
+            cwd (str): The current working directory.
             sort_by (str): The attribute to sort by ("name" or "size").
             sort_order (str): The order to sort by ("ascending" or "descending").
-            cwd (str): The current working directory.
         """
-        if cwd == "":
-            cwd = utils.normalise(getcwd())
+        self.enter_into = cwd
         self.clear_options()
         # Separate folders and files
         folders, files = utils.get_cwd_object(cwd, sort_order, sort_by)
