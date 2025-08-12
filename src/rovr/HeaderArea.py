@@ -27,7 +27,11 @@ class TablineTab(Tab):
             directory = getcwd()
         directory = normalise(directory)
         if label == "":
-            label = path.basename(directory)
+            label = (
+                path.basename(directory)
+                if path.basename(directory) != ""
+                else directory.strip("/")
+            )
         super().__init__(label=label, *args, **kwargs)
         self.directory = directory
         self.session = SessionManager()

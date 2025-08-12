@@ -318,7 +318,7 @@ class MetadataContainer(VerticalScroll):
             self._perform_update(dir_entry)
 
     @work(thread=True)
-    async def _perform_update(self, dir_entry: DirEntry) -> None:
+    def _perform_update(self, dir_entry: DirEntry) -> None:
         """
         After debouncing the update
         Args:

@@ -174,7 +174,7 @@ class UpButton(Button):
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """Go up the current location's directory"""
         parent = getcwd().split(path.sep)[-1]
-        chdir(path.sep.join(getcwd().split(path.sep)[:-1]))
+        chdir(path.sep.join(getcwd().split(path.sep)[:-1]) + path.sep)
         self.app.query_one("#file_list").update_file_list(
             self.app.main_sort_by, self.app.main_sort_order, focus_on=parent
         )

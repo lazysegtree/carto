@@ -120,8 +120,10 @@ Status: 26/28
   - [x] Schema
   - [x] Extending custom themes via configuration
 - [x] [zoxide](https://github.com/ajeetdsouza/zoxide) support (ranger)<br><sub>There is no command line for rovr, which means it will use keybinds to launch either a modified current folder bar or a panel</sub>
-- [x] Previewing image files using [textual-image](https://github.com/lnqs/textual-image) (superfile)<br><sub>Explorer kinda supports image viewing, but this is a TUI, so inspiration is from superfile</sub>
-- [x] Previewing directories (superfile)
+- Previewing files
+  - [x] Image files using [textual-image](https://github.com/lnqs/textual-image) (superfile)<br><sub>Explorer kinda supports image viewing, but this is a TUI, so inspiration is from superfile</sub>
+  - [x] Directories (superfile)
+  - [ ] Compressed Files
 - [x] Pinned folder sidebar (superfile)<br><sub>Explorer also supports a pinned sidebar, but it also includes the massive file tree, which I won't add.</sub>
 - [ ] Search Bar (superfile)
 - [x] Metadata
