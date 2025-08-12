@@ -71,6 +71,7 @@ class Application(App, inherit_bindings=False):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.prev_selected_option = None
+        self.app_blurred = False
         # TODO: need to actually do this.
         self.main_sort_by = config["settings"]["filelist_sort_by"]
         self.main_sort_order = config["settings"]["filelist_sort_order"]
@@ -314,6 +315,12 @@ class Application(App, inherit_bindings=False):
                     self.remove_class("zen")
                 else:
                     self.add_class("zen")
+
+    def on_app_blur(self, event: events.AppBlur) -> None:
+        self.app_blurred = True
+
+    def on_app_focus(self, event: events.AppFocus) -> None:
+        self.app_blurred = False
 
 
 app = Application(watch_css=True)

@@ -464,13 +464,14 @@ class MetadataContainer(VerticalScroll):
     def on_focus(self) -> None:
         if self.current_path and path.isdir(self.current_path):
             if self._size_worker:
-                self._size_worker.cancel()
-                self._size_worker = None
+                return
             self._size_worker = self.calculate_folder_size(self.current_path)
 
     @on(events.Blur)
     def on_blur(self) -> None:
-        if self._size_worker.state == WorkerState.SUCCESS:
+        if self._size_worker is None or self.app.app_blurred:
+            return
+        elif self._size_worker.state == WorkerState.SUCCESS:
             self._size_worker = None
         else:
             self._size_worker.cancel()
