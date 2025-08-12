@@ -16,6 +16,7 @@ $scrollbar-background: $primary-muted;
 $scrollbar-background-hover: $primary-muted;
 $scrollbar-background-active: $primary-muted;
 $scrollbar-corner-color: $primary-muted;
+
 * {
   scrollbar-size: 1 2;
 }
@@ -79,6 +80,7 @@ $scrollbar-corner-color: $primary-muted;
   &.clip > Static {
     width: 1fr;
     overflow-x: hidden !important;
+    scrollbar-size: 0 0; /* scrollbars are useless, reminder */
   }
   & > * {
     background: transparent;

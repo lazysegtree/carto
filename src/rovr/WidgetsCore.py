@@ -1260,8 +1260,8 @@ class FileList(SelectionList, inherit_bindings=False):
             elif event.key in config["keybinds"]["paste"]:
                 await self.app.query_one("#paste").on_button_pressed(Button.Pressed)
             elif event.key in config["keybinds"]["new"]:
-                await self.app.query_one("#new").on_button_pressed(Button.Pressed)
+                self.app.query_one("#new").on_button_pressed(Button.Pressed)
             elif event.key in config["keybinds"]["rename"]:
-                await self.app.query_one("#rename").on_button_pressed(Button.Pressed)
+                self.app.query_one("#rename").on_button_pressed(Button.Pressed)
             elif event.key in config["keybinds"]["delete"]:
                 await self.app.query_one("#delete").on_button_pressed(Button.Pressed)
