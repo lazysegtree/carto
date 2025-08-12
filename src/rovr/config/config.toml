@@ -6,6 +6,7 @@ tooltips = true
 nerd_font = false
 show_progress_eta = false
 show_progress_percentage = true
+
 preview_error = "Hmm, I think this file got corrupted (or maybe not?)"
 preview_binary = "This file is not UTF-8 encoded, so I decline to read it."
 preview_start = "print(\"Hello, world!\")"
@@ -67,6 +68,7 @@ toggle_pin = ["P"]
 toggle_pinned_sidebar = ["S"]
 toggle_preview_sidebar = ["I"]
 toggle_footer = ["F"]
+
 focus_toggle_pinned_sidebar = ["s"]
 focus_file_list = ["escape"]
 focus_toggle_preview_sidebar = ["i"]
@@ -74,14 +76,15 @@ focus_toggle_path_switcher = ["/"]
 focus_toggle_search = ["f", "/"]
 focus_toggle_processes = ["f6"]
 focus_toggle_clipboard = ["c"]
+
 focus_toggle_metadata = ["m"]
 copy = ["y", "ctrl+c"]
 paste = ["p", "ctrl+v"]
 cut = ["x", "ctrl+x"]
 delete = ["d", "delete"]
 rename = ["r", "f2"]
-toggle_all = ["%", "ctrl+a"]
-new = ["o", "ctrl+n"]
+new = ["ctrl+n"]
+
 up = ["up", "k"]
 down = ["down", "j"]
 up_tree = ["left", "h"]
@@ -90,20 +93,30 @@ page_up = ["pageup", "ctrl+b"]
 page_down = ["pagedown", "ctrl+f"]
 home = ["home", "g"]
 end = ["end", "G"]
+
 hist_previous = ["backspace", "u"]
 hist_next = ["space"]
+
 refresh = ["ctrl+r", "f5"]
 toggle_visual = ["v"]
+toggle_all = ["%", "ctrl+a"]
+
 select_up = ["shift+up", "K"]
 select_down = ["shift+down", "J"]
 select_page_up = ["shift+pageup"]
 select_page_down = ["shift+pagedown"]
 select_home = ["shift+home"]
 select_end = ["shift+end"]
+
 tab_next = ["ctrl+j"]
 tab_previous = ["ctrl+k"]
 tab_new = ["n"]
 tab_close = ["w"]
+
+preview_scroll_left = ["left", "h"]
+preview_scroll_right = ["right", "l"]
+preview_select_left = ["shift+left", "H"]
+preview_select_right = ["shift+right", "L"]
 
 [plugins.zoxide]
 enabled = false

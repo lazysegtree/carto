@@ -23,6 +23,124 @@ from .maps import EXT_TO_LANG_MAP, PIL_EXTENSIONS
 from .utils import config
 
 
+class CustomTextArea(TextArea, inherit_bindings=False):
+    BINDINGS: ClassVar[list[BindingType]] = (
+        # Bindings from config
+        [
+            Binding(bind, "cursor_up", "Cursor up", show=False)
+            for bind in config["keybinds"]["up"]
+        ]
+        + [
+            Binding(bind, "cursor_down", "Cursor down", show=False)
+            for bind in config["keybinds"]["down"]
+        ]
+        + [
+            Binding(bind, "cursor_left", "Cursor left", show=False)
+            for bind in config["keybinds"]["preview_scroll_left"]
+        ]
+        + [
+            Binding(bind, "cursor_right", "Cursor right", show=False)
+            for bind in config["keybinds"]["preview_scroll_right"]
+        ]
+        + [
+            Binding(bind, "cursor_line_start", "Cursor line start", show=False)
+            for bind in config["keybinds"]["home"]
+        ]
+        + [
+            Binding(bind, "cursor_line_end", "Cursor line end", show=False)
+            for bind in config["keybinds"]["end"]
+        ]
+        + [
+            Binding(bind, "cursor_page_up", "Cursor page up", show=False)
+            for bind in config["keybinds"]["page_up"]
+        ]
+        + [
+            Binding(bind, "cursor_page_down", "Cursor page down", show=False)
+            for bind in config["keybinds"]["page_down"]
+        ]
+        + [
+            Binding(bind, "cursor_up(True)", "Cursor up select", show=False)
+            for bind in config["keybinds"]["select_up"]
+        ]
+        + [
+            Binding(bind, "cursor_down(True)", "Cursor down select", show=False)
+            for bind in config["keybinds"]["select_down"]
+        ]
+        + [
+            Binding(
+                bind, "cursor_line_start(True)", "Cursor line start select", show=False
+            )
+            for bind in config["keybinds"]["select_home"]
+        ]
+        + [
+            Binding(bind, "cursor_line_end(True)", "Cursor line end select", show=False)
+            for bind in config["keybinds"]["select_end"]
+        ]
+        + [
+            Binding(bind, "cursor_page_up(True)", "Cursor page up select", show=False)
+            for bind in config["keybinds"]["select_page_up"]
+        ]
+        + [
+            Binding(
+                bind, "cursor_page_down(True)", "Cursor page down select", show=False
+            )
+            for bind in config["keybinds"]["select_page_down"]
+        ]
+        + [
+            Binding(bind, "select_all", "Select all", show=False)
+            for bind in config["keybinds"]["toggle_all"]
+        ]
+        + [
+            Binding(bind, "delete_right", "Delete character right", show=False)
+            for bind in config["keybinds"]["delete"]
+        ]
+        + [
+            Binding(bind, "cut", "Cut", show=False)
+            for bind in config["keybinds"]["cut"]
+        ]
+        + [
+            Binding(bind, "copy", "Copy", show=False)
+            for bind in config["keybinds"]["copy"]
+        ]
+        + [
+            Binding(bind, "paste", "Paste", show=False)
+            for bind in config["keybinds"]["paste"]
+        ]
+        + [
+            Binding(bind, "cursor_right(True)", "Select right", show=False)
+            for bind in config["keybinds"]["preview_select_right"]
+        ]
+        + [
+            Binding(bind, "cursor_left(True)", "Select left", show=False)
+            for bind in config["keybinds"]["preview_select_left"]
+        ]
+        # Hardcoded bindings
+        + [
+            Binding("ctrl+left", "cursor_word_left", "Cursor word left", show=False),
+            Binding("ctrl+right", "cursor_word_right", "Cursor word right", show=False),
+            Binding(
+                "shift+left", "cursor_left(True)", "Cursor left select", show=False
+            ),
+            Binding(
+                "shift+right", "cursor_right(True)", "Cursor right select", show=False
+            ),
+            Binding(
+                "ctrl+shift+left",
+                "cursor_word_left(True)",
+                "Cursor left word select",
+                show=False,
+            ),
+            Binding(
+                "ctrl+shift+right",
+                "cursor_word_right(True)",
+                "Cursor right word select",
+                show=False,
+            ),
+            Binding("f6", "select_line", "Select line", show=False),
+        ]
+    )
+
+
 class PreviewContainer(Container):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -70,7 +188,7 @@ class PreviewContainer(Container):
                 self.query_one("#image_preview").can_focus = True
             except FileNotFoundError:
                 await self.mount(
-                    TextArea(
+                    CustomTextArea(
                         id="text_preview",
                         show_line_numbers=True,
                         soft_wrap=False,
@@ -122,7 +240,7 @@ class PreviewContainer(Container):
             stdout, stderr = await process.communicate()
 
             if self.any_in_queue():
-                return
+                return True
 
             if process.returncode == 0:
                 bat_output = stdout.decode("utf-8", errors="ignore")
@@ -134,7 +252,7 @@ class PreviewContainer(Container):
                     self.remove_class("full", "clip")
 
                     if self.any_in_queue():
-                        return
+                        return True
 
                     await self.mount(
                         Static(new_content, id="text_preview", classes="inner_preview")
@@ -213,7 +331,7 @@ class PreviewContainer(Container):
                 return
 
             await self.mount(
-                TextArea(
+                CustomTextArea(
                     id="text_preview",
                     show_line_numbers=True,
                     soft_wrap=False,
@@ -225,13 +343,9 @@ class PreviewContainer(Container):
             )
             self._current_preview_type = "normal_text"
         else:
-            try:
-                text_area = self.query_one("#text_preview", TextArea)
-                text_area.text = text_to_display
-                text_area.language = language
-            except Exception:
-                self._current_preview_type = "none"
-                await self._show_normal_file_preview()
+            text_area = self.query_one("#text_preview", CustomTextArea)
+            text_area.text = text_to_display
+            text_area.language = language
 
         self.border_title = "File Preview"
 
@@ -258,6 +372,7 @@ class PreviewContainer(Container):
             and not is_special_content
             and await self._show_bat_file_preview()
         ):
+            self.log("bat success")
             return
 
         await self._show_normal_file_preview()
@@ -410,6 +525,10 @@ class PreviewContainer(Container):
                     self.scroll_home(animate=False)
                 case key if key in config["keybinds"]["end"]:
                     self.scroll_end(animate=False)
+                case key if key in config["keybinds"]["preview_scroll_left"]:
+                    self.scroll_left(animate=False)
+                case key if key in config["keybinds"]["preview_scroll_right"]:
+                    self.scroll_right(animate=False)
 
 
 class FolderNotFileError(Exception):

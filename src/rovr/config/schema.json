@@ -531,6 +531,34 @@
             "type": "string"
           },
           "description": "Close the current tab."
+        },
+        "preview_scroll_left": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "While using `settings.preview_full = true`, and the preview container is focused, scroll left when this keybind is pressed."
+        },
+        "preview_scroll_right": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "While using `settings.preview_full = true`, and the preview container is focused, scroll right when this keybind is pressed."
+        },
+        "preview_select_right": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "While using TextArea for previewing, use this keybind to extend selection to the right."
+        },
+        "preview_select_left": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "While using TextArea for previewing, use this keybind to extend selection to the left."
         }
       }
     },
