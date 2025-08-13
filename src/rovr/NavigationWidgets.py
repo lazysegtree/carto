@@ -121,13 +121,9 @@ class PathInput(Input):
         if path.exists(event.value):
             if normalise(getcwd()) != normalise(event.value):
                 chdir(event.value)
-                self.app.query_one("#file_list").update_file_list(
-                    self.app.main_sort_by, self.app.main_sort_order
-                )
+                self.app.query_one("#file_list").update_file_list()
             else:
                 self.app.query_one("#file_list").update_file_list(
-                    self.app.main_sort_by,
-                    self.app.main_sort_order,
                     add_to_session=False,
                 )
 
@@ -147,9 +143,7 @@ class BackButton(Button):
         state.sessionHistoryIndex -= 1
         # ! reminder to add a check for path!
         chdir(state.sessionDirectories[state.sessionHistoryIndex]["path"])
-        self.app.query_one("#file_list").update_file_list(
-            self.app.main_sort_by, self.app.main_sort_order, add_to_session=False
-        )
+        self.app.query_one("#file_list").update_file_list(add_to_session=False)
 
 
 class ForwardButton(Button):
@@ -162,9 +156,7 @@ class ForwardButton(Button):
         state.sessionHistoryIndex += 1
         # ! reminder to add a check for path!
         chdir(state.sessionDirectories[state.sessionHistoryIndex]["path"])
-        self.app.query_one("#file_list").update_file_list(
-            self.app.main_sort_by, self.app.main_sort_order, add_to_session=False
-        )
+        self.app.query_one("#file_list").update_file_list(add_to_session=False)
 
 
 class UpButton(Button):
@@ -175,9 +167,7 @@ class UpButton(Button):
         """Go up the current location's directory"""
         parent = getcwd().split(path.sep)[-1]
         chdir(path.sep.join(getcwd().split(path.sep)[:-1]) + path.sep)
-        self.app.query_one("#file_list").update_file_list(
-            self.app.main_sort_by, self.app.main_sort_order, focus_on=parent
-        )
+        self.app.query_one("#file_list").update_file_list(focus_on=parent)
 
 
 class RefreshButton(Button):
@@ -188,6 +178,4 @@ class RefreshButton(Button):
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """Reload the file list"""
-        self.app.query_one("#file_list").update_file_list(
-            self.app.main_sort_by, self.app.main_sort_order, add_to_session=False
-        )
+        self.app.query_one("#file_list").update_file_list(add_to_session=False)

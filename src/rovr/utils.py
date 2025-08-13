@@ -101,13 +101,12 @@ def open_file(filepath: str) -> None:
         print(f"Error opening file: {e}")
 
 
-def get_cwd_object(cwd: str, sort_order: str, sort_by: str) -> (list[dict], list[dict]):
+def get_cwd_object(cwd: str) -> (list[dict], list[dict]):
     """
     Get the objects (files and folders) in a provided directory
     Args:
         cwd(str): The working directory to check
-        sort_order(str): The sort order (ascending or descending)
-        sort_by(str): How to sort it (currently unused)
+
     Returns:
         folders(list[dict]): A list of dictionaries, containing "name" as the item's name and "icon" as the respective icon
         files(list[dict]): A list of dictionaries, containing "name" as the item's name and "icon" as the respective icon
@@ -132,8 +131,8 @@ def get_cwd_object(cwd: str, sort_order: str, sort_by: str) -> (list[dict], list
                 "dir_entry": item,
             })
     # Sort folders and files properly
-    folders.sort(key=lambda x: x["name"].lower(), reverse=(sort_order == "descending"))
-    files.sort(key=lambda x: x["name"].lower(), reverse=(sort_order == "descending"))
+    folders.sort(key=lambda x: x["name"].lower())
+    files.sort(key=lambda x: x["name"].lower())
     print(f"Found {len(folders)} folders and {len(files)} files in {cwd}")
     return folders, files
 

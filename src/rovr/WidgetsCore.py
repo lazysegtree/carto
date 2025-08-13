@@ -396,8 +396,6 @@ class PreviewContainer(Container):
                     id="folder_preview",
                     name=folder_path,
                     classes="file-list inner_preview",
-                    sort_by="name",
-                    sort_order="ascending",
                     dummy=True,
                     enter_into=folder_path,
                 )
@@ -409,8 +407,6 @@ class PreviewContainer(Container):
 
         folder_preview = self.query_one("#folder_preview", FileList)
         folder_preview.dummy_update_file_list(
-            sort_by="name",
-            sort_order="ascending",
             cwd=folder_path,
         )
         self.border_title = "Folder Preview"
@@ -761,8 +757,6 @@ class FileList(SelectionList, inherit_bindings=False):
 
     def __init__(
         self,
-        sort_by: str,
-        sort_order: str,
         dummy: bool = False,
         enter_into: str = "",
         select: bool = False,
@@ -772,15 +766,11 @@ class FileList(SelectionList, inherit_bindings=False):
         """
         Initialize the FileList widget.
         Args:
-            sort_by (str): The attribute to sort by ("name" or "size").
-            sort_order (str): The order to sort by ("ascending" or "descending").
             dummy (bool): Whether this is a dummy file list.
             enter_into (str): The path to enter into when a folder is selected.
             select (bool): Whether the selection is select or normal.
         """
         super().__init__(*args, **kwargs)
-        self.sort_by = sort_by
-        self.sort_order = sort_order
         self.dummy = dummy
         self.enter_into = enter_into
         self.select_mode_enabled = select
@@ -807,16 +797,12 @@ class FileList(SelectionList, inherit_bindings=False):
 
     def update_file_list(
         self,
-        sort_by: str = "name",
-        sort_order: str = "ascending",
         add_to_session: bool = True,
         focus_on: str | None = None,
     ) -> None:
         """Update the file list with the current directory contents.
 
         Args:
-            sort_by (str): The attribute to sort by ("name" or "size").
-            sort_order (str): The order to sort by ("ascending" or "descending").
             add_to_session (bool): Whether to add the current directory to the session history.
             focus_on (str | None): A custom item to set the focus as.
         """
@@ -827,7 +813,7 @@ class FileList(SelectionList, inherit_bindings=False):
             session = self.app.tabWidget.active_tab.session
         print(self.app.tabWidget.active_tab)
         # Separate folders and files
-        folders, files = utils.get_cwd_object(cwd, sort_order, sort_by)
+        folders, files = utils.get_cwd_object(cwd)
         if folders == [PermissionError] or files == [PermissionError]:
             self.add_option(
                 Selection(
@@ -843,9 +829,7 @@ class FileList(SelectionList, inherit_bindings=False):
             self.app.query_one(PreviewContainer).remove_children()
             # nothing inside
         else:
-            file_list_options = (
-                files + folders if sort_order == "descending" else folders + files
-            )
+            file_list_options = folders + files
             for item in file_list_options:
                 self.add_option(
                     FileListSelectionWidget(
@@ -911,20 +895,16 @@ class FileList(SelectionList, inherit_bindings=False):
     def dummy_update_file_list(
         self,
         cwd: str,
-        sort_by: str = "name",
-        sort_order: str = "ascending",
     ) -> None:
         """Update the file list with the current directory contents.
 
         Args:
             cwd (str): The current working directory.
-            sort_by (str): The attribute to sort by ("name" or "size").
-            sort_order (str): The order to sort by ("ascending" or "descending").
         """
         self.enter_into = cwd
         self.clear_options()
         # Separate folders and files
-        folders, files = utils.get_cwd_object(cwd, sort_order, sort_by)
+        folders, files = utils.get_cwd_object(cwd)
         if folders == [PermissionError] or files == [PermissionError]:
             self.add_option(
                 Selection(
@@ -938,9 +918,7 @@ class FileList(SelectionList, inherit_bindings=False):
         elif folders == [] and files == []:
             self.add_option(Selection(" --no-files--", value="", id="", disabled=True))
             return
-        file_list_options = (
-            files + folders if sort_order == "descending" else folders + files
-        )
+        file_list_options = folders + files
         for item in file_list_options:
             self.add_option(
                 FileListSelectionWidget(
@@ -971,9 +949,7 @@ class FileList(SelectionList, inherit_bindings=False):
                 except PermissionError:
                     # cannot do anything about that
                     return
-                self.app.query_one("#file_list").update_file_list(
-                    self.sort_by, self.sort_order
-                )
+                self.app.query_one("#file_list").update_file_list()
                 self.app.query_one("#file_list").focus()
         elif not self.select_mode_enabled:
             # Check if it's a folder or a file
@@ -984,9 +960,7 @@ class FileList(SelectionList, inherit_bindings=False):
                 except PermissionError:
                     # Cannot access, so don't change anything I guess
                     return
-                self.app.query_one("#file_list").update_file_list(
-                    self.sort_by, self.sort_order
-                )
+                self.app.query_one("#file_list").update_file_list()
             else:
                 utils.open_file(path.join(cwd, file_name))
             if self.highlighted is None:

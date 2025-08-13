@@ -107,7 +107,7 @@ This is a list of features that I plan to add before releasing the appropriate v
 
 #### Version 1
 
-Status: 27/29
+Status: 27/30
 
 - [x] Directory Auto-completion (explorer)
 - [x] Button Navigation (explorer)
@@ -136,13 +136,14 @@ Status: 27/29
   - [x] Tabs
 - [x] Active and Completed processes (superfile)
 - Actions bar (explorer)
-  - [ ] Change sort order of files
   - [x] Copy files
   - [x] Cut files
   - [x] Paste files
   - [x] Create new files/folders
   - [x] Delete files/folders
   - [x] Rename **a** file/folder
+  - [ ] Extract from compressed archive
+  - [ ] Compress to archive
 - [x] bat as previewer
 
 #### Version 2
@@ -154,4 +155,8 @@ Status: 27/29
 #### Declined Features
 
 - Horizontal and Vertical Splits
+  - Too much clutter in a single window, especially when tabs already exist.
 - Transparent UI
+  - Some issues with Textual as a whole prevents me from creating a transparent UI.
+- Change sort order of files
+  - Too much work. However, if you are willing to put in the time for it, I'm glad to merge it!

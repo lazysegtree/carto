@@ -73,9 +73,6 @@ class Application(App, inherit_bindings=False):
         super().__init__(*args, **kwargs)
         self.prev_selected_option = None
         self.app_blurred = False
-        # TODO: need to actually do this.
-        self.main_sort_by = config["settings"]["filelist_sort_by"]
-        self.main_sort_order = config["settings"]["filelist_sort_order"]
 
     def compose(self) -> ComposeResult:
         print("Starting Rovr...")
@@ -114,8 +111,6 @@ class Application(App, inherit_bindings=False):
                         id="file_list",
                         name="File List",
                         classes="file-list",
-                        sort_by=self.main_sort_by,
-                        sort_order=self.main_sort_order,
                     )
                 yield PreviewContainer(
                     id="preview_sidebar",

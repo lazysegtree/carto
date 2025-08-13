@@ -82,16 +82,6 @@
           "description": "The image protocol to use when displaying an image",
           "enum": ["Auto", "TGP", "Sixel", "Halfcell", "Unicode"]
         },
-        "filelist_sort_by": {
-          "type": "string",
-          "default": "name",
-          "description": "NOT AVAILABLE\nSort the file list by either file \"name\" or \"date modified\"."
-        },
-        "filelist_sort_order": {
-          "type": "string",
-          "default": "ascending",
-          "description": "MAY NOT BE AVAILABLE\nSort the file list in \"ascending\" or \"descending\" order."
-        },
         "preview_full": {
           "type": "boolean",
           "default": false,

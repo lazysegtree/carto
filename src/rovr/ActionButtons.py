@@ -191,7 +191,7 @@ class NewItemButton(Button):
                     message=Content(f"Error creating file '{location}': {e}"),
                     severity="error",
                 )
-        self.app.query_one("#refresh").action_press()
+        self.app.query_one("#refresh", Button).action_press()
         self.app.query_one("#file_list").focus()
 
 
