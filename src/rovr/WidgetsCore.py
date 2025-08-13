@@ -13,6 +13,7 @@ from textual.app import ComposeResult
 from textual.binding import Binding, BindingType
 from textual.containers import Container
 from textual.content import Content
+from textual.geometry import Size
 from textual.strip import Strip
 from textual.widgets import Button, Input, OptionList, SelectionList, Static, TextArea
 from textual.widgets.option_list import Option, OptionDoesNotExist
@@ -583,6 +584,39 @@ class PinnedSidebar(OptionList, inherit_bindings=False):
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
 
+    def _update_lines(self) -> None:
+        """Update internal structures when new lines are added."""
+        if not self.scrollable_content_region:
+            return
+
+        line_cache = self._line_cache
+        line_cache.clear()
+        padding = self.get_component_styles("option-list--option").padding
+        width = self.scrollable_content_region.width - self._get_left_gutter_width()
+        for index, option in enumerate(self.options):
+            # in future, if anything was changed, you just need to add the line below
+            if not option.disabled or option.id.endswith("header"):
+                line_cache.index_to_line[index] = len(line_cache.lines)
+                line_count = (
+                    self._get_visual(option).get_height(
+                        self.styles, width - padding.width
+                    )
+                    + option._divider
+                )
+                line_cache.heights[index] = line_count
+                line_cache.lines.extend([
+                    (index, line_no) for line_no in range(0, line_count)
+                ])
+
+        last_divider = self.options and self.options[-1]._divider
+        virtual_size = Size(
+            self.scrollable_content_region.width,
+            len(line_cache.lines) - (1 if last_divider else 0),
+        )
+        if virtual_size != self.virtual_size:
+            self.virtual_size = virtual_size
+            self._scroll_update(virtual_size)
+
     @work(exclusive=True)
     async def reload_pins(self) -> None:
         """Reload pins shown
@@ -790,6 +824,7 @@ class FileList(SelectionList, inherit_bindings=False):
         event.prevent_default()
         clicked_option: int | None = event.style.meta.get("option")
         if clicked_option is not None and not self._options[clicked_option].disabled:
+            # in future, if anything was changed, you just need to add the lines below
             if self.highlighted == clicked_option:
                 self.action_select()
             else:
@@ -1015,6 +1050,38 @@ class FileList(SelectionList, inherit_bindings=False):
         )
         self.app.query_one("MetadataContainer").update_metadata(event.option.dir_entry)
 
+    def _update_lines(self) -> None:
+        """Update internal structures when new lines are added."""
+        if not self.scrollable_content_region:
+            return
+
+        line_cache = self._line_cache
+        line_cache.clear()
+        padding = self.get_component_styles("option-list--option").padding
+        width = self.scrollable_content_region.width - self._get_left_gutter_width()
+        for index, option in enumerate(self.options):
+            if not option.disabled or option.id.endswith("header"):
+                line_cache.index_to_line[index] = len(line_cache.lines)
+                line_count = (
+                    self._get_visual(option).get_height(
+                        self.styles, width - padding.width
+                    )
+                    + option._divider
+                )
+                line_cache.heights[index] = line_count
+                line_cache.lines.extend([
+                    (index, line_no) for line_no in range(0, line_count)
+                ])
+
+        last_divider = self.options and self.options[-1]._divider
+        virtual_size = Size(
+            self.scrollable_content_region.width,
+            len(line_cache.lines) - (1 if last_divider else 0),
+        )
+        if virtual_size != self.virtual_size:
+            self.virtual_size = virtual_size
+            self._scroll_update(virtual_size)
+
     # Use better versions of the checkbox icons
     def _get_left_gutter_width(
         self,
@@ -1027,6 +1094,7 @@ class FileList(SelectionList, inherit_bindings=False):
         if self.dummy or not self.select_mode_enabled:
             return 0
         else:
+            # in future, if anything was changed, you just need to add the line below
             return len(
                 utils.get_toggle_button_icon("left")
                 + utils.get_toggle_button_icon("inner")
@@ -1071,6 +1139,7 @@ class FileList(SelectionList, inherit_bindings=False):
         side_style += Style(meta={"option": selection_index})
         button_style += Style(meta={"option": selection_index})
 
+        # in future, if anything was changed, you just need to fix the segments below
         return Strip([
             Segment(utils.get_toggle_button_icon("left"), style=side_style),
             Segment(
