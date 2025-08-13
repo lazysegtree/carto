@@ -23,7 +23,6 @@ from .ActionButtons import (
     NewItemButton,
     PasteButton,
     RenameItemButton,
-    SortOrderButton,
 )
 from .FooterWidgets import (
     Clipboard,
@@ -79,7 +78,6 @@ class Application(App, inherit_bindings=False):
         with Vertical(id="root"):
             yield HeaderArea(id="headerArea")
             with HorizontalScroll(id="menu"):
-                yield SortOrderButton()
                 yield CopyButton()
                 yield CutButton()
                 yield PasteButton()
@@ -246,12 +244,6 @@ class Application(App, inherit_bindings=False):
                     self.query_one("#file_list").focus()
                 elif self.query_one("#footer").display:
                     self.query_one("#clipboard").focus()
-            # toggle select mode
-            case key if (
-                key in config["keybinds"]["toggle_visual"]
-                and self.query_one("#file_list").has_focus
-            ):
-                await self.query_one("#file_list", FileList).toggle_mode()
             # Toggle hiding panels
             case key if key in config["keybinds"]["toggle_pinned_sidebar"]:
                 self.query_one("#file_list").focus()

@@ -167,7 +167,7 @@ class DeleteFiles(ModalScreen):
             case "c" | "escape":
                 event.stop()
                 self.dismiss("cancel")
-            case key if key == "t" and config["settings"]["use_recycle_bin"]:
+            case "t" if config["settings"]["use_recycle_bin"]:
                 event.stop()
                 self.dismiss("trash")
             case "tab":

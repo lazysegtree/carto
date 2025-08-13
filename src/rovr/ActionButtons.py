@@ -9,25 +9,6 @@ from .ScreensCore import DeleteFiles, ModalInput, YesOrNo
 from .utils import config, decompress, get_icon, normalise
 
 
-class SortOrderButton(Button):
-    ALLOW_MAXIMIZE = False
-
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(
-            get_icon("general", "up")[0],
-            classes="option",
-            id="sort_order",
-            *args,
-            **kwargs,
-        )
-
-    #  actions soon :tm:
-
-    def on_mount(self) -> None:
-        if config["interface"]["tooltips"]:
-            self.tooltip = "Lists are in ascending order"
-
-
 class CopyButton(Button):
     ALLOW_MAXIMIZE = False
 

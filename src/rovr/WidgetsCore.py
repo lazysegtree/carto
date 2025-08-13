@@ -1190,6 +1190,9 @@ class FileList(SelectionList, inherit_bindings=False):
         """Handle key events for the file list."""
         if not self.dummy:
             match event.key:
+                # toggle select mode
+                case key if key in config["keybinds"]["toggle_visual"]:
+                    await self.query_one("#file_list", FileList).toggle_mode()
                 case key if key in config["keybinds"]["toggle_all"]:
                     if not self.select_mode_enabled:
                         await self.toggle_mode()
