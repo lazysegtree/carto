@@ -301,13 +301,6 @@
           },
           "description": "Focus toggle between path switcher and file list."
         },
-        "focus_toggle_search": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "description": "Focus toggle the search bar (not implemented yet)."
-        },
         "focus_toggle_processes": {
           "type": "array",
           "items": {
@@ -328,6 +321,13 @@
             "type": "string"
           },
           "description": "Focus toggle the metadata container."
+        },
+        "focus_search": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Focus the search bar."
         },
         "copy": {
           "type": "array",

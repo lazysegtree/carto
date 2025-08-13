@@ -14,7 +14,7 @@ from textual.binding import Binding, BindingType
 from textual.containers import Container
 from textual.content import Content
 from textual.strip import Strip
-from textual.widgets import Button, OptionList, SelectionList, Static, TextArea
+from textual.widgets import Button, Input, OptionList, SelectionList, Static, TextArea
 from textual.widgets.option_list import Option, OptionDoesNotExist
 from textual.widgets.selection_list import Selection
 
@@ -539,6 +539,18 @@ class FolderNotFileError(Exception):
         self.message = message
 
 
+class PinnedSidebarOption(Option):
+    def __init__(self, icon: list, label: str, *args, **kwargs) -> None:
+        super().__init__(
+            prompt=Content.from_markup(
+                f" [{icon[1]}]{icon[0]}[/{icon[1]}] $name", name=label
+            ),
+            *args,
+            **kwargs,
+        )
+        self.label = label
+
+
 class PinnedSidebar(OptionList, inherit_bindings=False):
     # Just so that I can disable space
     BINDINGS: ClassVar[list[BindingType]] = (
@@ -575,9 +587,6 @@ class PinnedSidebar(OptionList, inherit_bindings=False):
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
 
-    def compose(self) -> ComposeResult:
-        yield Static()
-
     @work(exclusive=True)
     async def reload_pins(self) -> None:
         """Reload pins shown
@@ -590,7 +599,6 @@ class PinnedSidebar(OptionList, inherit_bindings=False):
         pins = available_pins["pins"]
         default = available_pins["default"]
         print(f"Reloading pins: {available_pins}")
-        await self.remove_children()
         print(f"Reloading default folders: {default}")
         self.clear_options()
         for default_folder in default:
@@ -608,11 +616,9 @@ class PinnedSidebar(OptionList, inherit_bindings=False):
             else:
                 icon = utils.get_icon_for_file(default_folder["name"])
             self.add_option(
-                Option(
-                    Content.from_markup(
-                        f" [{icon[1]}]{icon[0]}[/{icon[1]}] $name",
-                        name=default_folder["name"],
-                    ),
+                PinnedSidebarOption(
+                    icon=icon,
+                    label=default_folder["name"],
                     id=f"{utils.compress(default_folder['path'])}-default",
                 )
             )
@@ -636,11 +642,9 @@ class PinnedSidebar(OptionList, inherit_bindings=False):
             else:
                 icon = utils.get_icon_for_file(pin["name"])
             self.add_option(
-                Option(
-                    Content.from_markup(
-                        f" [{icon[1]}]{icon[0]}[/{icon[1]}] $name",
-                        name=pin["name"],
-                    ),
+                PinnedSidebarOption(
+                    icon=icon,
+                    label=pin["name"],
                     id=f"{utils.compress(pin['path'])}-pinned",
                 )
             )
@@ -648,8 +652,9 @@ class PinnedSidebar(OptionList, inherit_bindings=False):
         drives = utils.get_mounted_drives()
         for drive in drives:
             self.add_option(
-                Option(
-                    f" {utils.get_icon('folder', ':/drive:')[0]} {drive}",
+                PinnedSidebarOption(
+                    icon=utils.get_icon("folder", ":/drive:"),
+                    label=drive,
                     id=f"{utils.compress(drive)}-drives",
                 )
             )
@@ -658,6 +663,7 @@ class PinnedSidebar(OptionList, inherit_bindings=False):
 
     async def on_mount(self) -> None:
         """Reload the pinned files from the config."""
+        self.input = self.parent.query_one(Input)
         self.reload_pins()
 
     async def on_option_list_option_selected(
@@ -683,23 +689,38 @@ class PinnedSidebar(OptionList, inherit_bindings=False):
         chdir(file_path)
         self.app.query_one("#file_list").update_file_list("name", "ascending")
         self.app.query_one("#file_list").focus()
+        self.input.clear()
+
+    def on_key(self, event: events.Key) -> None:
+        if event.key in config["keybinds"]["focus_search"]:
+            self.input.focus()
 
 
 class FileListSelectionWidget(Selection):
-    def __init__(self, dir_entry: DirEntry, *args, **kwargs) -> None:
+    def __init__(
+        self, icon: list, label: str, dir_entry: DirEntry, *args, **kwargs
+    ) -> None:
         """
         Initialise the selection.
 
         Args:
+            icon (list): The icon list from a utils function.
+            label (str): The label for the option.
             dir_entry (DirEntry): The nt.DirEntry class
-            prompt (ContentText): The prompt for the selection.
             value (SelectionType): The value for the selection.
             initial_state (bool) = False: The initial selected state of the selection.
             id (str or None) = None: The optional ID for the selection.
             disabled (bool) = False: The initial enabled/disabled state. Enabled by default.
         """
-        super().__init__(*args, **kwargs)
+        super().__init__(
+            prompt=Content.from_markup(
+                f" [{icon[1]}]{icon[0]}[/{icon[1]}] $name", name=label
+            ),
+            *args,
+            **kwargs,
+        )
         self.dir_entry = dir_entry
+        self.label = label
 
 
 class FileList(SelectionList, inherit_bindings=False):
@@ -764,6 +785,10 @@ class FileList(SelectionList, inherit_bindings=False):
         self.enter_into = enter_into
         self.select_mode_enabled = select
 
+    def on_mount(self) -> None:
+        if not self.dummy:
+            self.input: Input = self.parent.query_one(Input)
+
     # ignore single clicks
     async def _on_click(self, event: events.Click) -> None:
         """
@@ -824,13 +849,11 @@ class FileList(SelectionList, inherit_bindings=False):
             for item in file_list_options:
                 self.add_option(
                     FileListSelectionWidget(
-                        prompt=Content.from_markup(
-                            f" [{item['icon'][1]}]{item['icon'][0]}[/{item['icon'][1]}] $name",
-                            name=item["name"],
-                        ),
+                        icon=item["icon"],
+                        label=item["name"],
+                        dir_entry=item["dir_entry"],
                         value=utils.compress(item["name"]),
                         id=utils.compress(item["name"]),
-                        dir_entry=item["dir_entry"],
                     )
                 )
         # session handler
@@ -883,6 +906,7 @@ class FileList(SelectionList, inherit_bindings=False):
         )
         self.app.tabWidget.active_tab.directory = cwd
         self.app.tabWidget.parent.on_resize()
+        self.input.clear()
 
     def dummy_update_file_list(
         self,
@@ -920,12 +944,11 @@ class FileList(SelectionList, inherit_bindings=False):
         for item in file_list_options:
             self.add_option(
                 FileListSelectionWidget(
-                    prompt=Content.from_markup(
-                        f" [{item['icon'][1]}]{item['icon'][0]}[/{item['icon'][1]}] $name",
-                        name=item["name"],
-                    ),
-                    value=utils.compress(item["name"]),
+                    icon=item["icon"],
+                    label=item["name"],
                     dir_entry=item["dir_entry"],
+                    value=utils.compress(item["name"]),
+                    id=utils.compress(item["name"]),
                 )
             )
         # somehow prevents more debouncing, ill take it
@@ -988,14 +1011,14 @@ class FileList(SelectionList, inherit_bindings=False):
         elif event.option.value == "HTI":
             self.app.query_one(PreviewContainer).remove_children()
             return  # ignore folders that go to prev dir
-        if self.select_mode_enabled:
+        if self.select_mode_enabled and self.selected is not None:
             utils.set_scuffed_subtitle(
                 self.parent,
                 "SELECT",
                 f"{len(self.selected)}/{len(self.options)}",
                 True,
             )
-        else:
+        elif self.selected is not None:
             utils.set_scuffed_subtitle(
                 self.parent,
                 "NORMAL",
@@ -1123,145 +1146,157 @@ class FileList(SelectionList, inherit_bindings=False):
     async def on_key(self, event: events.Key) -> None:
         """Handle key events for the file list."""
         if not self.dummy:
-            if event.key in config["keybinds"]["toggle_all"]:
-                if not self.select_mode_enabled:
-                    await self.toggle_mode()
-                if len(self.selected) == len(self.options):
-                    self.deselect_all()
-                else:
-                    self.select_all()
-            elif (
-                self.select_mode_enabled
-                and event.key in config["keybinds"]["select_up"]
-            ):
-                """Select the current and previous file."""
-                if self.highlighted == 0:
-                    self.select(self.get_option_at_index(0))
-                else:
-                    self.select(self.get_option_at_index(self.highlighted))
-                    self.action_cursor_up()
-                    self.select(self.get_option_at_index(self.highlighted))
-                return
-            elif (
-                self.select_mode_enabled
-                and event.key in config["keybinds"]["select_down"]
-            ):
-                """Select the current and next file."""
-                if self.highlighted == len(self.options) - 1:
-                    self.select(self.get_option_at_index(self.option_count - 1))
-                else:
-                    self.select(self.get_option_at_index(self.highlighted))
-                    self.action_cursor_down()
-                    self.select(self.get_option_at_index(self.highlighted))
-                return
-            elif (
-                self.select_mode_enabled
-                and event.key in config["keybinds"]["select_page_up"]
-            ):
-                """Select the options between the current and the previous 'page'."""
-                old = self.highlighted
-                self.action_page_up()
-                new = self.highlighted
-                if old is None:
-                    old = 0
-                if new is None:
-                    new = 0
-                for index in range(new, old + 1):
-                    self.select(self.get_option_at_index(index))
-                return
-            elif (
-                self.select_mode_enabled
-                and event.key in config["keybinds"]["select_page_down"]
-            ):
-                """Select the options between the current and the next 'page'."""
-                old = self.highlighted
-                self.action_page_down()
-                new = self.highlighted
-                if old is None:
-                    old = 0
-                if new is None:
-                    new = 0
-                for index in range(old, new + 1):
-                    self.select(self.get_option_at_index(index))
-                return
-            elif (
-                self.select_mode_enabled
-                and event.key in config["keybinds"]["select_home"]
-            ):
-                old = self.highlighted
-                self.action_first()
-                new = self.highlighted
-                if old is None:
-                    old = 0
-                for index in range(new, old + 1):
-                    self.select(self.get_option_at_index(index))
-                return
-            elif (
-                self.select_mode_enabled
-                and event.key in config["keybinds"]["select_end"]
-            ):
-                old = self.highlighted
-                self.action_last()
-                new = self.highlighted
-                if old is None:
-                    old = 0
-                for index in range(old, new + 1):
-                    self.select(self.get_option_at_index(index))
-                return
-            elif (
-                config["plugins"]["editor"]["enabled"]
-                and event.key in config["plugins"]["editor"]["keybinds"]
-            ):
-                if path.isdir(
-                    path.join(
-                        getcwd(),
-                        utils.decompress(self.get_option_at_index(self.highlighted).id),
-                    )
+            match event.key:
+                case key if key in config["keybinds"]["toggle_all"]:
+                    if not self.select_mode_enabled:
+                        await self.toggle_mode()
+                    if len(self.selected) == len(self.options):
+                        self.deselect_all()
+                    else:
+                        self.select_all()
+                case key if (
+                    self.select_mode_enabled and key in config["keybinds"]["select_up"]
                 ):
-                    with self.app.suspend():
-                        cmd(
-                            f'{config["plugins"]["editor"]["folder_executable"]} "{path.join(getcwd(), utils.decompress(self.get_option_at_index(self.highlighted).id))}"'
+                    """Select the current and previous file."""
+                    if self.highlighted == 0:
+                        self.select(self.get_option_at_index(0))
+                    else:
+                        self.select(self.get_option_at_index(self.highlighted))
+                        self.action_cursor_up()
+                        self.select(self.get_option_at_index(self.highlighted))
+                    return
+                case key if (
+                    self.select_mode_enabled
+                    and key in config["keybinds"]["select_down"]
+                ):
+                    """Select the current and next file."""
+                    if self.highlighted == len(self.options) - 1:
+                        self.select(self.get_option_at_index(self.option_count - 1))
+                    else:
+                        self.select(self.get_option_at_index(self.highlighted))
+                        self.action_cursor_down()
+                        self.select(self.get_option_at_index(self.highlighted))
+                    return
+                case key if (
+                    self.select_mode_enabled
+                    and key in config["keybinds"]["select_page_up"]
+                ):
+                    """Select the options between the current and the previous 'page'."""
+                    old = self.highlighted
+                    self.action_page_up()
+                    new = self.highlighted
+                    if old is None:
+                        old = 0
+                    if new is None:
+                        new = 0
+                    for index in range(new, old + 1):
+                        self.select(self.get_option_at_index(index))
+                    return
+                case key if (
+                    self.select_mode_enabled
+                    and key in config["keybinds"]["select_page_down"]
+                ):
+                    """Select the options between the current and the next 'page'."""
+                    old = self.highlighted
+                    self.action_page_down()
+                    new = self.highlighted
+                    if old is None:
+                        old = 0
+                    if new is None:
+                        new = 0
+                    for index in range(old, new + 1):
+                        self.select(self.get_option_at_index(index))
+                    return
+                case key if (
+                    self.select_mode_enabled
+                    and key in config["keybinds"]["select_home"]
+                ):
+                    old = self.highlighted
+                    self.action_first()
+                    new = self.highlighted
+                    if old is None:
+                        old = 0
+                    for index in range(new, old + 1):
+                        self.select(self.get_option_at_index(index))
+                    return
+                case key if (
+                    self.select_mode_enabled and key in config["keybinds"]["select_end"]
+                ):
+                    old = self.highlighted
+                    self.action_last()
+                    new = self.highlighted
+                    if old is None:
+                        old = 0
+                    for index in range(old, new + 1):
+                        self.select(self.get_option_at_index(index))
+                    return
+                case key if (
+                    config["plugins"]["editor"]["enabled"]
+                    and key in config["plugins"]["editor"]["keybinds"]
+                ):
+                    if path.isdir(
+                        path.join(
+                            getcwd(),
+                            utils.decompress(
+                                self.get_option_at_index(self.highlighted).id
+                            ),
                         )
-                else:
-                    with self.app.suspend():
-                        cmd(
-                            f'{config["plugins"]["editor"]["file_executable"]} "{path.join(getcwd(), utils.decompress(self.get_option_at_index(self.highlighted).id))}"'
+                    ):
+                        with self.app.suspend():
+                            cmd(
+                                f'{config["plugins"]["editor"]["folder_executable"]} "{path.join(getcwd(), utils.decompress(self.get_option_at_index(self.highlighted).id))}"'
+                            )
+                    else:
+                        with self.app.suspend():
+                            cmd(
+                                f'{config["plugins"]["editor"]["file_executable"]} "{path.join(getcwd(), utils.decompress(self.get_option_at_index(self.highlighted).id))}"'
+                            )
+                # hit buttons with keybinds
+                case key if (
+                    not self.select_mode_enabled
+                    and key in config["keybinds"]["hist_previous"]
+                ):
+                    if self.app.query_one("#back").disabled:
+                        self.app.query_one("UpButton").on_button_pressed(Button.Pressed)
+                    else:
+                        self.app.query_one("BackButton").on_button_pressed(
+                            Button.Pressed
                         )
-            # hit buttons with keybinds
-            elif (
-                event.key in config["keybinds"]["hist_previous"]
-                and not self.select_mode_enabled
-            ):
-                if self.app.query_one("#back").disabled:
+                case key if (
+                    not self.select_mode_enabled
+                    and event.key in config["keybinds"]["hist_next"]
+                    and not self.app.query_one("#forward").disabled
+                ):
+                    self.app.query_one("ForwardButton").on_button_pressed(
+                        Button.Pressed
+                    )
+                case key if (
+                    not self.select_mode_enabled
+                    and event.key in config["keybinds"]["up_tree"]
+                ):
                     self.app.query_one("UpButton").on_button_pressed(Button.Pressed)
-                else:
-                    self.app.query_one("BackButton").on_button_pressed(Button.Pressed)
-            elif (
-                event.key in config["keybinds"]["hist_next"]
-                and not self.select_mode_enabled
-                and not self.app.query_one("#forward").disabled
-            ):
-                self.app.query_one("ForwardButton").on_button_pressed(Button.Pressed)
-            elif (
-                event.key in config["keybinds"]["up_tree"]
-                and not self.select_mode_enabled
-            ):
-                self.app.query_one("UpButton").on_button_pressed(Button.Pressed)
-            elif event.key in config["keybinds"]["refresh"]:
-                self.app.query_one("RefreshButton").on_button_pressed(Button.Pressed)
-            # Toggle pin on current directory
-            elif event.key in config["keybinds"]["toggle_pin"]:
-                utils.toggle_pin(path.basename(getcwd()), getcwd())
-                self.app.query_one(PinnedSidebar).reload_pins()
-            elif event.key in config["keybinds"]["copy"]:
-                await self.app.query_one("#copy").on_button_pressed(Button.Pressed)
-            elif event.key in config["keybinds"]["cut"]:
-                await self.app.query_one("#cut").on_button_pressed(Button.Pressed)
-            elif event.key in config["keybinds"]["paste"]:
-                await self.app.query_one("#paste").on_button_pressed(Button.Pressed)
-            elif event.key in config["keybinds"]["new"]:
-                self.app.query_one("#new").on_button_pressed(Button.Pressed)
-            elif event.key in config["keybinds"]["rename"]:
-                self.app.query_one("#rename").on_button_pressed(Button.Pressed)
-            elif event.key in config["keybinds"]["delete"]:
-                await self.app.query_one("#delete").on_button_pressed(Button.Pressed)
+                case key if key in config["keybinds"]["refresh"]:
+                    self.app.query_one("RefreshButton").on_button_pressed(
+                        Button.Pressed
+                    )
+                # Toggle pin on current directory
+                case key if key in config["keybinds"]["toggle_pin"]:
+                    utils.toggle_pin(path.basename(getcwd()), getcwd())
+                    self.app.query_one(PinnedSidebar).reload_pins()
+                case key if key in config["keybinds"]["copy"]:
+                    await self.app.query_one("#copy").on_button_pressed(Button.Pressed)
+                case key if key in config["keybinds"]["cut"]:
+                    await self.app.query_one("#cut").on_button_pressed(Button.Pressed)
+                case key if key in config["keybinds"]["paste"]:
+                    await self.app.query_one("#paste").on_button_pressed(Button.Pressed)
+                case key if key in config["keybinds"]["new"]:
+                    self.app.query_one("#new").on_button_pressed(Button.Pressed)
+                case key if key in config["keybinds"]["rename"]:
+                    self.app.query_one("#rename").on_button_pressed(Button.Pressed)
+                case key if key in config["keybinds"]["delete"]:
+                    await self.app.query_one("#delete").on_button_pressed(
+                        Button.Pressed
+                    )
+                # search
+                case key if key in config["keybinds"]["focus_search"]:
+                    self.input.focus()

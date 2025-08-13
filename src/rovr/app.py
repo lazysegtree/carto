@@ -41,6 +41,7 @@ from .NavigationWidgets import (
     UpButton,
 )
 from .ScreensCore import YesOrNo, ZToDirectory
+from .SearchContainer import SearchInput
 from .themes import get_custom_themes
 from .utils import config
 from .WidgetsCore import (
@@ -101,8 +102,14 @@ class Application(App, inherit_bindings=False):
                 )
             with HorizontalGroup(id="main"):
                 with VerticalGroup(id="pinned_sidebar_container"):
+                    yield SearchInput(
+                        placeholder=f"({utils.get_icon('general', 'search')[0]}) Search"
+                    )
                     yield PinnedSidebar(id="pinned_sidebar")
                 with VerticalGroup(id="file_list_container"):
+                    yield SearchInput(
+                        placeholder=f"({utils.get_icon('general', 'search')[0]}) Search something..."
+                    )
                     yield FileList(
                         id="file_list",
                         name="File List",

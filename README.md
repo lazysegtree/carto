@@ -107,7 +107,7 @@ This is a list of features that I plan to add before releasing the appropriate v
 
 #### Version 1
 
-Status: 26/29
+Status: 27/29
 
 - [x] Directory Auto-completion (explorer)
 - [x] Button Navigation (explorer)
@@ -125,7 +125,7 @@ Status: 26/29
   - [x] Directories (superfile)
   - [ ] Compressed Files
 - [x] Pinned folder sidebar (superfile)<br><sub>Explorer also supports a pinned sidebar, but it also includes the massive file tree, which I won't add.</sub>
-- [ ] Search Bar (superfile)
+- [x] Search Bar (superfile)
 - [x] Metadata
 - Clipboard (superfile)
   - [x] Copy files and folders
