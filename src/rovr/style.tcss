@@ -9,7 +9,7 @@ $preview_sidebar_width: 35vw;
 $footer_unfocus_height: 8;
 $footer_focus_height: 10;
 
-$scrollbar: $primary-lighten-1;
+$scrollbar: $primary;
 $scrollbar-hover: $primary-lighten-3;
 $scrollbar-active: $primary-lighten-3;
 $scrollbar-background: $primary-muted;
@@ -19,6 +19,10 @@ $scrollbar-corner-color: $primary-muted;
 
 * {
   scrollbar-size: 1 2;
+}
+
+OptionList, FileList {
+  background: red
 }
 
 #menu {
@@ -77,10 +81,12 @@ $scrollbar-corner-color: $primary-muted;
     text-wrap: nowrap;
     width: auto;
   }
+  &.clip {
+    scrollbar-size: 0 0; /* scrollbars are useless, reminder */
+  }
   &.clip > Static {
     width: 1fr;
     overflow-x: hidden !important;
-    scrollbar-size: 0 0; /* scrollbars are useless, reminder */
   }
   & > * {
     background: transparent;
@@ -100,6 +106,7 @@ $scrollbar-corner-color: $primary-muted;
     width: 1fr;
     margin: 0 1 0 1;
     padding: 0 2 0 2;
+    overflow: hidden hidden;
   }
   Input.hide_border_bottom {
     border: $border-style $accent !important;

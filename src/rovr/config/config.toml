@@ -3,7 +3,7 @@
 
 [interface]
 tooltips = true
-nerd_font = false
+nerd_font = true
 show_progress_eta = false
 show_progress_percentage = true
 
