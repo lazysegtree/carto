@@ -294,6 +294,28 @@ def deep_merge(d: dict, u: dict) -> dict:
     return d
 
 
+def set_nested_value(d: dict, path_str: str, value: bool) -> None:
+    """Sets a value in a nested dictionary using a dot-separated path string.
+
+    Args:
+        d (dict): The dictionary to modify.
+        path_str (str): The dot-separated path to the key (e.g., "plugins.zen_mode").
+        value (bool): The value to set. (boolean for now)
+    """
+    keys = path_str.split(".")
+    current = d
+    for i, key in enumerate(keys):
+        if i == len(keys) - 1:
+            if "enabled" in current[key]:
+                current[key]["enabled"] = value
+            else:
+                current[key] = value
+        else:
+            if not isinstance(current.get(key), dict):
+                current[key] = {}
+            current = current[key]
+
+
 def load_config() -> None:
     """
     Load both the template config and the user config
