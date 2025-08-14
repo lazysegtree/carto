@@ -709,6 +709,7 @@ name = "rovr"
 version = "0.0.4.post2"
 source = { editable = "." }
 dependencies = [
+    { name = "click" },
     { name = "humanize" },
     { name = "jsonschema" },
     { name = "lzstring" },
@@ -736,6 +737,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "click", specifier = ">=8.2.1" },
     { name = "humanize", specifier = ">=4.12.3" },
     { name = "jsonschema", specifier = ">=4.25.0" },
     { name = "lzstring", specifier = ">=1.0.4" },
