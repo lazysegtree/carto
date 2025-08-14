@@ -177,9 +177,7 @@ class Application(App, inherit_bindings=False):
         # Make sure that key binds don't break
         match event.key:
             # after input
-            case key if (
-                key in ["enter", "escape"] and self.focused.id == "path_switcher"
-            ):
+            case "enter" | "escape" if self.focused.id == "path_switcher":
                 await self.query_one(PathInput).action_submit()
                 self.query_one("#file_list").focus()
                 return
@@ -220,6 +218,8 @@ class Application(App, inherit_bindings=False):
                 elif self.query_one(PreviewContainer).display:
                     with suppress(NoMatches):
                         self.query_one("PreviewContainer > *").focus()
+                else:
+                    self.query_one("#file_list").focus()
             # Focus path switcher
             case key if key in config["keybinds"]["focus_toggle_path_switcher"]:
                 self.query_one("#path_switcher").focus()
@@ -269,20 +269,20 @@ class Application(App, inherit_bindings=False):
             ):
                 self.tabWidget.action_next_tab()
             case key if (
-                key in config["keybinds"]["tab_previous"]
-                and self.tabWidget.active_tab is not None
+                self.tabWidget.active_tab is not None
+                and key in config["keybinds"]["tab_previous"]
             ):
                 self.tabWidget.action_previous_tab()
             case key if key in config["keybinds"]["tab_new"]:
                 await self.tabWidget.add_tab(after=self.tabWidget.active_tab)
             case key if (
-                key in config["keybinds"]["tab_close"] and self.tabWidget.tab_count > 1
+                self.tabWidget.tab_count > 1 and key in config["keybinds"]["tab_close"]
             ):
                 await self.tabWidget.remove_tab(self.tabWidget.active_tab)
             # zoxide
             case key if (
-                event.key in config["plugins"]["zoxide"]["keybinds"]
-                and config["plugins"]["zoxide"]["enabled"]
+                config["plugins"]["zoxide"]["enabled"]
+                and event.key in config["plugins"]["zoxide"]["keybinds"]
             ):
                 if shutil.which("zoxide") is None:
                     self.notify(
@@ -304,7 +304,10 @@ class Application(App, inherit_bindings=False):
 
                 self.push_screen(ZToDirectory(), on_response)
             # zen mode
-            case key if key in config["plugins"]["zen_mode"]["keybinds"]:
+            case key if (
+                config["plugins"]["zen_mode"]["enabled"]
+                and key in config["plugins"]["zen_mode"]["keybinds"]
+            ):
                 if "zen" in self.classes:
                     self.remove_class("zen")
                 else:

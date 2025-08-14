@@ -306,10 +306,16 @@ def set_nested_value(d: dict, path_str: str, value: bool) -> None:
     current = d
     for i, key in enumerate(keys):
         if i == len(keys) - 1:
-            if "enabled" in current[key]:
+            if isinstance(current[key], dict) and "enabled" in current[key]:
                 current[key]["enabled"] = value
-            else:
+            elif type(current[key]) is type(value):
                 current[key] = value
+            else:
+                pprint("[bright_red][underline]Config Error:[/]")
+                pprint(
+                    f"[cyan][b]{path_str}[/b][/cyan]'s new value of type [cyan][b]{type(value).__name__}[/b][/cyan] is not a [cyan][b]{type(current[key]).__name__}[/b][/cyan] type, and cannot be modified."
+                )
+                exit(1)
         else:
             if not isinstance(current.get(key), dict):
                 current[key] = {}

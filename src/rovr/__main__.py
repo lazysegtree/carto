@@ -1,4 +1,5 @@
 import click
+from rich.console import Console
 
 from .maps import VAR_TO_DIR
 from .utils import config, normalise, set_nested_value
@@ -34,7 +35,9 @@ def main(
     """A post-modern terminal file explorer"""
 
     if config_path:
-        print(normalise(VAR_TO_DIR["CONFIG"]))
+        Console().print(
+            f"[cyan]Config Path[/cyan]: [pink]{normalise(VAR_TO_DIR['CONFIG'])}[/pink]"
+        )
         return
 
     for feature_path in with_features:
