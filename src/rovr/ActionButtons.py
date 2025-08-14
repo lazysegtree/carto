@@ -1,12 +1,38 @@
 from os import getcwd, makedirs, path
 from shutil import move
 
+from pathvalidate import sanitize_filepath
 from textual import work
 from textual.content import Content
+from textual.validation import ValidationResult, Validator
 from textual.widgets import Button
 
 from .ScreensCore import DeleteFiles, ModalInput, YesOrNo
 from .utils import config, decompress, get_icon, normalise
+
+
+class IsValidFilePath(Validator):
+    def __init__(self) -> None:
+        super().__init__(failure_description="Path contains illegal characers.")
+
+    def validate(self, value: str) -> ValidationResult:
+        value = normalise(getcwd() + "/" + value)
+        if value == normalise(sanitize_filepath(value)):
+            return self.success()
+        else:
+            return self.failure()
+
+
+class PathDoesntExist(Validator):
+    def __init__(self) -> None:
+        super().__init__(failure_description="Path already exists.")
+
+    def validate(self, value: str) -> ValidationResult:
+        value = normalise(getcwd() + "/" + value)
+        if path.exists(value):
+            return self.failure()
+        else:
+            return self.success()
 
 
 class CopyButton(Button):
@@ -127,6 +153,8 @@ class NewItemButton(Button):
             ModalInput(
                 border_title="Create New Item",
                 border_subtitle="End with a slash (/) to create a directory",
+                is_path=True,
+                validators=[PathDoesntExist(), IsValidFilePath()],
             ),
             wait_for_dismiss=True,
         )
@@ -216,9 +244,14 @@ class RenameItemButton(Button):
                     border_title=f"Rename {type_of_file}",
                     border_subtitle=f"Current name: {path.basename(selected_file)}",
                     initial_value=path.basename(selected_file),
+                    validators=[IsValidFilePath(), PathDoesntExist()],
+                    is_path=True,
+                    is_folder=type_of_file == "Folder",
                 ),
                 wait_for_dismiss=True,
             )
+            if response in ["", path.basename(selected_file)]:
+                return
             old_name = normalise(path.realpath(path.join(getcwd(), selected_file)))
             new_name = normalise(path.realpath(path.join(getcwd(), response)))
             if not path.exists(old_name):

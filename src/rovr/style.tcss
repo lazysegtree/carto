@@ -469,15 +469,24 @@ DeleteFiles {
 
 ModalInput {
   align: center middle;
-  Container {
+  HorizontalGroup {
     border: $border-style $border;
     width: 50vw;
     max-width: 50vw;
     max-height: 3;
     padding: 0 1;
     background: transparent !important;
+    &.invalid {
+      border: $border-style $error-lighten-3
+    }
+    &:light {
+      border: $border-style $error;
+    }
   }
   Input { background: transparent !important }
+  Label {
+    height: 1;
+  }
 }
 
 
