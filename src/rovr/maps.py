@@ -432,6 +432,15 @@ FILES_MAP = {
     "py.typed": "py",
 }
 
+ARCHIVE_EXTENSIONS = [
+    ".zip",
+    ".tar",
+    ".gz",
+    ".bz2",
+    ".xz",
+    ".7z",
+]
+
 PIL_EXTENSIONS = [
     # reminder that stuff can also not work, just remove it if it doesnt work
     ".avif",

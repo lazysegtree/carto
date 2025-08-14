@@ -123,7 +123,7 @@ Status: 27/30
 - Previewing files
   - [x] Image files using [textual-image](https://github.com/lnqs/textual-image) (superfile)<br><sub>Explorer kinda supports image viewing, but this is a TUI, so inspiration is from superfile</sub>
   - [x] Directories (superfile)
-  - [ ] Compressed Files
+  - [x] Compressed Files
 - [x] Pinned folder sidebar (superfile)<br><sub>Explorer also supports a pinned sidebar, but it also includes the massive file tree, which I won't add.</sub>
 - [x] Search Bar (superfile)
 - [x] Metadata

@@ -18,7 +18,7 @@ $scrollbar-background-active: $primary-muted;
 $scrollbar-corner-color: $primary-muted;
 
 * {
-  scrollbar-size: 1 2;
+  scrollbar-size: 1 1;
 }
 
 Toast {
@@ -276,24 +276,21 @@ Screen.-nopreview {
   &:focus-within { height: $footer_focus_height }
 }
 
-#processes { padding: 0 1 }
+#processes { padding: 0 0 0 1 }
 
 Content.selected { color: red }
 
-FileList,
-Clipboard {
-  padding: 0;
-  & > .option-list--option-highlighted {
+OptionList {
+  padding: 0 0 0 0;
+  .option-list--option-highlighted {
     color: $block-cursor-background;
     background: transparent;
   }
-  & > .option-list--option-highlighted:hover {
+  .option-list--option-highlighted:hover {
     background: $accent
   }
   &:focus {
-    border: tall $border;
-    background-tint: $foreground 5%;
-    & > .option-list--option-highlighted {
+    .option-list--option-highlighted {
       color: $block-cursor-foreground;
       background: $block-cursor-background;
       text-style: $block-cursor-text-style;
@@ -322,6 +319,7 @@ Clipboard {
     }
     .selection-list--button-selected-highlighted {
       background: transparent;
+      color: $primary
     }
   }
 }
@@ -506,6 +504,11 @@ CommandInput { border: blank !important }
 }
 
 Bar { width: 1fr }
+
+ProcessContainer {
+  scrollbar-gutter: stable;
+  margin: 0
+}
 
 ProgressBarContainer {
   &.error .bar--bar,

@@ -1,4 +1,6 @@
 import asyncio
+import tarfile
+import zipfile
 from contextlib import suppress
 from os import DirEntry, chdir, getcwd, path
 from os import system as cmd
@@ -20,7 +22,7 @@ from textual.widgets.option_list import Option, OptionDoesNotExist
 from textual.widgets.selection_list import Selection
 
 from . import utils
-from .maps import EXT_TO_LANG_MAP, PIL_EXTENSIONS
+from .maps import ARCHIVE_EXTENSIONS, EXT_TO_LANG_MAP, PIL_EXTENSIONS
 from .utils import config
 
 
@@ -147,9 +149,10 @@ class PreviewContainer(Container):
         super().__init__(*args, **kwargs)
         self._queued_task = None
         self._queued_task_args: str | None = None
-        self._current_content = None
+        self._current_content: str | list[str] | None = None
         self._current_file_path = None
         self._is_image = False
+        self._is_archive = False
         self._initial_height = self.size.height
         self._current_preview_type = "none"
 
@@ -359,6 +362,10 @@ class PreviewContainer(Container):
             await self._show_image_preview()
             return
 
+        if self._is_archive:
+            await self._show_archive_preview()
+            return
+
         if self._current_content is None:
             return
 
@@ -412,6 +419,36 @@ class PreviewContainer(Container):
         )
         self.border_title = "Folder Preview"
 
+    async def _show_archive_preview(self) -> None:
+        """Render archive preview, updating in place if possible."""
+        if self.any_in_queue():
+            return
+
+        if self._current_preview_type != "archive":
+            self._current_preview_type = "none"
+            await self.remove_children()
+            self.remove_class("bat", "full", "clip")
+
+            if self.any_in_queue():
+                return
+
+            await self.mount(
+                ArchiveFileList(
+                    id="archive_preview",
+                    classes="file-list inner_preview",
+                )
+            )
+            self._current_preview_type = "archive"
+
+        if self.any_in_queue():
+            return
+
+        archive_preview: ArchiveFileList = self.query_one(
+            "#archive_preview", ArchiveFileList
+        )
+        archive_preview.create_list(self._current_content)
+        self.border_title = "Archive Preview"
+
     def any_in_queue(self) -> bool:
         if self._queued_task is not None:
             self._queued_task(self._queued_task_args)
@@ -450,8 +487,67 @@ class PreviewContainer(Container):
             self.app.call_from_thread(self._update_ui, file_path, is_dir=True)
         else:
             is_image = any(file_path.endswith(ext) for ext in PIL_EXTENSIONS)
+            is_archive = any(file_path.endswith(ext) for ext in ARCHIVE_EXTENSIONS)
             content = None
-            if not is_image:
+            if is_archive:
+                try:
+                    all_files = []
+                    if file_path.endswith((".zip", ".mcpack")):
+                        with zipfile.ZipFile(file_path, "r") as archive:
+                            if config["settings"]["preview_full"]:
+                                all_files = [
+                                    f for f in archive.namelist() if not f.endswith("/")
+                                ]
+                            else:
+                                top_level_files = set()
+                                top_level_dirs = set()
+                                for member in archive.infolist():
+                                    filename = member.filename.replace("\\", "/")
+                                    if not filename:
+                                        continue
+
+                                    parts = filename.strip("/").split("/")
+                                    if len(parts) == 1 and not member.is_dir():
+                                        top_level_files.add(parts[0])
+                                    else:
+                                        top_level_dirs.add(parts[0])
+
+                                top_level_files -= top_level_dirs
+                                all_files = sorted([
+                                    d + "/" for d in top_level_dirs
+                                ]) + sorted(list(top_level_files))
+                        content = all_files
+                    elif file_path.endswith((".tar", ".gz", ".bz2", ".xz")):
+                        with tarfile.open(file_path, "r:*") as archive:
+                            if config["settings"]["preview_full"]:
+                                all_files = [
+                                    m.name
+                                    for m in archive.getmembers()
+                                    if not m.isdir()
+                                ]
+                            else:
+                                top_level_files = set()
+                                top_level_dirs = set()
+                                for member in archive.getmembers():
+                                    filename = member.name.replace("\\", "/")
+                                    if not filename:
+                                        continue
+
+                                    parts = filename.strip("/").split("/")
+                                    if len(parts) == 1 and not member.isdir():
+                                        top_level_files.add(parts[0])
+                                    else:
+                                        top_level_dirs.add(parts[0])
+
+                                top_level_files -= top_level_dirs
+                                all_files = sorted([
+                                    d + "/" for d in top_level_dirs
+                                ]) + sorted(list(top_level_files))
+                        content = all_files
+
+                except (zipfile.BadZipFile, tarfile.TarError):
+                    content = [config["interface"]["preview_error"]]
+            elif not is_image:
                 try:
                     with open(file_path, "r", encoding="utf-8") as f:
                         content = f.read()
@@ -468,6 +564,7 @@ class PreviewContainer(Container):
                 file_path,
                 is_dir=False,
                 is_image=is_image,
+                is_archive=is_archive,
                 content=content,
             )
 
@@ -481,7 +578,8 @@ class PreviewContainer(Container):
         file_path: str,
         is_dir: bool,
         is_image: bool = False,
-        content: str | None = None,
+        is_archive: bool = False,
+        content: str | list[str] | None = None,
     ) -> None:
         """
         Update the preview UI. This runs on the main thread.
@@ -493,6 +591,7 @@ class PreviewContainer(Container):
             await self._show_folder_preview(file_path)
         else:
             self._is_image = is_image
+            self._is_archive = is_archive
             self._current_content = content
             await self._render_preview()
 
@@ -759,6 +858,60 @@ class FileListSelectionWidget(Selection):
         )
         self.dir_entry = dir_entry
         self.label = label
+
+
+class ArchiveFileList(OptionList, inherit_bindings=False):
+    BINDINGS: ClassVar[list[BindingType]] = (
+        [
+            Binding(bind, "cursor_down", "Down", show=False)
+            for bind in config["keybinds"]["down"]
+        ]
+        + [
+            Binding(bind, "last", "Last", show=False)
+            for bind in config["keybinds"]["end"]
+        ]
+        + [
+            Binding(bind, "select", "Select", show=False)
+            for bind in config["keybinds"]["down_tree"]
+        ]
+        + [
+            Binding(bind, "first", "First", show=False)
+            for bind in config["keybinds"]["home"]
+        ]
+        + [
+            Binding(bind, "page_down", "Page Down", show=False)
+            for bind in config["keybinds"]["page_down"]
+        ]
+        + [
+            Binding(bind, "page_up", "Page Up", show=False)
+            for bind in config["keybinds"]["page_up"]
+        ]
+        + [
+            Binding(bind, "cursor_up", "Up", show=False)
+            for bind in config["keybinds"]["up"]
+        ]
+    )
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
+    def create_list(self, file_list: list[str]) -> None:
+        self.clear_options()
+        if not file_list:
+            self.add_option(Option(" --no-files--", value="", id="", disabled=True))
+            return
+        for file_path in file_list:
+            if file_path.endswith("/"):
+                icon = utils.get_icon_for_folder(file_path.strip("/"))
+            else:
+                icon = utils.get_icon_for_file(file_path)
+            self.add_option(
+                Option(
+                    Content.from_markup(
+                        f" [{icon[1]}]{icon[0]}[/{icon[1]}] {file_path}"
+                    ),
+                )
+            )
 
 
 class FileList(SelectionList, inherit_bindings=False):
