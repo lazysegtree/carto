@@ -1201,7 +1201,7 @@ class FileList(SelectionList, inherit_bindings=False):
                 # toggle select mode
                 case key if key in config["keybinds"]["toggle_visual"]:
                     event.stop()
-                    await self.query_one("#file_list", FileList).toggle_mode()
+                    await self.toggle_mode()
                 case key if key in config["keybinds"]["toggle_all"]:
                     event.stop()
                     if not self.select_mode_enabled:
