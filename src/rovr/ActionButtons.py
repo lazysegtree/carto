@@ -27,7 +27,7 @@ class CopyButton(Button):
         if selected_files:
             await self.app.query_one("#clipboard").copy_to_clipboard(selected_files)
         else:
-            self.notify("No files selected to copy.")
+            self.notify("No files selected to copy.", title="Copy Files")
 
 
 class CutButton(Button):
@@ -48,7 +48,7 @@ class CutButton(Button):
         if selected_files:
             await self.app.query_one("#clipboard").cut_to_clipboard(selected_files)
         else:
-            self.notify("No files selected to cut.")
+            self.notify("No files selected to cut.", title="Cut Files")
 
 
 class PasteButton(Button):
@@ -136,7 +136,11 @@ class NewItemButton(Button):
             "/" if response.endswith("/") or response.endswith("\\") else ""
         )
         if path.exists(location):
-            self.notify(message=f"Location '{response}' already exists.")
+            self.notify(
+                message=f"Location '{response}' already exists.",
+                title="New Item",
+                severity="warning",
+            )
         elif location.endswith("/"):
             # recursive directory creation
             try:
@@ -144,6 +148,7 @@ class NewItemButton(Button):
             except Exception as e:
                 self.notify(
                     message=Content(f"Error creating directory '{response}': {e}"),
+                    title="New Item",
                     severity="error",
                 )
         elif len(location.split("/")) > 1:
@@ -160,6 +165,7 @@ class NewItemButton(Button):
             except Exception as e:
                 self.notify(
                     message=Content(f"Error creating file '{location}': {e}"),
+                    title="New Item",
                     severity="error",
                 )
         else:
@@ -170,6 +176,7 @@ class NewItemButton(Button):
             except Exception as e:
                 self.notify(
                     message=Content(f"Error creating file '{location}': {e}"),
+                    title="New Item",
                     severity="error",
                 )
         self.app.query_one("#refresh", Button).action_press()
@@ -215,10 +222,18 @@ class RenameItemButton(Button):
             old_name = normalise(path.realpath(path.join(getcwd(), selected_file)))
             new_name = normalise(path.realpath(path.join(getcwd(), response)))
             if not path.exists(old_name):
-                self.notify(message=f"'{selected_file}' no longer exists.")
+                self.notify(
+                    message=f"'{selected_file}' no longer exists.",
+                    title="Rename",
+                    severity="error",
+                )
                 return
             if path.exists(new_name):
-                self.notify(message=f"'{response}' already exists.")
+                self.notify(
+                    message=f"'{response}' already exists.",
+                    title="Rename",
+                    severity="warning",
+                )
                 return
             try:
                 move(old_name, new_name)
@@ -226,7 +241,9 @@ class RenameItemButton(Button):
                 self.notify(
                     message=Content(
                         f"Error renaming '{selected_file}' to '{response}': {e}"
-                    )
+                    ),
+                    title="Rename",
+                    severity="error",
                 )
         self.app.query_one("#refresh").action_press()
         self.app.query_one("#file_list").focus()

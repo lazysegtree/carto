@@ -276,13 +276,13 @@ class PreviewContainer(Container):
                 self._current_preview_type = "none"
                 await self.remove_children()
                 self.notify(
-                    f"bat preview failed: {error_message}",
+                    error_message,
+                    title="Plugins: Bat",
                     severity="warning",
-                    timeout=5,
                 )
                 return False
         except (FileNotFoundError, Exception) as e:
-            self.notify(f"bat preview failed: {e}", severity="warning", timeout=5)
+            self.notify(str(e), title="Plugins: Bat", severity="warning")
             return False
 
     async def _show_normal_file_preview(self) -> None:

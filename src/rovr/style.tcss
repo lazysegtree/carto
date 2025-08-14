@@ -21,6 +21,19 @@ $scrollbar-corner-color: $primary-muted;
   scrollbar-size: 1 2;
 }
 
+Toast {
+  max-height: 100%;
+  &.-information {
+    border-right: outer $success;
+  }
+  &.-warning {
+    border-right: outer $warning;
+  }
+  &.-error {
+    border-right: outer $error;
+  }
+}
+
 #menu {
   align: left middle;
   height: 3;
