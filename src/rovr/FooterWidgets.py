@@ -236,12 +236,14 @@ class Clipboard(SelectionList, inherit_bindings=False):
                     )
                     return
                 self.remove_option_at_index(self.highlighted)
+                event.stop()
             elif event.key in config["keybinds"]["toggle_all"]:
                 """Select all items in the clipboard."""
                 if len(self.selected) == len(self.options):
                     self.deselect_all()
                 else:
                     self.select_all()
+                event.stop()
 
 
 class MetadataContainer(VerticalScroll):
@@ -1032,5 +1034,6 @@ class ProcessContainer(VerticalScroll):
 
     async def on_key(self, event: events.Key) -> None:
         if event.key in config["keybinds"]["delete"]:
+            event.stop()
             await self.remove_children(".done")
             await self.remove_children(".error")
