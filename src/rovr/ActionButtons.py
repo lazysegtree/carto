@@ -12,8 +12,9 @@ from .utils import config, decompress, get_icon, normalise
 
 
 class IsValidFilePath(Validator):
-    def __init__(self) -> None:
+    def __init__(self, strict: bool = False) -> None:
         super().__init__(failure_description="Path contains illegal characers.")
+        self.strict = strict
 
     def validate(self, value: str) -> ValidationResult:
         value = normalise(getcwd() + "/" + value)
@@ -24,8 +25,9 @@ class IsValidFilePath(Validator):
 
 
 class PathDoesntExist(Validator):
-    def __init__(self) -> None:
+    def __init__(self, strict: bool = True) -> None:
         super().__init__(failure_description="Path already exists.")
+        self.strict = strict
 
     def validate(self, value: str) -> ValidationResult:
         value = normalise(getcwd() + "/" + value)
@@ -159,13 +161,7 @@ class NewItemButton(Button):
         location = normalise(path.join(getcwd(), response)) + (
             "/" if response.endswith("/") or response.endswith("\\") else ""
         )
-        if path.exists(location):
-            self.notify(
-                message=f"Location '{response}' already exists.",
-                title="New Item",
-                severity="warning",
-            )
-        elif location.endswith("/"):
+        if location.endswith("/"):
             # recursive directory creation
             try:
                 makedirs(location)
@@ -255,13 +251,6 @@ class RenameItemButton(Button):
                     message=f"'{selected_file}' no longer exists.",
                     title="Rename",
                     severity="error",
-                )
-                return
-            if path.exists(new_name):
-                self.notify(
-                    message=f"'{response}' already exists.",
-                    title="Rename",
-                    severity="warning",
                 )
                 return
             try:

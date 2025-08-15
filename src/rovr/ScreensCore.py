@@ -1,3 +1,4 @@
+from asyncio import sleep
 from subprocess import run
 
 from pathvalidate import sanitize_filepath
@@ -52,10 +53,17 @@ class Dismissable(ModalScreen):
 class YesOrNo(ModalScreen):
     """Screen with a dialog that asks whether you accept or deny"""
 
-    def __init__(self, message: str, reverse_color: bool = False, **kwargs) -> None:
+    def __init__(
+        self,
+        message: str,
+        reverse_color: bool = False,
+        with_toggle: bool = False,
+        **kwargs,
+    ) -> None:
         super().__init__(**kwargs)
         self.message = message
         self.reverse_color = reverse_color
+        self.with_toggle = with_toggle
 
     def compose(self) -> ComposeResult:
         with Grid(id="dialog"):
@@ -70,19 +78,41 @@ class YesOrNo(ModalScreen):
             yield Button(
                 "\\[N]o", variant="primary" if self.reverse_color else "error", id="no"
             )
+            if self.with_toggle:
+                with HorizontalGroup(id="dontAskAgain"):
+                    yield Switch()
+                    yield Label("Don't \\[a]sk again")
+
+    def on_mount(self) -> None:
+        self.query_one("#dialog").classes = "with_toggle" if self.with_toggle else ""
 
     def on_key(self, event: events.Key) -> None:
         """Handle key presses."""
         match event.key.lower():
             case "y":
                 event.stop()
-                self.dismiss(True)
+                self.dismiss(
+                    {"value": True, "toggle": self.query_one(Switch).value}
+                    if self.with_toggle
+                    else True
+                )
             case "n" | "escape":
                 event.stop()
-                self.dismiss(False)
+                self.dismiss(
+                    {"value": False, "toggle": self.query_one(Switch).value}
+                    if self.with_toggle
+                    else False
+                )
+            case "a":
+                event.stop()
+                self.query_one(Switch).action_toggle_switch()
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
-        self.dismiss(event.button.id == "yes")
+        self.dismiss(
+            {"value": event.button.id == "yes", "toggle": self.query_one(Switch).value}
+            if self.with_toggle
+            else event.button.id == "yes"
+        )
 
 
 class CommonFileNameDoWhat(ModalScreen):
@@ -102,7 +132,7 @@ class CommonFileNameDoWhat(ModalScreen):
             yield Button("\\[C]ancel", variant="primary", id="cancel")
             with HorizontalGroup(id="dontAskAgain"):
                 yield Switch()
-                yield Label("Don't ask again")
+                yield Label("Don't \\[a]sk again")
 
     def on_mount(self) -> None:
         self.query_one("#dialog").border_title = self.border_title
@@ -140,6 +170,9 @@ class CommonFileNameDoWhat(ModalScreen):
                     "value": "cancel",
                     "same_for_next": self.query_one(Switch).value,
                 })
+            case "a":
+                event.stop()
+                self.query_one(Switch).action_toggle_switch()
 
 
 class DeleteFiles(ModalScreen):
@@ -408,9 +441,22 @@ class ModalInput(ModalScreen):
         inp.validate(inp.value)
         self.on_input_changed(inp.Changed(inp, inp.value))
 
-    def on_input_submitted(self, event: Input.Submitted) -> None:
+    @work
+    async def on_input_submitted(self, event: Input.Submitted) -> None:
         """Handle input submission."""
-        self.dismiss(sanitize_filepath(event.input.value))
+        if not self.query_one(Input).is_valid and any(
+            failure.validator.strict for failure in event.validation_result.failures
+        ):
+            # shake
+            for i in range(2):
+                self.horizontal_group.styles.offset = (1, 0)
+                await sleep(0.1)
+                self.horizontal_group.styles.offset = (0, 0)
+                await sleep(0.1)
+            return
+        self.dismiss(
+            sanitize_filepath(event.input.value) if self.is_path else event.input.value
+        )
 
     def on_key(self, event: events.Key) -> None:
         """Handle escape key to dismiss the dialog."""
