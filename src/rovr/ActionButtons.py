@@ -111,10 +111,6 @@ class PasteButton(Button):
                 """Callback to paste files after confirmation"""
                 if response:
                     self.app.query_one("ProcessContainer").paste_items(to_copy, to_cut)
-                else:
-                    self.notify(
-                        "Paste operation cancelled", title="Paste Files", timeout=3
-                    )
 
             self.app.push_screen(
                 YesOrNo(

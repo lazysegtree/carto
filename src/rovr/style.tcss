@@ -353,6 +353,13 @@ ZToDirectory {
   }
 }
 
+#dialog {
+  max-width: 57;
+  max-height: 15;
+  height: 75vh;
+  width: 75vw;
+}
+
 Dismissable {
   align: center middle;
   #dialog {
@@ -360,8 +367,6 @@ Dismissable {
     grid-gutter: 1 2;
     grid-rows: 1fr 3;
     padding: 1 3;
-    width: 50vw;
-    max-height: 13;
     border: $border-style $border;
     column-span: 3;
   }
@@ -383,8 +388,6 @@ YesOrNo {
     grid-gutter: 1 2;
     grid-rows: 1fr 3;
     padding: 1 3;
-    width: 50vw;
-    max-height: 13;
     border: $border-style $border;
   }
   #question_container {
@@ -410,9 +413,8 @@ CommonFileNameDoWhat {
     grid-gutter: 1 2;
     grid-rows: 1fr 3 3 1;
     padding: 1 3 0 3;
-    max-width: 50vw;
-    max-height: 15;
     border: $border-style $border;
+    border-title-align: center;
     #question {
       column-span: 2;
       height: 1fr;
@@ -444,10 +446,8 @@ DeleteFiles {
   #dialog {
     grid-size: 2;
     grid-gutter: 1 2;
-    grid-rows: 1fr 3;
+    grid-rows: 1fr 3 3;
     padding: 1 3;
-    max-width: 50vw;
-    max-height: 15;
     border: $border-style $border;
   }
   #question {
@@ -470,7 +470,6 @@ ModalInput {
   HorizontalGroup {
     border: $border-style $border;
     width: 50vw;
-    max-width: 50vw;
     max-height: 3;
     padding: 0 1;
     background: transparent !important;
