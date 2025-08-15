@@ -85,12 +85,13 @@ class YesOrNo(ModalScreen):
         self.dismiss(event.button.id == "yes")
 
 
-class CopyOverwrite(ModalScreen):
+class CommonFileNameDoWhat(ModalScreen):
     """Screen with a dialog to confirm whether to overwrite, rename, skip or cancel."""
 
-    def __init__(self, message: str, **kwargs) -> None:
+    def __init__(self, message: str, border_title: str = "", **kwargs) -> None:
         super().__init__(**kwargs)
         self.message = message
+        self.border_title = border_title
 
     def compose(self) -> ComposeResult:
         with Grid(id="dialog"):
@@ -102,6 +103,9 @@ class CopyOverwrite(ModalScreen):
             with HorizontalGroup(id="dontAskAgain"):
                 yield Switch()
                 yield Label("Don't ask again")
+
+    def on_mount(self) -> None:
+        self.query_one("#dialog").border_title = self.border_title
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         self.dismiss({

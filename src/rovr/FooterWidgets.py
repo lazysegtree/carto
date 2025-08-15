@@ -26,7 +26,7 @@ from textual.worker import WorkerState
 
 from . import utils
 from .maps import SPINNER
-from .ScreensCore import CopyOverwrite, Dismissable, YesOrNo
+from .ScreensCore import CommonFileNameDoWhat, Dismissable, YesOrNo
 from .utils import config
 
 
@@ -767,9 +767,18 @@ class ProcessContainer(VerticalScroll):
                                     )
                                 )
                             case _:
+                                # check if they are the same
+                                if utils.normalise(
+                                    dest + "/" + item_dict["relative_loc"]
+                                ) == utils.normalise(item_dict["path"]):
+                                    # why would you ever want to ask
+                                    continue
                                 response = self.app.call_from_thread(
                                     self.app.push_screen_wait,
-                                    CopyOverwrite("copy merge"),
+                                    CommonFileNameDoWhat(
+                                        f"The destination already has a file named {item_dict['relative_loc']}.",
+                                        f"Copying to {dest}",
+                                    ),
                                 )
                                 if response["same_for_next"]:
                                     action_on_existance = response["value"]
@@ -912,9 +921,19 @@ class ProcessContainer(VerticalScroll):
                                     )
                                 )
                             case _:
+                                # check if they are the same
+                                if utils.normalise(
+                                    dest + "/" + item_dict["relative_loc"]
+                                ) == utils.normalise(item_dict["path"]):
+                                    # why would you ever want to ask
+                                    cut_ignore.append(item_dict["path"])
+                                    continue
                                 response = self.app.call_from_thread(
                                     self.app.push_screen_wait,
-                                    CopyOverwrite("copy merge"),
+                                    CommonFileNameDoWhat(
+                                        f"The destination already has a file named {item_dict['relative_loc']}.",
+                                        f"Moving to {dest}",
+                                    ),
                                 )
                                 if response["same_for_next"]:
                                     action_on_existance = response["value"]

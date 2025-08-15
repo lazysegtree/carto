@@ -898,7 +898,7 @@ class ArchiveFileList(OptionList, inherit_bindings=False):
     def create_list(self, file_list: list[str]) -> None:
         self.clear_options()
         if not file_list:
-            self.add_option(Option(" --no-files--", value="", id="", disabled=True))
+            self.add_option(Option("  --no-files--", value="", id="", disabled=True))
             return
         for file_path in file_list:
             if file_path.endswith("/"):
@@ -986,7 +986,7 @@ class FileList(SelectionList, inherit_bindings=False):
         clicked_option: int | None = event.style.meta.get("option")
         if clicked_option is not None and not self._options[clicked_option].disabled:
             # in future, if anything was changed, you just need to add the lines below
-            if self.highlighted == clicked_option:
+            if self.highlighted == clicked_option or self.select_mode_enabled:
                 self.action_select()
             else:
                 self.highlighted = clicked_option
@@ -1007,7 +1007,6 @@ class FileList(SelectionList, inherit_bindings=False):
         # get sessionstate
         with suppress(AttributeError):
             session = self.app.tabWidget.active_tab.session
-        print(self.app.tabWidget.active_tab)
         # Separate folders and files
         folders, files = utils.get_cwd_object(cwd)
         if folders == [PermissionError] or files == [PermissionError]:
@@ -1021,8 +1020,12 @@ class FileList(SelectionList, inherit_bindings=False):
             )
             file_list_options = [".."]
         elif folders == [] and files == []:
-            self.add_option(Selection(" --no-files--", value="", id="", disabled=True))
-            self.app.query_one(PreviewContainer).remove_children()
+            self.add_option(
+                Selection("   --no-files--", value="", id="", disabled=True)
+            )
+            preview: PreviewContainer = self.app.query_one(PreviewContainer)
+            preview.remove_children()
+            preview._current_preview_type = "none"
             # nothing inside
         else:
             file_list_options = folders + files
@@ -1112,7 +1115,7 @@ class FileList(SelectionList, inherit_bindings=False):
             )
             return
         elif folders == [] and files == []:
-            self.add_option(Selection(" --no-files--", value="", id="", disabled=True))
+            self.add_option(Selection("  --no-files--", value="", id="", disabled=True))
             return
         file_list_options = folders + files
         for item in file_list_options:
@@ -1180,7 +1183,7 @@ class FileList(SelectionList, inherit_bindings=False):
             return
         elif event.option.value == "HTI":
             self.app.query_one(PreviewContainer).remove_children()
-            return  # ignore folders that go to prev dir
+            return
         if self.select_mode_enabled and self.selected is not None:
             utils.set_scuffed_subtitle(
                 self.parent,
@@ -1221,7 +1224,7 @@ class FileList(SelectionList, inherit_bindings=False):
         padding = self.get_component_styles("option-list--option").padding
         width = self.scrollable_content_region.width - self._get_left_gutter_width()
         for index, option in enumerate(self.options):
-            if not option.disabled or option.id.endswith("header"):
+            if not option.disabled or option.id.endswith("header") or option.id == "":
                 line_cache.index_to_line[index] = len(line_cache.lines)
                 line_count = (
                     self._get_visual(option).get_height(
