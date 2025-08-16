@@ -1,0 +1,70 @@
+from textual import events
+from textual.app import ComposeResult
+from textual.containers import Grid, HorizontalGroup, VerticalGroup
+from textual.screen import ModalScreen
+from textual.widgets import Button, Label, Switch
+
+
+class YesOrNo(ModalScreen):
+    """Screen with a dialog that asks whether you accept or deny"""
+
+    def __init__(
+        self,
+        message: str,
+        reverse_color: bool = False,
+        with_toggle: bool = False,
+        **kwargs,
+    ) -> None:
+        super().__init__(**kwargs)
+        self.message = message
+        self.reverse_color = reverse_color
+        self.with_toggle = with_toggle
+
+    def compose(self) -> ComposeResult:
+        with Grid(id="dialog"):
+            with VerticalGroup(id="question_container"):
+                for message in self.message.splitlines():
+                    yield Label(message, classes="question")
+            yield Button(
+                "\\[Y]es",
+                variant="error" if self.reverse_color else "primary",
+                id="yes",
+            )
+            yield Button(
+                "\\[N]o", variant="primary" if self.reverse_color else "error", id="no"
+            )
+            if self.with_toggle:
+                with HorizontalGroup(id="dontAskAgain"):
+                    yield Switch()
+                    yield Label("Don't \\[a]sk again")
+
+    def on_mount(self) -> None:
+        self.query_one("#dialog").classes = "with_toggle" if self.with_toggle else ""
+
+    def on_key(self, event: events.Key) -> None:
+        """Handle key presses."""
+        match event.key.lower():
+            case "y":
+                event.stop()
+                self.dismiss(
+                    {"value": True, "toggle": self.query_one(Switch).value}
+                    if self.with_toggle
+                    else True
+                )
+            case "n" | "escape":
+                event.stop()
+                self.dismiss(
+                    {"value": False, "toggle": self.query_one(Switch).value}
+                    if self.with_toggle
+                    else False
+                )
+            case "a":
+                event.stop()
+                self.query_one(Switch).action_toggle_switch()
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        self.dismiss(
+            {"value": event.button.id == "yes", "toggle": self.query_one(Switch).value}
+            if self.with_toggle
+            else event.button.id == "yes"
+        )

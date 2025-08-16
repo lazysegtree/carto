@@ -1,0 +1,57 @@
+from textual.widgets import Button
+
+from rovr.screens import DeleteFiles
+from rovr.utils import config, get_icon
+
+
+class DeleteButton(Button):
+    ALLOW_MAXIMIZE = False
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(
+            get_icon("general", "delete")[0],
+            classes="option",
+            id="delete",
+            *args,
+            **kwargs,
+        )
+
+    def on_mount(self) -> None:
+        if config["interface"]["tooltips"]:
+            self.tooltip = "Delete selected files"
+
+    async def on_button_pressed(self, event: Button.Pressed) -> None:
+        """Delete selected files or directories"""
+        file_list = self.app.query_one("#file_list")
+        selected_files = await file_list.get_selected_objects()
+        if selected_files:
+
+            async def callback(response: str) -> None:
+                """Callback to remove files after confirmation"""
+                if response == "delete":
+                    self.app.query_one("ProcessContainer").delete_files(
+                        selected_files, compressed=False, ignore_trash=True
+                    )
+                elif response == "trash":
+                    self.app.query_one("ProcessContainer").delete_files(
+                        selected_files,
+                        compressed=False,
+                        ignore_trash=False,
+                    )
+                else:
+                    self.notify(
+                        "File deletion cancelled.", title="Delete Files", timeout=3
+                    )
+
+            self.app.push_screen(
+                DeleteFiles(
+                    message=f"Are you sure you want to delete {len(selected_files)} file{'s' if len(selected_files) != 1 else ''}?",
+                ),
+                callback=callback,
+            )
+        else:
+            self.notify(
+                "No files selected to delete.",
+                title="Delete Files",
+                severity="warning",
+            )

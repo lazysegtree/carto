@@ -1,0 +1,58 @@
+from os import getcwd, path
+
+from textual import work
+from textual.widgets import Button
+
+from rovr.screens import ModalInput
+from rovr.utils import config, get_icon, normalise
+from rovr.validators import EndsWithWord, IsValidFilePath, PathDoesntExist
+
+
+class ZipButton(Button):
+    ALLOW_MAXIMIZE = False
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(
+            get_icon("general", "zip")[0], classes="option", id="zip", *args, **kwargs
+        )
+
+    def on_mount(self) -> None:
+        if config["interface"]["tooltips"]:
+            self.tooltip = "Compress selected files"
+
+    @work
+    async def on_button_pressed(self, event: Button.Pressed) -> None:
+        selected_files = await self.app.query_one("#file_list").get_selected_objects()
+        if not selected_files:
+            self.notify(
+                "No files selected to zip.",
+                title="Zip Files",
+                severity="warning",
+            )
+            return
+
+        parent_folder_name = path.basename(getcwd())
+        default_zip_name = f"{parent_folder_name}.zip"
+
+        response: str = await self.app.push_screen(
+            ModalInput(
+                border_title="Create Zip Archive",
+                border_subtitle="Enter the name for the zip file",
+                initial_value=default_zip_name,
+                validators=[
+                    PathDoesntExist(strict=False),
+                    IsValidFilePath(),
+                    EndsWithWord(ends_with=".zip"),
+                ],
+                is_path=True,
+            ),
+            wait_for_dismiss=True,
+        )
+
+        if not response:
+            return
+
+        archive_name = normalise(path.join(getcwd(), response))
+
+        self.app.query_one("ProcessContainer").zip_files(selected_files, archive_name)
+        self.app.query_one("#file_list").focus()

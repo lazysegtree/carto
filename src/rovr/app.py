@@ -15,8 +15,8 @@ from textual.containers import (
 from textual.css.query import NoMatches
 from textual.widgets import Input
 
-from . import utils
-from .ActionButtons import (
+from rovr import utils
+from rovr.action_buttons import (
     CopyButton,
     CutButton,
     DeleteButton,
@@ -26,14 +26,15 @@ from .ActionButtons import (
     UnzipButton,
     ZipButton,
 )
-from .FooterWidgets import (
-    Clipboard,
-    MetadataContainer,
-    ProcessContainer,
+from rovr.core import (
+    FileList,
+    PinnedSidebar,
+    PreviewContainer,
 )
-from .HeaderArea import HeaderArea
-from .maps import VAR_TO_DIR
-from .NavigationWidgets import (
+from rovr.footer import Clipboard, MetadataContainer, ProcessContainer
+from rovr.header import HeaderArea
+from rovr.maps import VAR_TO_DIR
+from rovr.navigation_widgets import (
     BackButton,
     ForwardButton,
     PathAutoCompleteInput,
@@ -41,15 +42,10 @@ from .NavigationWidgets import (
     RefreshButton,
     UpButton,
 )
-from .ScreensCore import YesOrNo, ZToDirectory
-from .SearchContainer import SearchInput
-from .themes import get_custom_themes
-from .utils import config
-from .WidgetsCore import (
-    FileList,
-    PinnedSidebar,
-    PreviewContainer,
-)
+from rovr.screens import YesOrNo, ZDToDirectory
+from rovr.SearchContainer import SearchInput
+from rovr.themes import get_custom_themes
+from rovr.utils import config
 
 
 class Application(App, inherit_bindings=False):
@@ -306,7 +302,7 @@ class Application(App, inherit_bindings=False):
                             SimpleNamespace(value=pathinput.value)
                         )
 
-                self.push_screen(ZToDirectory(), on_response)
+                self.push_screen(ZDToDirectory(), on_response)
             # zen mode
             case key if (
                 config["plugins"]["zen_mode"]["enabled"]
