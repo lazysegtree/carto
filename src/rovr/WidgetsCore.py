@@ -1213,6 +1213,7 @@ class FileList(SelectionList, inherit_bindings=False):
             utils.normalise(path.join(getcwd(), file_name))
         )
         self.app.query_one("MetadataContainer").update_metadata(event.option.dir_entry)
+        self.app.query_one("#unzip").disabled = not file_name.endswith(".zip")
 
     def _update_lines(self) -> None:
         """Update internal structures when new lines are added."""
@@ -1527,6 +1528,13 @@ class FileList(SelectionList, inherit_bindings=False):
                     await self.app.query_one("#delete").on_button_pressed(
                         Button.Pressed
                     )
+                case key if key in config["keybinds"]["zip"]:
+                    event.stop()
+                    self.app.query_one("#zip").on_button_pressed(Button.Pressed)
+                case key if key in config["keybinds"]["unzip"]:
+                    event.stop()
+                    if not self.app.query_one("#unzip").disabled:
+                        self.app.query_one("#unzip").on_button_pressed(Button.Pressed)
                 # search
                 case key if key in config["keybinds"]["focus_search"]:
                     event.stop()

@@ -107,7 +107,7 @@ This is a list of features that I plan to add before releasing the appropriate v
 
 #### Version 1
 
-Status: 27/30
+Status: 31/33
 
 - [x] Directory Auto-completion (explorer)
 - [x] Button Navigation (explorer)
@@ -123,7 +123,9 @@ Status: 27/30
 - Previewing files
   - [x] Image files using [textual-image](https://github.com/lnqs/textual-image) (superfile)<br><sub>Explorer kinda supports image viewing, but this is a TUI, so inspiration is from superfile</sub>
   - [x] Directories (superfile)
-  - [x] Compressed Files
+  - Compressed Files
+    - [x] `.zip`
+    - [x] `.tar`, `.gz` and the family
 - [x] Pinned folder sidebar (superfile)<br><sub>Explorer also supports a pinned sidebar, but it also includes the massive file tree, which I won't add.</sub>
 - [x] Search Bar (superfile)
 - [x] Metadata
@@ -142,8 +144,12 @@ Status: 27/30
   - [x] Create new files/folders
   - [x] Delete files/folders
   - [x] Rename **a** file/folder
-  - [ ] Extract from compressed archive
-  - [ ] Compress to archive
+  - Extract from compressed archive
+    - [x] `.zip`
+    - [ ] `.tar`, `.gz` and the family
+  - Compress to archive
+    - [x] `.zip`
+    - [ ] `.tar`, `.gz` and the family
 - [x] bat as previewer
 
 #### Version 2

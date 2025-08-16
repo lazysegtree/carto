@@ -82,6 +82,8 @@ cut = ["x", "ctrl+x"]
 delete = ["d", "delete"]
 rename = ["r", "f2"]
 new = ["ctrl+n", "o"]
+zip = ["E"]
+unzip = ["ctrl+e"]
 
 up = ["up", "k"]
 down = ["down", "j"]

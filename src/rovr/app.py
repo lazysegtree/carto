@@ -23,6 +23,8 @@ from .ActionButtons import (
     NewItemButton,
     PasteButton,
     RenameItemButton,
+    UnzipButton,
+    ZipButton,
 )
 from .FooterWidgets import (
     Clipboard,
@@ -84,6 +86,8 @@ class Application(App, inherit_bindings=False):
                 yield NewItemButton()
                 yield RenameItemButton()
                 yield DeleteButton()
+                yield ZipButton()
+                yield UnzipButton()
             with VerticalGroup(id="below_menu"):
                 with HorizontalGroup():
                     yield BackButton()

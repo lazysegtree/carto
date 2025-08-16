@@ -35,6 +35,7 @@ ASCII_ICONS = {
         "cut": ["X", "white"],
         "rename": ["R", "white"],
         "delete": ["D", "red"],
+        "zip": ["Z", "yellow"],
     },
     "folder": {
         "default": ["D", "#DAA520"],
@@ -69,6 +70,7 @@ ICONS = {
         "cut": ["\uf0c4", "white"],
         "rename": ["\uf246", "white"],
         "delete": ["\uf014", "red"],
+        "zip": ["\uf410", "yellow"],
     },
     "folder": {
         "default": ["\uf07b", "#DAA520"],

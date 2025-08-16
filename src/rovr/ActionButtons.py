@@ -37,6 +37,19 @@ class PathDoesntExist(Validator):
             return self.success()
 
 
+class EndsWithWord(Validator):
+    def __init__(self, ends_with: str | tuple, strict: bool = True) -> None:
+        super().__init__(failure_description="Path does not end with .zip")
+        self.ends_with = ends_with
+        self.strict = strict
+
+    def validate(self, value: str) -> ValidationResult:
+        if value.endswith(self.ends_with):
+            return self.success()
+        else:
+            return self.failure()
+
+
 class CopyButton(Button):
     ALLOW_MAXIMIZE = False
 
@@ -264,6 +277,111 @@ class RenameItemButton(Button):
                     severity="error",
                 )
         self.app.query_one("#refresh").action_press()
+        self.app.query_one("#file_list").focus()
+
+
+class ZipButton(Button):
+    ALLOW_MAXIMIZE = False
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(
+            get_icon("general", "zip")[0], classes="option", id="zip", *args, **kwargs
+        )
+
+    def on_mount(self) -> None:
+        if config["interface"]["tooltips"]:
+            self.tooltip = "Compress selected files"
+
+    @work
+    async def on_button_pressed(self, event: Button.Pressed) -> None:
+        selected_files = await self.app.query_one("#file_list").get_selected_objects()
+        if not selected_files:
+            self.notify(
+                "No files selected to zip.",
+                title="Zip Files",
+                severity="warning",
+            )
+            return
+
+        parent_folder_name = path.basename(getcwd())
+        default_zip_name = f"{parent_folder_name}.zip"
+
+        response: str = await self.app.push_screen(
+            ModalInput(
+                border_title="Create Zip Archive",
+                border_subtitle="Enter the name for the zip file",
+                initial_value=default_zip_name,
+                validators=[
+                    PathDoesntExist(strict=False),
+                    IsValidFilePath(),
+                    EndsWithWord(ends_with=".zip"),
+                ],
+                is_path=True,
+            ),
+            wait_for_dismiss=True,
+        )
+
+        if not response:
+            return
+
+        archive_name = normalise(path.join(getcwd(), response))
+
+        self.app.query_one("ProcessContainer").zip_files(selected_files, archive_name)
+        self.app.query_one("#file_list").focus()
+
+
+class UnzipButton(Button):
+    ALLOW_MAXIMIZE = False
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(
+            get_icon("general", "open")[0],
+            classes="option",
+            id="unzip",
+            *args,
+            **kwargs,
+        )
+
+    def on_mount(self) -> None:
+        if config["interface"]["tooltips"]:
+            self.tooltip = "Extract selected archive"
+
+    @work
+    async def on_button_pressed(self, event: Button.Pressed) -> None:
+        selected_files = await self.app.query_one("#file_list").get_selected_objects()
+        if not selected_files or len(selected_files) != 1:
+            self.notify(
+                "Please select exactly one archive to extract.",
+                title="Unzip File",
+                severity="warning",
+            )
+            return
+
+        archive_path = selected_files[0]
+        archive_name = path.basename(archive_path)
+
+        default_folder_name = archive_name.rsplit(".", 1)[0]
+
+        response: str = await self.app.push_screen(
+            ModalInput(
+                border_title="Extract Archive",
+                border_subtitle=f"Extract '{archive_name}' to a new folder:",
+                initial_value=default_folder_name,
+                validators=[IsValidFilePath()],
+                is_path=True,
+                is_folder=True,
+            ),
+            wait_for_dismiss=True,
+        )
+
+        if not response:
+            return
+
+        destination_path = normalise(path.join(getcwd(), response))
+
+        self.app.query_one("ProcessContainer").unzip_file(
+            archive_path, destination_path
+        )
         self.app.query_one("#file_list").focus()
 
 

@@ -4,8 +4,9 @@ import stat
 import time
 from contextlib import suppress
 from datetime import datetime
-from os import DirEntry, getcwd, lstat, makedirs, path, remove, walk
+from os import DirEntry, getcwd, listdir, lstat, makedirs, path, remove, walk
 from typing import ClassVar
+from zipfile import ZIP_DEFLATED, ZipFile
 
 from rich.segment import Segment
 from rich.style import Style
@@ -677,6 +678,201 @@ class ProcessContainer(VerticalScroll):
         )
         self.app.call_from_thread(bar.progress_bar.advance)
         self.app.call_from_thread(bar.add_class, "done")
+
+    @work(thread=True)
+    def zip_files(self, files: list[str], archive_name: str) -> None:
+        """
+        Compress files into a zip archive.
+
+        Args:
+            files (list[str]): List of file paths to compress.
+            archive_name (str): Path for the output zip archive.
+        """
+        bar = self.app.call_from_thread(self.new_process_bar, classes="active")
+        self.app.call_from_thread(
+            bar.update_label,
+            f"{utils.get_icon('general', 'zip')[0]} Getting files to zip...",
+        )
+
+        files_to_zip = []
+        for p in files:
+            if path.isdir(p):
+                if not listdir(p):  # empty dir
+                    files_to_zip.append(p)
+                else:
+                    for dirpath, _, filenames in walk(p):
+                        for f in filenames:
+                            files_to_zip.append(path.join(dirpath, f))
+            else:
+                files_to_zip.append(p)
+
+        files_to_zip = sorted(list(set(files_to_zip)))
+
+        self.app.call_from_thread(bar.update_progress, total=len(files_to_zip) + 1)
+
+        if len(files) == 1:
+            base_path = path.dirname(files[0])
+        else:
+            base_path = path.commonpath(files)
+
+        try:
+            with ZipFile(archive_name, "w", ZIP_DEFLATED) as zipf:
+                for file_path in files_to_zip:
+                    arcname = path.relpath(file_path, base_path)
+                    self.app.call_from_thread(
+                        bar.update_label,
+                        f"{utils.get_icon('general', 'zip')[0]} {arcname}",
+                        step=True,
+                    )
+                    zipf.write(file_path, arcname)
+                for p in files:
+                    if path.isdir(p) and not listdir(p):
+                        arcname = path.relpath(p, base_path)
+                        zipf.write(p, arcname)
+
+        except Exception as e:
+            self.app.call_from_thread(
+                bar.update_label,
+                f"{utils.get_icon('general', 'zip')[0]} {utils.get_icon('general', 'close')[0]} Error creating zip file.",
+            )
+            self.app.call_from_thread(bar.add_class, "error")
+            self.app.call_from_thread(
+                self.app.push_screen_wait,
+                Dismissable(f"Zipping failed due to\n{e}\nProcess Aborted."),
+            )
+            return
+
+        self.app.call_from_thread(
+            bar.update_label,
+            f"{utils.get_icon('general', 'zip')[0]} {utils.get_icon('general', 'check')[0]} {bar.label._content[2:]}",
+            step=True,
+        )
+        self.app.call_from_thread(bar.add_class, "done")
+        self.app.call_from_thread(self.app.query_one("#refresh").action_press)
+
+    @work(thread=True)
+    def unzip_file(self, archive_path: str, destination_path: str) -> None:
+        """
+        Extracts a zip archive to a destination.
+
+        Args:
+            archive_path (str): Path to the zip archive.
+            destination_path (str): Path to the destination folder.
+        """
+        bar = self.app.call_from_thread(self.new_process_bar, classes="active")
+        self.app.call_from_thread(
+            bar.update_label,
+            f"{utils.get_icon('general', 'open')[0]} Preparing to extract...",
+        )
+
+        do_what_on_existance = "ask"
+        ignore_permission_error = False
+        try:
+            if not path.exists(destination_path):
+                makedirs(destination_path)
+
+            with ZipFile(archive_path, "r") as zip_ref:
+                file_list = zip_ref.infolist()
+                self.app.call_from_thread(bar.update_progress, total=len(file_list) + 1)
+
+                for file in file_list:
+                    self.app.call_from_thread(
+                        bar.update_label,
+                        f"{utils.get_icon('general', 'open')[0]} {file.filename}",
+                        step=True,
+                    )
+                    if path.exists(destination_path):
+                        if do_what_on_existance == "ask":
+                            response = self.app.call_from_thread(
+                                self.app.push_screen_wait,
+                                CommonFileNameDoWhat(
+                                    f"{file.filename} already exists in destination",
+                                    border_title=f"Extracting to {destination_path}",
+                                ),
+                            )
+                            if response["same_for_next"]:
+                                do_what_on_existance = response["value"]
+                            val = response["value"]
+                        else:
+                            val = do_what_on_existance
+                        match val:
+                            case "overwrite":
+                                pass
+                            case "skip":
+                                continue
+                            case "rename":
+                                exists = True
+                                base = ".".join(destination_path.split(".")[:-1])
+                                extension = destination_path.split(".")[-1]
+                                tested_number = 1
+                                while exists:
+                                    # similar to how explorer does it
+                                    if path.exists(
+                                        path.join(
+                                            destination_path,
+                                            ".".join([
+                                                base + f" ({tested_number})",
+                                                extension,
+                                            ]),
+                                        )
+                                    ):
+                                        tested_number += 1
+                                new_path = utils.normalise(
+                                    path.join(
+                                        destination_path,
+                                        ".".join([
+                                            base + f" ({tested_number})",
+                                            extension,
+                                        ]),
+                                    )
+                                )
+                                with (
+                                    zip_ref.open(file) as source,
+                                    open(new_path, "wb") as target,
+                                ):
+                                    target.write(source.read())
+                                continue
+                            case "cancel":
+                                self.app.call_from_thread(
+                                    bar.update_label,
+                                    f"{utils.get_icon('general', 'copy')[0]}",
+                                )
+                                self.app.call_from_thread(bar.add_class, "error")
+                                return
+                    try:
+                        zip_ref.extract(file.filename, path=destination_path)
+                    except PermissionError:
+                        if not ignore_permission_error:
+                            result = self.app.call_from_thread(
+                                self.app.push_screen_wait,
+                                YesOrNo(
+                                    f"{file.filename} could not be overwritten due to a PermissionError.\nContinue?",
+                                    with_toggle=True,
+                                ),
+                            )
+                            ignore_permission_error = result["toggle"]
+                            if not result["value"]:
+                                bar.add_class("error")
+                                return
+        except Exception as e:
+            self.app.call_from_thread(
+                bar.update_label,
+                f"{utils.get_icon('general', 'open')[0]} {utils.get_icon('general', 'close')[0]} Error extracting archive.",
+            )
+            self.app.call_from_thread(bar.add_class, "error")
+            self.app.call_from_thread(
+                self.app.push_screen_wait,
+                Dismissable(f"Unzipping failed due to\n{e}\nProcess Aborted."),
+            )
+            return
+
+        self.app.call_from_thread(
+            bar.update_label,
+            f"{utils.get_icon('general', 'open')[0]} {utils.get_icon('general', 'check')[0]} {bar.label._content[2:]}",
+            step=True,
+        )
+        self.app.call_from_thread(bar.add_class, "done")
+        self.app.call_from_thread(self.app.query_one("#refresh").action_press)
 
     @work(thread=True)
     def paste_items(self, copied: list[str], cutted: list[str], dest: str = "") -> None:

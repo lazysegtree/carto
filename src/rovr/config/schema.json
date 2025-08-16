@@ -368,6 +368,20 @@
           },
           "description": "Create a new item in the current directory."
         },
+        "zip": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Create a zip archive from selected files."
+        },
+        "unzip": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Extract a selected zip archive."
+        },
         "up": {
           "type": "array",
           "items": {
