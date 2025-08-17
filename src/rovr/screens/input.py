@@ -68,7 +68,10 @@ class ModalInput(ModalScreen):
                         event.validation_result.failure_descriptions[0]
                     )
                 except AttributeError:
-                    self.horizontal_group.border_subtitle = self.border_subtitle
+                    # valid_empty = False
+                    self.horizontal_group.border_subtitle = (
+                        "The value must not be empty!"
+                    )
             if event.value.replace("\\", "/").endswith("/"):
                 # dir
                 icon = utils.get_icon_for_folder(event.value[:-1])

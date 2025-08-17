@@ -164,13 +164,17 @@ def file_is_type(file_path: str) -> str:
         return "file"
 
 
-def get_recursive_files(object_path: str) -> list[str]:
+def get_recursive_files(object_path: str, with_folders: bool = False) -> list[dict]:
     """Get the files available at a directory recursively, regardless of whether it is a directory or not
     Args:
         object_path (str): The object's path
+        with_folders (bool): Return a list of folders as well
 
     Returns:
         list: A list of dictionaries, with a "path" key and "relative_loc" key
+        OR
+        list: A list of dictionaries, with a "path" key and "relative_loc" key for files
+        list: A list of path strings that were involved in the file list.
     """
     if path.isfile(path.realpath(object_path)) or path.islink(
         path.realpath(object_path)
@@ -183,20 +187,23 @@ def get_recursive_files(object_path: str) -> list[str]:
         ]
     else:
         files = []
-        for folder, _, files_in_folder in os.walk(object_path):
+        folders = []
+        for folder, folders_in_folder, files_in_folder in os.walk(object_path):
+            if with_folders:
+                for folder_in_folder in folders_in_folder:
+                    full_path = normalise(path.join(folder, folder_in_folder))
+                    if full_path not in folder:
+                        folders.append(full_path)
             for file in files_in_folder:
                 full_path = normalise(path.join(folder, file))  # normalise the path
-                if (
-                    normalise(path.realpath(full_path)) != full_path
-                ):  # ie we passed over a symlink
-                    pass  # will hopefully be taken by shutil.rmtree
-                else:
-                    files.append({
-                        "path": full_path,
-                        "relative_loc": normalise(
-                            path.relpath(full_path, object_path + "/..")
-                        ),
-                    })
+                files.append({
+                    "path": full_path,
+                    "relative_loc": normalise(
+                        path.relpath(full_path, object_path + "/..")
+                    ),
+                })
+        if with_folders:
+            return files, folders
         return files
 
 
