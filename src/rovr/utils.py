@@ -164,6 +164,29 @@ def file_is_type(file_path: str) -> str:
         return "file"
 
 
+def force_obtain_write_permission(item_path: str) -> bool:
+    """
+    Forcefully obtain write permission to a file or directory.
+
+    Args:
+        item_path (str): The path to the file or directory.
+
+    Returns:
+        bool: True if permission was granted successfully, False otherwise.
+    """
+    if not path.exists(item_path):
+        return False
+    try:
+        current_permissions = stat.S_IMODE(os.lstat(item_path).st_mode)
+        os.chmod(item_path, current_permissions | stat.S_IWRITE)
+        return True
+    except (OSError, PermissionError) as e:
+        pprint(
+            f"[bright_red]Permission Error:[/] Failed to change permission for {item_path}: {e}"
+        )
+        return False
+
+
 def get_recursive_files(object_path: str, with_folders: bool = False) -> list[dict]:
     """Get the files available at a directory recursively, regardless of whether it is a directory or not
     Args:
@@ -179,6 +202,13 @@ def get_recursive_files(object_path: str, with_folders: bool = False) -> list[di
     if path.isfile(path.realpath(object_path)) or path.islink(
         path.realpath(object_path)
     ):
+        if with_folders:
+            return [
+                {
+                    "path": normalise(object_path),
+                    "relative_loc": path.basename(object_path),
+                }
+            ], []
         return [
             {
                 "path": normalise(object_path),

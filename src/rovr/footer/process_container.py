@@ -13,7 +13,7 @@ from textual.widgets import Label, ProgressBar
 from textual.widgets.option_list import OptionDoesNotExist
 
 from rovr import utils
-from rovr.screens import CommonFileNameDoWhat, Dismissable, YesOrNo
+from rovr.screens import CommonFileNameDoWhat, Dismissable, GiveMePermission, YesOrNo
 from rovr.utils import config
 
 
@@ -95,8 +95,13 @@ class ProcessContainer(VerticalScroll):
                 file = utils.decompress(file)
             if path.isdir(file):
                 folders_to_delete.append(file)
-            files_to_delete.extend(utils.get_recursive_files(file))
+            files_to_add, folders_to_add = utils.get_recursive_files(
+                file, with_folders=True
+            )
+            files_to_delete.extend(files_to_add)
+            folders_to_delete.extend(folders_to_add)
         self.app.call_from_thread(bar.update_progress, total=len(files_to_delete) + 1)
+        action_on_permission_error = "ask"
         for item_dict in files_to_delete:
             self.app.call_from_thread(
                 bar.update_label,
@@ -110,64 +115,79 @@ class ProcessContainer(VerticalScroll):
                     if config["settings"]["use_recycle_bin"] and not ignore_trash:
                         try:
                             path_to_trash = item_dict["path"]
-                            if (
-                                platform.system() == "Windows"
-                                and path_to_trash.startswith("\\\\\\\\?\\\\")
-                            ):
+                            if platform.system() == "Windows":
                                 # An inherent issue with long paths on windows
-                                path_to_trash = path_to_trash[6:]
+                                path_to_trash = path_to_trash.replace("/", "\\")
+                                pass
                             send2trash(path_to_trash)
-                        except FileNotFoundError:
-                            if path.exists(path_to_trash):
-                                # edge case: have no write access
-                                msg = (
-                                    "Trashing failed due to no write access.\nContinue?"
+                        except PermissionError:
+                            if action_on_permission_error == "ask":
+                                do_what = self.app.call_from_thread(
+                                    self.app.push_screen_wait,
+                                    GiveMePermission(
+                                        "Path has no write access to be deleted.\nForcefully obtain and delete it?",
+                                        border_title=item_dict["path"],
+                                    ),
                                 )
+                                if do_what["toggle"]:
+                                    action_on_permission_error = do_what["value"]
+                                action = do_what["value"]
                             else:
-                                # really isn't found
-                                msg = f"{path_to_trash} could not be found.\nContinue?"
-                            do_continue = self.app.call_from_thread(
-                                self.app.push_screen_wait, YesOrNo(msg)
-                            )
-                            if do_continue:
-                                continue
-                            else:
-                                self.app.call_from_thread(
-                                    bar.update_label,
-                                    f"{utils.get_icon('general', 'delete')[0]} {utils.get_icon('general', 'close')[0]} Process Cancelled",
-                                )
-                                self.app.call_from_thread(bar.add_class, "error")
-                                return
+                                action = action_on_permission_error
+                            match action:
+                                case "force":
+                                    if utils.force_obtain_write_permission(
+                                        item_dict["path"]
+                                    ):
+                                        remove(item_dict["path"])
+                                case "skip":
+                                    continue
+                                case "cancel":
+                                    self.app.call_from_thread(bar.add_class, "error")
+                                    return
                         except Exception as e:
-                            perma_delete = self.app.call_from_thread(
+                            do_what = self.app.call_from_thread(
                                 self.app.push_screen_wait,
                                 YesOrNo(
-                                    f"Trashing failed due to\n{e}\nDo Permenant Deletion?"
+                                    f"Trashing failed due to\n{e}\nDo Permenant Deletion?",
+                                    with_toggle=True,
+                                    border_subtitle="If this is a bug, please file an issue!",
                                 ),
                             )
-                            if perma_delete:
-                                ignore_trash = True
+                            if do_what["toggle"]:
+                                ignore_trash = do_what["value"]
+                            if do_what["value"]:
+                                remove(item_dict["path"])
                             else:
-                                self.app.call_from_thread(
-                                    bar.update_label,
-                                    f"{utils.get_icon('general', 'delete')[0]} {utils.get_icon('general', 'close')[0]} Process Interrupted",
-                                )
-                                self.app.call_from_thread(bar.add_class, "error")
-                                return
+                                continue
                     else:
                         remove(item_dict["path"])
                 except FileNotFoundError:
+                    # it's deleted, so why care?
                     pass
                 except PermissionError:
-                    do_continue = self.app.call_from_thread(
-                        self.app.push_screen_wait,
-                        YesOrNo(
-                            f"{item_dict['path']} could not be deleted due to PermissionError.\nContinue?"
-                        ),
-                    )
-                    if not do_continue:
-                        self.app.call_from_thread(bar.add_class, "error")
-                        return
+                    if action_on_permission_error == "ask":
+                        do_what = self.app.call_from_thread(
+                            self.app.push_screen_wait,
+                            GiveMePermission(
+                                "Path has no write access to be deleted.\nForcefully obtain and delete it?",
+                                border_title=item_dict["path"],
+                            ),
+                        )
+                        if do_what["toggle"]:
+                            action_on_permission_error = do_what["value"]
+                        action = do_what["value"]
+                    else:
+                        action = action_on_permission_error
+                    match action:
+                        case "force":
+                            if utils.force_obtain_write_permission(item_dict["path"]):
+                                remove(item_dict["path"])
+                        case "skip":
+                            continue
+                        case "cancel":
+                            self.app.call_from_thread(bar.add_class, "error")
+                            return
                 except Exception as e:
                     # TODO: should probably let it continue, then have a summary
                     self.app.call_from_thread(
@@ -177,31 +197,47 @@ class ProcessContainer(VerticalScroll):
                     self.app.call_from_thread(bar.add_class, "error")
                     self.app.call_from_thread(
                         self.app.push_screen_wait,
-                        Dismissable(f"Deleting failed due to\n{e}\nProcess Aborted."),
+                        Dismissable(
+                            f"Deleting failed due to\n{e}\nProcess Aborted.",
+                            border_subtitle="If this is a bug, please file an issue!",
+                        ),
                     )
                     return
         # The reason for an extra +1 in the total is for this
         # handling folders
+        has_perm_error = False
         for folder in folders_to_delete:
             try:
                 shutil.rmtree(folder)
             except PermissionError:
-                # TODO: allow continuation and not return on error
-                self.notify(
-                    f"Certain files in {folder} could not be deleted.", severity="error"
-                )
-                self.app.call_from_thread(
-                    bar.update_label,
-                    f"{utils.get_icon('general', 'delete')[0]} {utils.get_icon('general', 'close')[0]} {bar.label._content[2:]}",
-                )
-                self.app.call_from_thread(bar.add_class, "error")
-                return
+                has_perm_error = True
+            except FileNotFoundError:
+                # ig it got removed?
+                pass
+        if has_perm_error:
+            self.notify(
+                f"Certain files in {folder} could not be deleted due to PermissionError.",
+                title="Delete Files",
+                severity="error",
+            )
+            self.app.call_from_thread(
+                bar.update_label,
+                f"{utils.get_icon('general', 'delete')[0]} {utils.get_icon('general', 'close')[0]} {bar.label._content[2:]}",
+            )
+            self.app.call_from_thread(bar.add_class, "error")
+            return
         # if there werent any files, show something useful
         # aside from 'Getting files to delete...'
-        if files_to_delete == []:
+        if files_to_delete == [] and folders_to_delete != []:
             self.app.call_from_thread(
                 bar.update_label,
                 f"{utils.get_icon('general', 'delete')[0]} {folders_to_delete[-1]}",
+            )
+        elif files_to_delete == folders_to_delete == []:
+            # this cannot happen, but just as an easter egg :shippit:
+            self.app.call_from_thread(
+                bar.update_label,
+                f"{utils.get_icon('general', 'delete')[0]} Successfully deleted nothing!",
             )
         # finished successfully
         self.app.call_from_thread(
@@ -271,7 +307,10 @@ class ProcessContainer(VerticalScroll):
             self.app.call_from_thread(bar.add_class, "error")
             self.app.call_from_thread(
                 self.app.push_screen_wait,
-                Dismissable(f"Zipping failed due to\n{e}\nProcess Aborted."),
+                Dismissable(
+                    f"Zipping failed due to\n{e}\nProcess Aborted.",
+                    border_subtitle="File an issue if this is a bug!",
+                ),
             )
             return
 
@@ -319,8 +358,9 @@ class ProcessContainer(VerticalScroll):
                             response = self.app.call_from_thread(
                                 self.app.push_screen_wait,
                                 CommonFileNameDoWhat(
-                                    f"{file.filename} already exists in destination",
-                                    border_title=f"Extracting to {destination_path}",
+                                    "Path already exists in destination\nWhat do you want to do now?",
+                                    border_title=file.filename,
+                                    border_subtitle=f"Extracting to {destination_path}",
                                 ),
                             )
                             if response["same_for_next"]:
@@ -379,7 +419,8 @@ class ProcessContainer(VerticalScroll):
                             result = self.app.call_from_thread(
                                 self.app.push_screen_wait,
                                 YesOrNo(
-                                    f"{file.filename} could not be overwritten due to a PermissionError.\nContinue?",
+                                    "Path has no write access and cannot be overwritten.\nContinue?",
+                                    border_title=file.filename,
                                     with_toggle=True,
                                 ),
                             )
@@ -416,10 +457,6 @@ class ProcessContainer(VerticalScroll):
             cutted (list[str]): A list of items to be cut to the location
             dest (str) = getcwd(): The directory to copy to.
         """
-        # so overall before its done, I need copied to copy over, and
-        # cutted, to move have copy go first, then cut over items, then
-        # remove cut items from clipboard. to remove, you add `-cut` to
-        # the end, then compress, then get option by id, remove item
         if dest == "":
             dest = getcwd()
         bar: ProgressBarContainer = self.app.call_from_thread(
@@ -437,12 +474,14 @@ class ProcessContainer(VerticalScroll):
         for file in cutted:
             if path.isdir(file):
                 cut_files__folders.append(utils.normalise(file))
-            files_to_cut.extend(utils.get_recursive_files(file))
+            files, folders = utils.get_recursive_files(file, with_folders=True)
+            files_to_cut.extend(files)
+            cut_files__folders.extend(folders)
         self.app.call_from_thread(
             bar.update_progress, total=int(len(files_to_copy) + len(files_to_cut)) + 1
         )
-        # can be either 'ask', 'skip' or 'overwrite'
         action_on_existance = "ask"
+        action_on_permission_error = "ask"
         for item_dict in files_to_copy:
             self.app.call_from_thread(
                 bar.update_label,
@@ -460,7 +499,21 @@ class ProcessContainer(VerticalScroll):
                     )
                     if path.exists(path.join(dest, item_dict["relative_loc"])):
                         # check if overwrite
-                        match action_on_existance:
+                        if action_on_existance == "ask":
+                            response = self.app.call_from_thread(
+                                self.app.push_screen_wait,
+                                CommonFileNameDoWhat(
+                                    "The destination already has file of that name.\nWhat do you want to do now?",
+                                    border_title=item_dict["relative_loc"],
+                                    border_subtitle=f"Copying to {dest}",
+                                ),
+                            )
+                            if response["same_for_next"]:
+                                action_on_existance = response["value"]
+                            val = response["value"]
+                        else:
+                            val = action_on_existance
+                        match val:
                             case "overwrite":
                                 pass
                             case "skip":
@@ -495,68 +548,13 @@ class ProcessContainer(VerticalScroll):
                                         ]),
                                     )
                                 )
-                            case _:
-                                # check if they are the same
-                                if utils.normalise(
-                                    dest + "/" + item_dict["relative_loc"]
-                                ) == utils.normalise(item_dict["path"]):
-                                    # why would you ever want to ask
-                                    continue
-                                response = self.app.call_from_thread(
-                                    self.app.push_screen_wait,
-                                    CommonFileNameDoWhat(
-                                        f"The destination already has a file named {item_dict['relative_loc']}.",
-                                        f"Copying to {dest}",
-                                    ),
+                            case "cancel":
+                                self.app.call_from_thread(
+                                    bar.update_label,
+                                    f"{utils.get_icon('general', 'copy')[0]} {utils.get_icon('general', 'close')[0]} Process cancelled",
                                 )
-                                if response["same_for_next"]:
-                                    action_on_existance = response["value"]
-                                match response["value"]:
-                                    case "overwrite":
-                                        pass
-                                    case "skip":
-                                        continue
-                                    case "rename":
-                                        exists = True
-                                        base = ".".join(
-                                            item_dict["relative_loc"].split(".")[:-1]
-                                        )
-                                        extension = item_dict["relative_loc"].split(
-                                            "."
-                                        )[-1]
-                                        tested_number = 1
-                                        while exists:
-                                            # similar to how explorer does it
-                                            if path.exists(
-                                                path.join(
-                                                    dest,
-                                                    ".".join([
-                                                        base + f" ({tested_number})",
-                                                        extension,
-                                                    ]),
-                                                )
-                                            ):
-                                                tested_number += 1
-                                            else:
-                                                exists = False
-                                        item_dict["relative_loc"] = utils.normalise(
-                                            path.join(
-                                                dest,
-                                                ".".join([
-                                                    base + f" ({tested_number})",
-                                                    extension,
-                                                ]),
-                                            )
-                                        )
-                                    case "cancel":
-                                        self.app.call_from_thread(
-                                            bar.update_label,
-                                            f"{utils.get_icon('general', 'copy')[0]} {utils.get_icon('general', 'close')[0]} Process cancelled",
-                                        )
-                                        self.app.call_from_thread(
-                                            bar.add_class, "error"
-                                        )
-                                        return
+                                self.app.call_from_thread(bar.add_class, "error")
+                                return
                     if config["settings"]["copy_includes_metadata"]:
                         shutil.copy2(
                             item_dict["path"],
@@ -567,21 +565,41 @@ class ProcessContainer(VerticalScroll):
                             item_dict["path"],
                             path.join(dest, item_dict["relative_loc"]),
                         )
-                except (OSError, PermissionError) as e:
-                    # OSError from shutil: The destination location must be writable; otherwise, an OSError exception will be raised
+                except (OSError, PermissionError):
+                    # OSError from shutil: The destination location must be writable;
+                    # otherwise, an OSError exception will be raised
                     # Permission Error just in case
-                    do_continue = self.app.call_from_thread(
-                        self.app.push_screen_wait,
-                        YesOrNo(
-                            f"{item_dict['path']} could not be copied due to {e}.\nContinue?"
-                        ),
-                    )
-                    if not do_continue:
-                        self.app.call_from_thread(bar.add_class, "error")
-                        return
-                    pass
+                    if action_on_permission_error == "ask":
+                        do_what = self.app.call_from_thread(
+                            self.app.push_screen_wait,
+                            GiveMePermission(
+                                "Path has no write access to be overwritten.\nForefully obtain and overwrite?",
+                                border_title=item_dict["relative_loc"],
+                            ),
+                        )
+                        if do_what["toggle"]:
+                            action_on_permission_error = do_what["value"]
+                        action = do_what["value"]
+                    else:
+                        action = action_on_permission_error
+                    match action:
+                        case "force":
+                            if utils.force_obtain_write_permission(
+                                path.join(dest, item_dict["relative_loc"])
+                            ):
+                                shutil.copy(
+                                    item_dict["path"],
+                                    path.join(dest, item_dict["relative_loc"]),
+                                )
+                        case "skip":
+                            continue
+                        case "cancel":
+                            self.app.call_from_thread(bar.add_class, "error")
+                            return
                 except FileNotFoundError:
-                    # by chance if somehow this is raised, still catch it
+                    # the only way this can happen is if the file is deleted
+                    # midway through the process, which means the user is
+                    # literally testing the limits, so yeah uhh, pass
                     pass
                 except Exception as e:
                     # TODO: should probably let it continue, then have a summary
@@ -597,6 +615,7 @@ class ProcessContainer(VerticalScroll):
                     return
 
         cut_ignore = []
+        action_on_permission_error = "ask"
         for item_dict in files_to_cut:
             self.app.call_from_thread(
                 bar.update_label,
@@ -613,6 +632,20 @@ class ProcessContainer(VerticalScroll):
                         exist_ok=True,
                     )
                     if path.exists(path.join(dest, item_dict["relative_loc"])):
+                        if action_on_existance == "ask":
+                            response = self.app.call_from_thread(
+                                self.app.push_screen_wait,
+                                CommonFileNameDoWhat(
+                                    "The destination already has file of that name.\nWhat do you want to do now?",
+                                    border_title=item_dict["relative_loc"],
+                                    border_subtitle=f"Moving to {dest}",
+                                ),
+                            )
+                            if response["same_for_next"]:
+                                action_on_existance = response["value"]
+                            val = response["value"]
+                        else:
+                            val = action_on_existance
                         match action_on_existance:
                             case "overwrite":
                                 pass
@@ -649,92 +682,57 @@ class ProcessContainer(VerticalScroll):
                                         ]),
                                     )
                                 )
-                            case _:
-                                # check if they are the same
-                                if utils.normalise(
-                                    dest + "/" + item_dict["relative_loc"]
-                                ) == utils.normalise(item_dict["path"]):
-                                    # why would you ever want to ask
-                                    cut_ignore.append(item_dict["path"])
-                                    continue
-                                response = self.app.call_from_thread(
-                                    self.app.push_screen_wait,
-                                    CommonFileNameDoWhat(
-                                        f"The destination already has a file named {item_dict['relative_loc']}.",
-                                        f"Moving to {dest}",
-                                    ),
+                            case "cancel":
+                                self.app.call_from_thread(
+                                    bar.update_label,
+                                    f"{utils.get_icon('general', 'copy')[0]} {utils.get_icon('general', 'close')[0]} Process cancelled",
                                 )
-                                if response["same_for_next"]:
-                                    action_on_existance = response["value"]
-                                match response["value"]:
-                                    case "overwrite":
-                                        pass
-                                    case "skip":
-                                        cut_ignore.append(item_dict["path"])
-                                        continue
-                                    case "rename":
-                                        exists = True
-                                        base = ".".join(
-                                            item_dict["relative_loc"].split(".")[:-1]
-                                        )
-                                        extension = item_dict["relative_loc"].split(
-                                            "."
-                                        )[-1]
-                                        tested_number = 1
-                                        while exists:
-                                            # similar to how explorer does it
-                                            if path.exists(
-                                                path.join(
-                                                    dest,
-                                                    ".".join([
-                                                        base + f" ({tested_number})",
-                                                        extension,
-                                                    ]),
-                                                )
-                                            ):
-                                                tested_number += 1
-                                            else:
-                                                exists = False
-                                        item_dict["relative_loc"] = utils.normalise(
-                                            path.join(
-                                                dest,
-                                                ".".join([
-                                                    base + f" ({tested_number})",
-                                                    extension,
-                                                ]),
-                                            )
-                                        )
-                                    case "cancel":
-                                        self.app.call_from_thread(
-                                            bar.update_label,
-                                            f"{utils.get_icon('general', 'copy')[0]} {utils.get_icon('general', 'close')[0]} Process cancelled",
-                                        )
-                                        self.app.call_from_thread(
-                                            bar.add_class, "error"
-                                        )
-                                        return
+                                self.app.call_from_thread(bar.add_class, "error")
+                                return
                     shutil.move(
                         item_dict["path"],
                         path.join(dest, item_dict["relative_loc"]),
                     )
                 except (OSError, PermissionError):
-                    # OSError from shutil: The destination location must be writable; otherwise, an OSError exception will be raised
+                    # OSError from shutil: The destination location must be writable;
+                    # otherwise, an OSError exception will be raised
                     # Permission Error just in case
-                    do_continue = self.app.call_from_thread(
-                        self.app.push_screen_wait,
-                        YesOrNo(
-                            f"{item_dict['path']} could not be copied due to Permission Errors.\nContinue?"
-                        ),
-                    )
-                    if not do_continue:
-                        self.app.call_from_thread(bar.add_class, "error")
-                        return
-                    pass
+                    if action_on_permission_error == "ask":
+                        do_what = self.app.call_from_thread(
+                            self.app.push_screen_wait,
+                            GiveMePermission(
+                                "Path has no write access to be overwritten.\nForcefully obtain and overwrite?",
+                                border_title=item_dict["relative_loc"],
+                            ),
+                        )
+                        if do_what["toggle"]:
+                            action_on_permission_error = do_what["value"]
+                        action = do_what["value"]
+                    else:
+                        action = action_on_permission_error
+                    match action:
+                        case "force":
+                            if utils.force_obtain_write_permission(
+                                path.join(dest, item_dict["relative_loc"])
+                            ) and utils.force_obtain_write_permission(
+                                item_dict["path"]
+                            ):
+                                shutil.move(
+                                    item_dict["path"],
+                                    path.join(dest, item_dict["relative_loc"]),
+                                )
+                        case "skip":
+                            continue
+                        case "cancel":
+                            self.app.call_from_thread(bar.add_class, "error")
+                            return
                 except FileNotFoundError:
-                    # by chance if somehow this is raised, still catch it
+                    # the only way this can happen is if the file is deleted
+                    # midway through the process, which means the user is
+                    # literally testing the limits, so yeah uhh, pass
                     pass
                 except Exception as e:
-                    # utils.TODO: should probably let it continue, then have a summary
+                    # TODO: should probably let it continue, then have a summary
                     self.app.call_from_thread(
                         bar.update_label,
                         f"{utils.get_icon('general', 'copy')[0]} {utils.get_icon('general', 'close')} Unhandled Error.",
@@ -742,9 +740,13 @@ class ProcessContainer(VerticalScroll):
                     self.app.call_from_thread(bar.add_class, "error")
                     self.app.call_from_thread(
                         self.app.push_screen_wait,
-                        Dismissable(f"Deleting failed due to \n{e}\nProcess Aborted."),
+                        Dismissable(
+                            f"Deleting failed due to \n{e}\nProcess Aborted.",
+                            border_subtitle="If this is a bug, file an issue!",
+                        ),
                     )
         # delete the folders
+        has_perm_error = False
         for folder in cut_files__folders:
             try:
                 skip = False
@@ -755,16 +757,20 @@ class ProcessContainer(VerticalScroll):
                 if not skip:
                     shutil.rmtree(folder)
             except PermissionError:
-                # TODO: allow continuation and not return on error
-                self.notify(
-                    f"Certain files in {folder} could not be moved.", severity="error"
-                )
-                self.app.call_from_thread(
-                    bar.update_label,
-                    f"{utils.get_icon('general', 'cut')[0]} {utils.get_icon('general', 'close')[0]} {path.basename(cutted[-1])}",
-                )
-                self.app.call_from_thread(bar.add_class, "error")
-                return
+                has_perm_error = True
+            except FileNotFoundError:
+                # ig it got removed?
+                continue
+        if has_perm_error:
+            self.notify(
+                f"Certain files in {folder} could not be moved.", severity="error"
+            )
+            self.app.call_from_thread(
+                bar.update_label,
+                f"{utils.get_icon('general', 'cut')[0]} {utils.get_icon('general', 'close')[0]} {path.basename(cutted[-1])}",
+            )
+            self.app.call_from_thread(bar.add_class, "error")
+            return
         # remove from clipboard
         for item in cutted:
             # cant bother to figure out how this happens,

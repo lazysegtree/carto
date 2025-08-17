@@ -5,9 +5,7 @@ from textual.screen import ModalScreen
 from textual.widgets import Button, Label, Switch
 
 
-class CommonFileNameDoWhat(ModalScreen):
-    """Screen with a dialog to confirm whether to overwrite, rename, skip or cancel."""
-
+class GiveMePermission(ModalScreen):
     def __init__(
         self, message: str, border_title: str = "", border_subtitle: str = "", **kwargs
     ) -> None:
@@ -21,10 +19,10 @@ class CommonFileNameDoWhat(ModalScreen):
             with VerticalGroup(id="question_container"):
                 for message in self.message.splitlines():
                     yield Label(message, classes="question")
-            yield Button("\\[O]verwrite", variant="error", id="overwrite")
-            yield Button("\\[R]ename", variant="warning", id="rename")
-            yield Button("\\[S]kip", variant="default", id="skip")
-            yield Button("\\[C]ancel", variant="primary", id="cancel")
+            yield Button("\\[Y]es", id="force", variant="error")
+            yield Button("\\[N]o/\\[S]kip", id="skip", variant="warning")
+            with HorizontalGroup():
+                yield Button("\\[C]ancel", id="cancel", variant="default")
             with HorizontalGroup(id="dontAskAgain"):
                 yield Switch()
                 yield Label("Don't \\[a]sk again")
@@ -34,37 +32,21 @@ class CommonFileNameDoWhat(ModalScreen):
         self.query_one("#dialog").border_subtitle = self.border_subtitle
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
-        self.dismiss({
-            "value": event.button.id,
-            "same_for_next": self.query_one(Switch).value,
-        })
+        self.dismiss({"value": event.button.id, "toggle": self.query_one(Switch).value})
 
     def on_key(self, event: events.Key) -> None:
-        """Handle key presses."""
         match event.key.lower():
-            case "o":
+            case "y":
                 event.stop()
-                self.dismiss({
-                    "value": "overwrite",
-                    "same_for_next": self.query_one(Switch).value,
-                })
-            case "r":
+                self.dismiss({"value": "force", "toggle": self.query_one(Switch).value})
+            case "n" | "s":
                 event.stop()
-                self.dismiss({
-                    "value": "rename",
-                    "same_for_next": self.query_one(Switch).value,
-                })
-            case "s":
-                event.stop()
-                self.dismiss({
-                    "value": "skip",
-                    "same_for_next": self.query_one(Switch).value,
-                })
-            case "c" | "escape":
+                self.dismiss({"value": "skip", "toggle": self.query_one(Switch).value})
+            case "escape" | "c":
                 event.stop()
                 self.dismiss({
                     "value": "cancel",
-                    "same_for_next": self.query_one(Switch).value,
+                    "toggle": self.query_one(Switch).value,
                 })
             case "a":
                 event.stop()

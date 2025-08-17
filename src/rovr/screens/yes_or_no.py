@@ -13,12 +13,16 @@ class YesOrNo(ModalScreen):
         message: str,
         reverse_color: bool = False,
         with_toggle: bool = False,
+        border_title: str = "",
+        border_subtitle: str = "",
         **kwargs,
     ) -> None:
         super().__init__(**kwargs)
         self.message = message
         self.reverse_color = reverse_color
         self.with_toggle = with_toggle
+        self.border_title = border_title
+        self.border_subtitle = border_subtitle
 
     def compose(self) -> ComposeResult:
         with Grid(id="dialog"):
@@ -40,6 +44,8 @@ class YesOrNo(ModalScreen):
 
     def on_mount(self) -> None:
         self.query_one("#dialog").classes = "with_toggle" if self.with_toggle else ""
+        self.query_one("#dialog").border_title = self.border_title
+        self.query_one("#dialog").border_subtitle = self.border_subtitle
 
     def on_key(self, event: events.Key) -> None:
         """Handle key presses."""

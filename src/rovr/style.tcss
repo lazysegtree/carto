@@ -358,6 +358,12 @@ ZToDirectory {
   max-height: 15;
   height: 75vh;
   width: 75vw;
+  overflow-y: auto;
+  border-title-align: center;
+  border-subtitle-align: center;
+  Label {
+    min-height: 1
+  }
 }
 
 Dismissable {
@@ -365,7 +371,7 @@ Dismissable {
   #dialog {
     grid-size: 1;
     grid-gutter: 1 2;
-    grid-rows: 1fr 3;
+    grid-rows: 1fr 3; /* take up all the space available */
     padding: 1 3;
     border: $border-style $border;
     column-span: 3;
@@ -388,9 +394,9 @@ YesOrNo {
     grid-gutter: 1 2;
     padding: 1 3 1 3;
     border: $border-style $border;
-    grid-rows: 1fr 3;
+    grid-rows: 1fr 3; /* enough space for 1fr */
     &.with_toggle {
-      grid-rows: 1fr 3 1;
+      grid-rows: 2 3 1; /* not enough space for two lines at times */
       padding: 1 3 0 3;
     }
     #question_container {
@@ -431,15 +437,20 @@ CommonFileNameDoWhat {
   #dialog {
     grid-size: 2;
     grid-gutter: 1 2;
-    grid-rows: 1fr 3 3 1;
+    grid-rows: 2 3 3 1; /* need the two lines for label */
     padding: 1 3 0 3;
     border: $border-style $border;
-    border-title-align: center;
-    #question {
+    #question_container {
       column-span: 2;
       height: 1fr;
       width: 1fr;
       content-align: center middle;
+      .question {
+        content-align: center middle;
+        width: 1fr;
+        height: 1fr;
+        text-align: center;
+      }
     }
     Button { width: 100% }
     #dontAskAgain {
@@ -461,12 +472,58 @@ CommonFileNameDoWhat {
   }
 }
 
+GiveMePermission {
+  align: center middle;
+  #dialog {
+    grid-size: 2;
+    grid-gutter: 1 2;
+    grid-rows: 2 3 3 1; /* need the two lines for the label */
+    padding: 1 3;
+    border: $border-style $border;
+    max-height: 16;
+  }
+  #question_container {
+    column-span: 2;
+    height: 1fr;
+    width: 1fr;
+    content-align: center middle;
+    .question {
+      content-align: center middle;
+      width: 1fr;
+      height: 1fr;
+      text-align: center;
+    }
+  }
+  Button { width: 100% }
+  HorizontalGroup {
+    column-span: 2;
+    align: center middle;
+    Button#cancel { width: 50% }
+  }
+  #dontAskAgain {
+    column-span: 2;
+    content-align: center middle;
+    align: center middle;
+    Switch {
+      border: none;
+      padding: 0;
+      background: transparent;
+      margin: 0 2 0 0;
+      &:focus {
+        border: none;
+        & > .switch--slider { color: $panel-lighten-1 }
+        &.-on > .switch--slider { color: $success-lighten-1 }
+      }
+    }
+  }
+}
+
 DeleteFiles {
   align: center middle;
   #dialog {
     grid-size: 2;
     grid-gutter: 1 2;
-    grid-rows: 1fr 3 3 1;
+    grid-rows: 1fr 3 3 1; /* no issues for now */
     padding: 1 3;
     border: $border-style $border;
   }
@@ -493,6 +550,8 @@ ModalInput {
     max-height: 3;
     padding: 0 1;
     background: transparent !important;
+    border-title-align: left;
+    border-subtitle-align: right;
     &.invalid {
       border: $border-style $error-lighten-3
     }

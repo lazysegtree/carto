@@ -8,9 +8,10 @@ from textual.widgets import Button, Label
 class Dismissable(ModalScreen):
     """Super simple screen that can be dismissed."""
 
-    def __init__(self, message: str, **kwargs) -> None:
+    def __init__(self, message: str, border_subtitle: str = "", **kwargs) -> None:
         super().__init__(**kwargs)
         self.message = message
+        self.border_subtitle = border_subtitle
 
     def compose(self) -> ComposeResult:
         with Grid(id="dialog"):
@@ -20,6 +21,7 @@ class Dismissable(ModalScreen):
 
     def on_mount(self) -> None:
         self.query_one("#ok").focus()
+        self.query_one("#dialog").border_subtitle = self.border_subtitle
 
     def on_key(self, event: events.Key) -> None:
         """Handle key presses."""
