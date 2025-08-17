@@ -104,9 +104,9 @@ class ProcessContainer(VerticalScroll):
         self.app.call_from_thread(bar.update_progress, total=len(files_to_delete) + 1)
         action_on_permission_error = "ask"
         last_update_time = time.monotonic()
-        for item_dict in files_to_delete:
+        for i, item_dict in enumerate(files_to_delete):
             current_time = time.monotonic()
-            if current_time - last_update_time > 0.25:
+            if current_time - last_update_time > 0.25 or i == len(files_to_delete) - 1:
                 self.app.call_from_thread(
                     bar.update_label,
                     f"{utils.get_icon('general', 'delete')[0]} {item_dict['relative_loc']}",
@@ -292,10 +292,13 @@ class ProcessContainer(VerticalScroll):
         try:
             with ZipFile(archive_name, "w", ZIP_DEFLATED) as zipf:
                 last_update_time = time.monotonic()
-                for file_path in files_to_zip:
+                for i, file_path in enumerate(files_to_zip):
                     arcname = path.relpath(file_path, base_path)
                     current_time = time.monotonic()
-                    if current_time - last_update_time > 0.25:
+                    if (
+                        current_time - last_update_time > 0.25
+                        or i == len(files_to_zip) - 1
+                    ):
                         self.app.call_from_thread(
                             bar.update_label,
                             f"{utils.get_icon('general', 'zip')[0]} {arcname}",
@@ -357,9 +360,12 @@ class ProcessContainer(VerticalScroll):
                 self.app.call_from_thread(bar.update_progress, total=len(file_list) + 1)
 
                 last_update_time = time.monotonic()
-                for file in file_list:
+                for i, file in enumerate(file_list):
                     current_time = time.monotonic()
-                    if current_time - last_update_time > 0.25:
+                    if (
+                        current_time - last_update_time > 0.25
+                        or i == len(file_list) - 1
+                    ):
                         self.app.call_from_thread(
                             bar.update_label,
                             f"{utils.get_icon('general', 'open')[0]} {file.filename}",
@@ -496,9 +502,9 @@ class ProcessContainer(VerticalScroll):
         action_on_existance = "ask"
         action_on_permission_error = "ask"
         last_update_time = time.monotonic()
-        for item_dict in files_to_copy:
+        for i, item_dict in enumerate(files_to_copy):
             current_time = time.monotonic()
-            if current_time - last_update_time > 0.25:
+            if current_time - last_update_time > 0.25 or i == len(files_to_copy) - 1:
                 self.app.call_from_thread(
                     bar.update_label,
                     f"{utils.get_icon('general', 'copy')[0]} {item_dict['relative_loc']}",
@@ -634,9 +640,9 @@ class ProcessContainer(VerticalScroll):
         cut_ignore = []
         action_on_permission_error = "ask"
         last_update_time = time.monotonic()
-        for item_dict in files_to_cut:
+        for i, item_dict in enumerate(files_to_cut):
             current_time = time.monotonic()
-            if current_time - last_update_time > 0.25:
+            if current_time - last_update_time > 0.25 or i == len(files_to_cut) - 1:
                 self.app.call_from_thread(
                     bar.update_label,
                     f"{utils.get_icon('general', 'cut')[0]} {item_dict['relative_loc']}",
