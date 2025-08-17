@@ -1,5 +1,6 @@
 import platform
 import shutil
+import time
 from contextlib import suppress
 from os import getcwd, listdir, makedirs, path, remove, walk
 from zipfile import ZIP_DEFLATED, ZipFile
@@ -102,12 +103,16 @@ class ProcessContainer(VerticalScroll):
             folders_to_delete.extend(folders_to_add)
         self.app.call_from_thread(bar.update_progress, total=len(files_to_delete) + 1)
         action_on_permission_error = "ask"
+        last_update_time = time.monotonic()
         for item_dict in files_to_delete:
-            self.app.call_from_thread(
-                bar.update_label,
-                f"{utils.get_icon('general', 'delete')[0]} {item_dict['relative_loc']}",
-                step=True,
-            )
+            current_time = time.monotonic()
+            if current_time - last_update_time > 0.25:
+                self.app.call_from_thread(
+                    bar.update_label,
+                    f"{utils.get_icon('general', 'delete')[0]} {item_dict['relative_loc']}",
+                )
+                last_update_time = current_time
+            self.app.call_from_thread(bar.update_progress, advance=1)
             if path.exists(item_dict["path"]):
                 # I know that it `path.exists` prevents issues, but on the
                 # off chance that anything happens, this should help
@@ -126,7 +131,7 @@ class ProcessContainer(VerticalScroll):
                                     self.app.push_screen_wait,
                                     GiveMePermission(
                                         "Path has no write access to be deleted.\nForcefully obtain and delete it?",
-                                        border_title=item_dict["path"],
+                                        border_title=item_dict["relative_loc"],
                                     ),
                                 )
                                 if do_what["toggle"]:
@@ -286,13 +291,17 @@ class ProcessContainer(VerticalScroll):
 
         try:
             with ZipFile(archive_name, "w", ZIP_DEFLATED) as zipf:
+                last_update_time = time.monotonic()
                 for file_path in files_to_zip:
                     arcname = path.relpath(file_path, base_path)
-                    self.app.call_from_thread(
-                        bar.update_label,
-                        f"{utils.get_icon('general', 'zip')[0]} {arcname}",
-                        step=True,
-                    )
+                    current_time = time.monotonic()
+                    if current_time - last_update_time > 0.25:
+                        self.app.call_from_thread(
+                            bar.update_label,
+                            f"{utils.get_icon('general', 'zip')[0]} {arcname}",
+                        )
+                        last_update_time = current_time
+                    self.app.call_from_thread(bar.update_progress, advance=1)
                     zipf.write(file_path, arcname)
                 for p in files:
                     if path.isdir(p) and not listdir(p):
@@ -347,12 +356,16 @@ class ProcessContainer(VerticalScroll):
                 file_list = zip_ref.infolist()
                 self.app.call_from_thread(bar.update_progress, total=len(file_list) + 1)
 
+                last_update_time = time.monotonic()
                 for file in file_list:
-                    self.app.call_from_thread(
-                        bar.update_label,
-                        f"{utils.get_icon('general', 'open')[0]} {file.filename}",
-                        step=True,
-                    )
+                    current_time = time.monotonic()
+                    if current_time - last_update_time > 0.25:
+                        self.app.call_from_thread(
+                            bar.update_label,
+                            f"{utils.get_icon('general', 'open')[0]} {file.filename}",
+                        )
+                        last_update_time = current_time
+                    self.app.call_from_thread(bar.update_progress, advance=1)
                     if path.exists(destination_path):
                         if do_what_on_existance == "ask":
                             response = self.app.call_from_thread(
@@ -482,12 +495,16 @@ class ProcessContainer(VerticalScroll):
         )
         action_on_existance = "ask"
         action_on_permission_error = "ask"
+        last_update_time = time.monotonic()
         for item_dict in files_to_copy:
-            self.app.call_from_thread(
-                bar.update_label,
-                f"{utils.get_icon('general', 'copy')[0]} {item_dict['relative_loc']}",
-                step=True,
-            )
+            current_time = time.monotonic()
+            if current_time - last_update_time > 0.25:
+                self.app.call_from_thread(
+                    bar.update_label,
+                    f"{utils.get_icon('general', 'copy')[0]} {item_dict['relative_loc']}",
+                )
+                last_update_time = current_time
+            self.app.call_from_thread(bar.update_progress, advance=1)
             if path.exists(item_dict["path"]):
                 # again checks just in case something goes wrong
                 try:
@@ -616,12 +633,16 @@ class ProcessContainer(VerticalScroll):
 
         cut_ignore = []
         action_on_permission_error = "ask"
+        last_update_time = time.monotonic()
         for item_dict in files_to_cut:
-            self.app.call_from_thread(
-                bar.update_label,
-                f"{utils.get_icon('general', 'cut')[0]} {item_dict['relative_loc']}",
-                step=True,
-            )
+            current_time = time.monotonic()
+            if current_time - last_update_time > 0.25:
+                self.app.call_from_thread(
+                    bar.update_label,
+                    f"{utils.get_icon('general', 'cut')[0]} {item_dict['relative_loc']}",
+                )
+                last_update_time = current_time
+            self.app.call_from_thread(bar.update_progress, advance=1)
             if path.exists(item_dict["path"]):
                 # again checks just in case something goes wrong
                 try:
