@@ -1,4 +1,4 @@
-from os import chdir, path
+from os import path
 from typing import ClassVar
 
 from textual import events, work
@@ -181,8 +181,7 @@ class PinnedSidebar(OptionList, inherit_bindings=False):
                 )
             else:
                 return
-        chdir(file_path)
-        self.app.query_one("#file_list").update_file_list("name", "ascending")
+        self.app.cd(file_path)
         self.app.query_one("#file_list").focus()
         self.input.clear()
 

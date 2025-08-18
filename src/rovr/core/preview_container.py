@@ -22,6 +22,8 @@ from rovr.utils import config
 
 
 class CustomTextArea(TextArea, inherit_bindings=False):
+    # This kind of is a waste, I could use FileList already,
+    # but I wasn't sure how to integrate it properly.
     BINDINGS: ClassVar[list[BindingType]] = (
         # Bindings from config
         [
@@ -435,13 +437,9 @@ class PreviewContainer(Container):
             )
             self._current_preview_type = "archive"
 
-        if self.any_in_queue():
-            return
-
-        archive_preview: ArchiveFileList = self.query_one(
-            "#archive_preview", ArchiveFileList
+        self.query_one("#archive_preview", ArchiveFileList).create_list(
+            self._current_content
         )
-        archive_preview.create_list(self._current_content)
         self.border_title = "Archive Preview"
 
     def any_in_queue(self) -> bool:

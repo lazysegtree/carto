@@ -1,4 +1,4 @@
-from os import chdir, getcwd, path
+from os import getcwd, path
 
 from textual import on
 from textual.await_complete import AwaitComplete
@@ -86,8 +86,7 @@ class Tabline(Tabs):
     async def check_tab_click(self, event: TablineTab.Clicked | Tab.Clicked) -> None:
         if normalise(getcwd()) == event.tab.directory:
             return
-        chdir(event.tab.directory)
-        self.app.query_one("FileList").update_file_list(add_to_session=False)
+        self.app.cd(event.tab.directory, add_to_session=False)
 
 
 class NewTabButton(Button):

@@ -1,6 +1,6 @@
 import shutil
 from contextlib import suppress
-from os import path
+from os import chdir, getcwd, path
 from types import SimpleNamespace
 
 from textual import events, work
@@ -332,6 +332,31 @@ class Application(App, inherit_bindings=False):
         ):
             return
         self.exit()
+
+    def cd(
+        self,
+        directory: str,
+        add_to_history: bool = True,
+        focus_on: str | None = None,
+    ) -> None:
+        if path.exists(directory):
+            if utils.normalise(getcwd()) == utils.normalise(directory):
+                self.query_one("#file_list").update_file_list(
+                    add_to_session=False, focus_on=focus_on
+                )
+                return
+            else:
+                chdir(directory)
+                self.query_one("#file_list").update_file_list(
+                    add_to_session=add_to_history, focus_on=focus_on
+                )
+        else:
+            while not path.exists(directory):
+                directory = "/".join(utils.normalise(directory).split("/")[:-1])
+            chdir(directory)
+            self.query_one("#file_list").update_file_list(
+                add_to_session=add_to_history, focus_on=focus_on
+            )
 
 
 app = Application(watch_css=True)

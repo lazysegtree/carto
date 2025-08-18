@@ -1,4 +1,4 @@
-from os import chdir, getcwd, path
+from os import getcwd, path
 
 from textual.widgets import Button
 
@@ -14,8 +14,7 @@ class BackButton(Button):
         state = self.app.tabWidget.active_tab.session
         state.sessionHistoryIndex -= 1
         # ! reminder to add a check for path!
-        chdir(state.sessionDirectories[state.sessionHistoryIndex]["path"])
-        self.app.query_one("#file_list").update_file_list(add_to_session=False)
+        self.app.cd(state.sessionDirectories[state.sessionHistoryIndex]["path"])
 
 
 class ForwardButton(Button):
@@ -27,8 +26,7 @@ class ForwardButton(Button):
         state = self.app.tabWidget.active_tab.session
         state.sessionHistoryIndex += 1
         # ! reminder to add a check for path!
-        chdir(state.sessionDirectories[state.sessionHistoryIndex]["path"])
-        self.app.query_one("#file_list").update_file_list(add_to_session=False)
+        self.app.cd(state.sessionDirectories[state.sessionHistoryIndex]["path"])
 
 
 class UpButton(Button):
@@ -38,8 +36,9 @@ class UpButton(Button):
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """Go up the current location's directory"""
         parent = getcwd().split(path.sep)[-1]
-        chdir(path.sep.join(getcwd().split(path.sep)[:-1]) + path.sep)
-        self.app.query_one("#file_list").update_file_list(focus_on=parent)
+        self.app.cd(
+            path.sep.join(getcwd().split(path.sep)[:-1]) + path.sep, focus_on=parent
+        )
 
 
 class RefreshButton(Button):

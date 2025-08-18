@@ -1,5 +1,5 @@
 from contextlib import suppress
-from os import chdir, getcwd, path
+from os import getcwd, path
 from os import system as cmd
 from typing import ClassVar
 
@@ -244,26 +244,16 @@ class FileList(SelectionList, inherit_bindings=False):
         # Get the selected option
         selected_option = self.get_option_at_index(self.highlighted)
         file_name = utils.decompress(selected_option.value)
-        if self.dummy:
-            # kinda complicated
-            if path.isdir(path.join(self.enter_into, file_name)):
-                try:
-                    chdir(path.join(self.enter_into, file_name))
-                except PermissionError:
-                    # cannot do anything about that
-                    return
-                self.app.query_one("#file_list").update_file_list()
-                self.app.query_one("#file_list").focus()
+        if self.dummy and path.isdir(path.join(self.enter_into, file_name)):
+            # if the folder is selected, then cd there,
+            # skipping the middle folder entirely
+            self.app.cd(path.join(self.enter_into, file_name))
+            self.app.query_one("#file_list").focus()
         elif not self.select_mode_enabled:
             # Check if it's a folder or a file
             if path.isdir(path.join(cwd, file_name)):
                 # If it's a folder, navigate into it
-                try:
-                    chdir(path.join(cwd, file_name))
-                except PermissionError:
-                    # Cannot access, so don't change anything I guess
-                    return
-                self.app.query_one("#file_list").update_file_list()
+                self.app.cd(path.join(cwd, file_name))
             else:
                 utils.open_file(path.join(cwd, file_name))
             if self.highlighted is None:

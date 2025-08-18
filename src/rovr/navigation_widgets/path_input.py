@@ -1,4 +1,4 @@
-from os import chdir, getcwd, path, scandir
+from os import getcwd, path, scandir
 from pathlib import Path
 
 from textual import events
@@ -6,7 +6,7 @@ from textual.validation import Function
 from textual.widgets import Input
 from textual_autocomplete import DropdownItem, PathAutoComplete, TargetState
 
-from rovr.utils import get_icon, normalise
+from rovr.utils import get_icon
 
 
 class PathDropdownItem(DropdownItem):
@@ -118,14 +118,7 @@ class PathInput(Input):
 
     def on_input_submitted(self, event: Input.Submitted) -> None:
         """Use a custom path entered as the current working directory"""
-        if path.exists(event.value):
-            if normalise(getcwd()) != normalise(event.value):
-                chdir(event.value)
-                self.app.query_one("#file_list").update_file_list()
-            else:
-                self.app.query_one("#file_list").update_file_list(
-                    add_to_session=False,
-                )
+        self.app.cd(event.value)
 
     def on_key(self, event: events.Key) -> None:
         if event.key == "backspace":
