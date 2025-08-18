@@ -3,7 +3,7 @@ from contextlib import suppress
 from os import path
 from types import SimpleNamespace
 
-from textual import events
+from textual import events, work
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import (
@@ -318,6 +318,20 @@ class Application(App, inherit_bindings=False):
 
     def on_app_focus(self, event: events.AppFocus) -> None:
         self.app_blurred = False
+
+    @work
+    async def action_quit(self) -> None:
+        process_container = self.query_one(ProcessContainer)
+        if len(process_container.query("ProgressBarContainer")) != len(
+            process_container.query(".done")
+        ) and not await self.push_screen_wait(
+            YesOrNo(
+                f"{len(process_container.query('ProgressBarContainer')) - len(process_container.query('.done'))} processes are still running!\nAre you sure you want to quit?",
+                border_title="Quit [teal]rovr[/teal]",
+            )
+        ):
+            return
+        self.exit()
 
 
 app = Application(watch_css=True)
