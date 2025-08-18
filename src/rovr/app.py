@@ -43,7 +43,7 @@ from rovr.navigation_widgets import (
     UpButton,
 )
 from rovr.screens import YesOrNo, ZDToDirectory
-from rovr.SearchContainer import SearchInput
+from rovr.search_container import SearchInput
 from rovr.themes import get_custom_themes
 from rovr.utils import config
 

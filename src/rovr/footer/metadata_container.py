@@ -156,8 +156,6 @@ class MetadataContainer(VerticalScroll):
                             )
                         )
                     )
-        if self.any_in_queue():
-            return
         values = VerticalGroup(*values_list, id="metadata-values")
 
         try:
@@ -186,9 +184,6 @@ class MetadataContainer(VerticalScroll):
                         keys_list.append(Static("Created"))
             keys = VerticalGroup(*keys_list, id="metadata-keys")
             self.app.call_from_thread(self.mount, keys, values)
-        finally:
-            if self.any_in_queue():
-                return
         self.current_path = dir_entry.path
         if type_str == "Directory" and self.has_focus:
             self._size_worker = self.calculate_folder_size(dir_entry.path)

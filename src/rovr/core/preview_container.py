@@ -169,15 +169,11 @@ class PreviewContainer(Container):
 
     async def _show_image_preview(self) -> None:
         """Ensure image preview widget exists and is updated."""
-        if self.any_in_queue():
-            return
         if self._current_preview_type != "image":
             self._current_preview_type = "none"
             await self.remove_children()
             self.remove_class("bat", "full", "clip")
 
-            if self.any_in_queue():
-                return
             try:
                 await self.mount(
                     timg.__dict__[f"{config['settings']['image_protocol']}Image"](
@@ -229,9 +225,6 @@ class PreviewContainer(Container):
                 command.append(f"--line-range=:{max_lines}")
         command.append(self._current_file_path)
 
-        if self.any_in_queue():
-            return
-
         try:
             process = await asyncio.create_subprocess_exec(
                 *command,
@@ -239,9 +232,6 @@ class PreviewContainer(Container):
                 stderr=asyncio.subprocess.PIPE,
             )
             stdout, stderr = await process.communicate()
-
-            if self.any_in_queue():
-                return True
 
             if process.returncode == 0:
                 bat_output = stdout.decode("utf-8", errors="ignore")
@@ -251,9 +241,6 @@ class PreviewContainer(Container):
                     self._current_preview_type = "none"
                     await self.remove_children()
                     self.remove_class("full", "clip")
-
-                    if self.any_in_queue():
-                        return True
 
                     await self.mount(
                         Static(new_content, id="text_preview", classes="inner_preview")
@@ -320,16 +307,10 @@ class PreviewContainer(Container):
             )
         )
 
-        if self.any_in_queue():
-            return
-
         if self._current_preview_type != "normal_text":
             self._current_preview_type = "none"
             await self.remove_children()
             self.remove_class("bat", "full", "clip")
-
-            if self.any_in_queue():
-                return
 
             await self.mount(
                 CustomTextArea(
@@ -393,9 +374,6 @@ class PreviewContainer(Container):
             await self.remove_children()
             self.remove_class("bat", "full", "clip")
 
-            if self.any_in_queue():
-                return
-
             await self.mount(
                 FileList(
                     id="folder_preview",
@@ -407,9 +385,6 @@ class PreviewContainer(Container):
             )
             self._current_preview_type = "folder"
 
-        if self.any_in_queue():
-            return
-
         folder_preview = self.query_one("#folder_preview")
         folder_preview.dummy_update_file_list(
             cwd=folder_path,
@@ -418,16 +393,10 @@ class PreviewContainer(Container):
 
     async def _show_archive_preview(self) -> None:
         """Render archive preview, updating in place if possible."""
-        if self.any_in_queue():
-            return
-
         if self._current_preview_type != "archive":
             self._current_preview_type = "none"
             await self.remove_children()
             self.remove_class("bat", "full", "clip")
-
-            if self.any_in_queue():
-                return
 
             await self.mount(
                 ArchiveFileList(
