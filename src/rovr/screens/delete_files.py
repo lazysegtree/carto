@@ -17,12 +17,13 @@ class DeleteFiles(ModalScreen):
     def compose(self) -> ComposeResult:
         with Grid(id="dialog"):
             yield Label(self.message, id="question")
-            yield Button("\\[D]elete", variant="error", id="delete")
             if config["settings"]["use_recycle_bin"]:
-                yield Button("\\[T]rash", variant="warning", id="trash")
+                yield Button("\\[D] Trash", variant="warning", id="trash")
+                yield Button("\\[X] Delete", variant="error", id="delete")
                 with Container():
                     yield Button("\\[C]ancel", variant="primary", id="cancel")
             else:
+                yield Button("\\[X] Delete", variant="error", id="delete")
                 yield Button("\\[C]ancel", variant="primary", id="cancel")
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
@@ -32,21 +33,12 @@ class DeleteFiles(ModalScreen):
     def on_key(self, event: events.Key) -> None:
         """Handle key presses."""
         match event.key.lower():
-            case "d":
+            case "x":
                 event.stop()
                 self.dismiss("delete")
             case "c" | "escape":
                 event.stop()
                 self.dismiss("cancel")
-            case "t" if config["settings"]["use_recycle_bin"]:
+            case "d" if config["settings"]["use_recycle_bin"]:
                 event.stop()
                 self.dismiss("trash")
-            case "tab":
-                event.stop()
-                self.focus_next()
-            case "shift+tab":
-                event.stop()
-                self.focus_previous()
-            case "enter":
-                event.stop()
-                self.query_one(f"#{self.focused.id}").action_press()
