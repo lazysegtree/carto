@@ -350,7 +350,7 @@ class ProcessContainer(VerticalScroll):
         )
 
         do_what_on_existance = "ask"
-        ignore_permission_error = False
+        action_on_permission_error = "ask"
         try:
             if not path.exists(destination_path):
                 makedirs(destination_path)
@@ -372,7 +372,7 @@ class ProcessContainer(VerticalScroll):
                         )
                         last_update_time = current_time
                     self.app.call_from_thread(bar.update_progress, advance=1)
-                    if path.exists(destination_path):
+                    if path.exists(path.join(destination_path, file.filename)):
                         if do_what_on_existance == "ask":
                             response = self.app.call_from_thread(
                                 self.app.push_screen_wait,
@@ -393,36 +393,24 @@ class ProcessContainer(VerticalScroll):
                             case "skip":
                                 continue
                             case "rename":
-                                exists = True
-                                base = ".".join(destination_path.split(".")[:-1])
-                                extension = destination_path.split(".")[-1]
+                                base_name, extension = path.splitext(file.filename)
                                 tested_number = 1
-                                while exists:
-                                    # similar to how explorer does it
-                                    if path.exists(
-                                        path.join(
-                                            destination_path,
-                                            ".".join([
-                                                base + f" ({tested_number})",
-                                                extension,
-                                            ]),
-                                        )
-                                    ):
-                                        tested_number += 1
-                                new_path = utils.normalise(
-                                    path.join(
-                                        destination_path,
-                                        ".".join([
-                                            base + f" ({tested_number})",
-                                            extension,
-                                        ]),
+                                while True:
+                                    new_filename = (
+                                        f"{base_name} ({tested_number}){extension}"
                                     )
-                                )
+                                    new_path = utils.normalise(
+                                        path.join(destination_path, new_filename)
+                                    )
+                                    if not path.exists(new_path):
+                                        break
+                                    tested_number += 1
+
                                 with (
                                     zip_ref.open(file) as source,
                                     open(new_path, "wb") as target,
                                 ):
-                                    target.write(source.read())
+                                    shutil.copyfileobj(source, target)
                                 continue
                             case "cancel":
                                 self.app.call_from_thread(
@@ -434,18 +422,31 @@ class ProcessContainer(VerticalScroll):
                     try:
                         zip_ref.extract(file.filename, path=destination_path)
                     except PermissionError:
-                        if not ignore_permission_error:
-                            result = self.app.call_from_thread(
+                        if action_on_permission_error == "ask":
+                            do_what = self.app.call_from_thread(
                                 self.app.push_screen_wait,
-                                YesOrNo(
-                                    "Path has no write access and cannot be overwritten.\nContinue?",
+                                GiveMePermission(
+                                    "Path has no write access to be overwritten.\nForcefully obtain and overwrite?",
                                     border_title=file.filename,
-                                    with_toggle=True,
                                 ),
                             )
-                            ignore_permission_error = result["toggle"]
-                            if not result["value"]:
-                                bar.add_class("error")
+                            if do_what["toggle"]:
+                                action_on_permission_error = do_what["value"]
+                            action = do_what["value"]
+                        else:
+                            action = action_on_permission_error
+                        match action:
+                            case "force":
+                                if utils.force_obtain_write_permission(
+                                    path.join(destination_path, file.filename)
+                                ):
+                                    zip_ref.extract(
+                                        file.filename, path=destination_path
+                                    )
+                            case "skip":
+                                continue
+                            case "cancel":
+                                self.app.call_from_thread(bar.add_class, "error")
                                 return
         except Exception as e:
             self.app.call_from_thread(
@@ -542,35 +543,18 @@ class ProcessContainer(VerticalScroll):
                             case "skip":
                                 continue
                             case "rename":
-                                exists = True
-                                base = ".".join(
-                                    item_dict["relative_loc"].split(".")[:-1]
+                                base_name, extension = path.splitext(
+                                    item_dict["relative_loc"]
                                 )
-                                extension = item_dict["relative_loc"].split(".")[-1]
                                 tested_number = 1
-                                while exists:
-                                    # similar to how explorer does it
-                                    if path.exists(
-                                        path.join(
-                                            dest,
-                                            ".".join([
-                                                base + f" ({tested_number})",
-                                                extension,
-                                            ]),
-                                        )
-                                    ):
-                                        tested_number += 1
-                                    else:
-                                        exists = False
-                                item_dict["relative_loc"] = utils.normalise(
-                                    path.join(
-                                        dest,
-                                        ".".join([
-                                            base + f" ({tested_number})",
-                                            extension,
-                                        ]),
+                                while True:
+                                    new_rel_path = (
+                                        f"{base_name} ({tested_number}){extension}"
                                     )
-                                )
+                                    if not path.exists(path.join(dest, new_rel_path)):
+                                        break
+                                    tested_number += 1
+                                item_dict["relative_loc"] = new_rel_path
                             case "cancel":
                                 self.app.call_from_thread(
                                     bar.update_label,
@@ -673,42 +657,25 @@ class ProcessContainer(VerticalScroll):
                             val = response["value"]
                         else:
                             val = action_on_existance
-                        match action_on_existance:
+                        match val:
                             case "overwrite":
                                 pass
                             case "skip":
                                 cut_ignore.append(item_dict["path"])
                                 continue
                             case "rename":
-                                exists = True
-                                base = ".".join(
-                                    item_dict["relative_loc"].split(".")[:-1]
+                                base_name, extension = path.splitext(
+                                    item_dict["relative_loc"]
                                 )
-                                extension = item_dict["relative_loc"].split(".")[-1]
                                 tested_number = 1
-                                while exists:
-                                    # similar to how explorer does it
-                                    if path.exists(
-                                        path.join(
-                                            dest,
-                                            ".".join([
-                                                base + f" ({tested_number})",
-                                                extension,
-                                            ]),
-                                        )
-                                    ):
-                                        tested_number += 1
-                                    else:
-                                        exists = False
-                                item_dict["relative_loc"] = utils.normalise(
-                                    path.join(
-                                        dest,
-                                        ".".join([
-                                            base + f" ({tested_number})",
-                                            extension,
-                                        ]),
+                                while True:
+                                    new_rel_path = (
+                                        f"{base_name} ({tested_number}){extension}"
                                     )
-                                )
+                                    if not path.exists(path.join(dest, new_rel_path)):
+                                        break
+                                    tested_number += 1
+                                item_dict["relative_loc"] = new_rel_path
                             case "cancel":
                                 self.app.call_from_thread(
                                     bar.update_label,
