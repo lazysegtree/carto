@@ -107,7 +107,7 @@ This is a list of features that I plan to add before releasing the appropriate v
 
 #### Version 1
 
-Status: 31/33
+Status: 33/33
 
 - [x] Directory Auto-completion (explorer)
 - [x] Button Navigation (explorer)
@@ -146,10 +146,10 @@ Status: 31/33
   - [x] Rename **a** file/folder
   - Extract from compressed archive
     - [x] `.zip`
-    - [ ] `.tar`, `.gz` and the family
+    - [x] `.tar`, `.gz` and the family
   - Compress to archive
     - [x] `.zip`
-    - [ ] `.tar`, `.gz` and the family
+    - [x] `.tar`, `.gz` and the family
 - [x] bat as previewer
 
 #### Version 2

@@ -5,7 +5,8 @@ from textual.await_complete import AwaitComplete
 from textual.widgets import Button, Tabs
 from textual.widgets._tabs import Tab
 
-from rovr.utils import SessionManager, normalise
+from rovr.extras.classes import SessionManager
+from rovr.utils import normalise
 
 
 class TablineTab(Tab):

@@ -16,6 +16,7 @@ from textual.widgets.option_list import Option
 
 from rovr import utils
 from rovr.core import FileList
+from rovr.extras.classes import Archive
 from rovr.maps import ARCHIVE_EXTENSIONS, EXT_TO_LANG_MAP, PIL_EXTENSIONS
 from rovr.utils import config
 
@@ -485,61 +486,60 @@ class PreviewContainer(Container):
             content = None
             if is_archive:
                 try:
-                    all_files = []
-                    if file_path.endswith((".zip", ".mcpack")):
-                        with zipfile.ZipFile(file_path, "r") as archive:
-                            if config["settings"]["preview_full"]:
-                                all_files = [
-                                    f for f in archive.namelist() if not f.endswith("/")
-                                ]
-                            else:
-                                top_level_files = set()
-                                top_level_dirs = set()
-                                for member in archive.infolist():
-                                    filename = member.filename.replace("\\", "/")
-                                    if not filename:
-                                        continue
+                    with Archive(file_path, "r") as archive:
+                        if config["settings"]["preview_full"]:
+                            all_files = []
+                            for member in archive.infolist():
+                                filename = getattr(
+                                    member, "filename", getattr(member, "name", "")
+                                )
+                                is_dir_func = getattr(
+                                    member, "is_dir", getattr(member, "isdir", None)
+                                )
+                                is_dir = (
+                                    is_dir_func()
+                                    if is_dir_func
+                                    else filename.replace("\\", "/").endswith("/")
+                                )
+                                if not is_dir:
+                                    all_files.append(filename)
+                        else:
+                            top_level_files = set()
+                            top_level_dirs = set()
+                            for member in archive.infolist():
+                                filename = getattr(
+                                    member, "filename", getattr(member, "name", "")
+                                )
+                                is_dir_func = getattr(
+                                    member, "is_dir", getattr(member, "isdir", None)
+                                )
+                                is_dir = (
+                                    is_dir_func()
+                                    if is_dir_func
+                                    else filename.replace("\\", "/").endswith("/")
+                                )
 
-                                    parts = filename.strip("/").split("/")
-                                    if len(parts) == 1 and not member.is_dir():
-                                        top_level_files.add(parts[0])
-                                    else:
-                                        top_level_dirs.add(parts[0])
+                                filename = filename.replace("\\", "/")
+                                if not filename:
+                                    continue
 
-                                top_level_files -= top_level_dirs
-                                all_files = sorted([
-                                    d + "/" for d in top_level_dirs
-                                ]) + sorted(list(top_level_files))
-                        content = all_files
-                    elif file_path.endswith((".tar", ".gz", ".bz2", ".xz")):
-                        with tarfile.open(file_path, "r:*") as archive:
-                            if config["settings"]["preview_full"]:
-                                all_files = [
-                                    m.name
-                                    for m in archive.getmembers()
-                                    if not m.isdir()
-                                ]
-                            else:
-                                top_level_files = set()
-                                top_level_dirs = set()
-                                for member in archive.getmembers():
-                                    filename = member.name.replace("\\", "/")
-                                    if not filename:
-                                        continue
+                                parts = filename.strip("/").split("/")
+                                if len(parts) == 1 and not is_dir:
+                                    top_level_files.add(parts[0])
+                                elif parts and parts[0]:
+                                    top_level_dirs.add(parts[0])
 
-                                    parts = filename.strip("/").split("/")
-                                    if len(parts) == 1 and not member.isdir():
-                                        top_level_files.add(parts[0])
-                                    else:
-                                        top_level_dirs.add(parts[0])
-
-                                top_level_files -= top_level_dirs
-                                all_files = sorted([
-                                    d + "/" for d in top_level_dirs
-                                ]) + sorted(list(top_level_files))
-                        content = all_files
-
-                except (zipfile.BadZipFile, tarfile.TarError):
+                            top_level_files -= top_level_dirs
+                            all_files = sorted([
+                                d + "/" for d in top_level_dirs
+                            ]) + sorted(list(top_level_files))
+                    content = all_files
+                except (
+                    zipfile.BadZipFile,
+                    tarfile.TarError,
+                    ValueError,
+                    FileNotFoundError,
+                ):
                     content = [config["interface"]["preview_error"]]
             elif not is_image:
                 try:
@@ -667,7 +667,7 @@ class ArchiveFileList(OptionList, inherit_bindings=False):
     def create_list(self, file_list: list[str]) -> None:
         self.clear_options()
         if not file_list:
-            self.add_option(Option("  --no-files--", value="", id="", disabled=True))
+            self.add_option(Option("  --no-files--", id="", disabled=True))
             return
         for file_path in file_list:
             if file_path.endswith("/"):

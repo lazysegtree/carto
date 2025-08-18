@@ -317,7 +317,14 @@ class FileList(SelectionList, inherit_bindings=False):
             utils.normalise(path.join(getcwd(), file_name))
         )
         self.app.query_one("MetadataContainer").update_metadata(event.option.dir_entry)
-        self.app.query_one("#unzip").disabled = not file_name.endswith(".zip")
+        self.app.query_one("#unzip").disabled = not file_name.endswith((
+            ".tar.gz",
+            ".tgz",
+            "tar.bz2",
+            ".tbz2",
+            ".tar.xz",
+            ".zip",
+        ))
 
     def _update_lines(self) -> None:
         """Update internal structures when new lines are added."""

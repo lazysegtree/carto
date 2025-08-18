@@ -5,7 +5,7 @@ from textual.widgets import Button
 
 from rovr.screens import ModalInput
 from rovr.utils import config, get_icon, normalise
-from rovr.validators import EndsWithWord, IsValidFilePath, PathDoesntExist
+from rovr.validators import EndsWithAnArchiveExtension, IsValidFilePath, PathDoesntExist
 
 
 class ZipButton(Button):
@@ -42,7 +42,7 @@ class ZipButton(Button):
                 validators=[
                     PathDoesntExist(strict=False),
                     IsValidFilePath(),
-                    EndsWithWord(ends_with=".zip"),
+                    EndsWithAnArchiveExtension(),
                 ],
                 is_path=True,
             ),
@@ -54,5 +54,7 @@ class ZipButton(Button):
 
         archive_name = normalise(path.join(getcwd(), response))
 
-        self.app.query_one("ProcessContainer").zip_files(selected_files, archive_name)
+        self.app.query_one("ProcessContainer").create_archive(
+            selected_files, archive_name
+        )
         self.app.query_one("#file_list").focus()

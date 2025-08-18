@@ -38,10 +38,6 @@ class DeleteButton(Button):
                         compressed=False,
                         ignore_trash=False,
                     )
-                else:
-                    self.notify(
-                        "File deletion cancelled.", title="Delete Files", timeout=3
-                    )
 
             self.app.push_screen(
                 DeleteFiles(

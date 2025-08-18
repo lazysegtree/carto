@@ -32,14 +32,15 @@ class PathDoesntExist(Validator):
             return self.success()
 
 
-class EndsWithWord(Validator):
-    def __init__(self, ends_with: str | tuple, strict: bool = True) -> None:
-        super().__init__(failure_description="Path does not end with .zip")
-        self.ends_with = ends_with
-        self.strict = strict
+class EndsWithAnArchiveExtension(Validator):
+    def __init__(self) -> None:
+        super().__init__(
+            failure_description="Path does not end with a valid extension."
+        )
+        self.strict = True
 
     def validate(self, value: str) -> ValidationResult:
-        if value.endswith(self.ends_with):
+        if value.endswith((".tar.gz", ".tgz", ".tar.bz2", ".tbz2", ".tar.xz", ".zip")):
             return self.success()
         else:
             return self.failure()

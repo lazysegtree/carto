@@ -1,9 +1,10 @@
 import platform
 import shutil
+import tarfile
 import time
+import zipfile
 from contextlib import suppress
 from os import getcwd, listdir, makedirs, path, remove, walk
-from zipfile import ZIP_DEFLATED, ZipFile
 
 from send2trash import send2trash
 from textual import events, work
@@ -14,6 +15,7 @@ from textual.widgets import Label, ProgressBar
 from textual.widgets.option_list import OptionDoesNotExist
 
 from rovr import utils
+from rovr.extras.classes import Archive
 from rovr.screens import CommonFileNameDoWhat, Dismissable, GiveMePermission, YesOrNo
 from rovr.utils import config
 
@@ -67,7 +69,7 @@ class ProcessContainer(VerticalScroll):
         self, max: int | None = None, id: str | None = None, classes: str | None = None
     ) -> ProgressBarContainer:
         new_bar = ProgressBarContainer(total=max, id=id, classes=classes)
-        await self.mount(new_bar)
+        await self.mount(new_bar, before=0)
         return new_bar
 
     @work(thread=True)
@@ -254,35 +256,35 @@ class ProcessContainer(VerticalScroll):
         self.app.call_from_thread(bar.add_class, "done")
 
     @work(thread=True)
-    def zip_files(self, files: list[str], archive_name: str) -> None:
+    def create_archive(self, files: list[str], archive_name: str) -> None:
         """
-        Compress files into a zip archive.
+        Compress files into an archive.
 
         Args:
             files (list[str]): List of file paths to compress.
-            archive_name (str): Path for the output zip archive.
+            archive_name (str): Path for the output archive.
         """
         bar = self.app.call_from_thread(self.new_process_bar, classes="active")
         self.app.call_from_thread(
             bar.update_label,
-            f"{utils.get_icon('general', 'zip')[0]} Getting files to zip...",
+            f"{utils.get_icon('general', 'zip')[0]} Getting files to archive...",
         )
 
-        files_to_zip = []
+        files_to_archive = []
         for p in files:
             if path.isdir(p):
                 if not listdir(p):  # empty dir
-                    files_to_zip.append(p)
+                    files_to_archive.append(p)
                 else:
                     for dirpath, _, filenames in walk(p):
                         for f in filenames:
-                            files_to_zip.append(path.join(dirpath, f))
+                            files_to_archive.append(path.join(dirpath, f))
             else:
-                files_to_zip.append(p)
+                files_to_archive.append(p)
 
-        files_to_zip = sorted(list(set(files_to_zip)))
+        files_to_archive = sorted(list(set(files_to_archive)))
 
-        self.app.call_from_thread(bar.update_progress, total=len(files_to_zip) + 1)
+        self.app.call_from_thread(bar.update_progress, total=len(files_to_archive) + 1)
 
         if len(files) == 1:
             base_path = path.dirname(files[0])
@@ -290,14 +292,14 @@ class ProcessContainer(VerticalScroll):
             base_path = path.commonpath(files)
 
         try:
-            with ZipFile(archive_name, "w", ZIP_DEFLATED) as zipf:
+            with Archive(archive_name, "w") as archive:
                 last_update_time = time.monotonic()
-                for i, file_path in enumerate(files_to_zip):
+                for i, file_path in enumerate(files_to_archive):
                     arcname = path.relpath(file_path, base_path)
                     current_time = time.monotonic()
                     if (
                         current_time - last_update_time > 0.25
-                        or i == len(files_to_zip) - 1
+                        or i == len(files_to_archive) - 1
                     ):
                         self.app.call_from_thread(
                             bar.update_label,
@@ -305,22 +307,28 @@ class ProcessContainer(VerticalScroll):
                         )
                         last_update_time = current_time
                     self.app.call_from_thread(bar.update_progress, advance=1)
-                    zipf.write(file_path, arcname)
+                    if archive._is_zip:
+                        archive._archive.write(file_path, arcname=arcname)
+                    else:
+                        archive._archive.add(file_path, arcname=arcname)
                 for p in files:
                     if path.isdir(p) and not listdir(p):
                         arcname = path.relpath(p, base_path)
-                        zipf.write(p, arcname)
+                        if archive._is_zip:
+                            archive._archive.write(p, arcname=arcname)
+                        else:
+                            archive._archive.add(p, arcname=arcname)
 
         except Exception as e:
             self.app.call_from_thread(
                 bar.update_label,
-                f"{utils.get_icon('general', 'zip')[0]} {utils.get_icon('general', 'close')[0]} Error creating zip file.",
+                f"{utils.get_icon('general', 'zip')[0]} {utils.get_icon('general', 'close')[0]} Error creating archive file.",
             )
             self.app.call_from_thread(bar.add_class, "error")
             self.app.call_from_thread(
                 self.app.push_screen_wait,
                 Dismissable(
-                    f"Zipping failed due to\n{e}\nProcess Aborted.",
+                    f"Archiving failed due to\n{e}\nProcess Aborted.",
                     border_subtitle="File an issue if this is a bug!",
                 ),
             )
@@ -355,12 +363,13 @@ class ProcessContainer(VerticalScroll):
             if not path.exists(destination_path):
                 makedirs(destination_path)
 
-            with ZipFile(archive_path, "r") as zip_ref:
-                file_list = zip_ref.infolist()
+            with Archive(archive_path, "r") as archive:
+                file_list = archive.infolist()
                 self.app.call_from_thread(bar.update_progress, total=len(file_list) + 1)
 
                 last_update_time = time.monotonic()
                 for i, file in enumerate(file_list):
+                    filename = getattr(file, "filename", getattr(file, "name", ""))
                     current_time = time.monotonic()
                     if (
                         current_time - last_update_time > 0.25
@@ -368,17 +377,17 @@ class ProcessContainer(VerticalScroll):
                     ):
                         self.app.call_from_thread(
                             bar.update_label,
-                            f"{utils.get_icon('general', 'open')[0]} {file.filename}",
+                            f"{utils.get_icon('general', 'open')[0]} {filename}",
                         )
                         last_update_time = current_time
                     self.app.call_from_thread(bar.update_progress, advance=1)
-                    if path.exists(path.join(destination_path, file.filename)):
+                    if path.exists(path.join(destination_path, filename)):
                         if do_what_on_existance == "ask":
                             response = self.app.call_from_thread(
                                 self.app.push_screen_wait,
                                 CommonFileNameDoWhat(
                                     "Path already exists in destination\nWhat do you want to do now?",
-                                    border_title=file.filename,
+                                    border_title=filename,
                                     border_subtitle=f"Extracting to {destination_path}",
                                 ),
                             )
@@ -393,7 +402,7 @@ class ProcessContainer(VerticalScroll):
                             case "skip":
                                 continue
                             case "rename":
-                                base_name, extension = path.splitext(file.filename)
+                                base_name, extension = path.splitext(filename)
                                 tested_number = 1
                                 while True:
                                     new_filename = (
@@ -407,7 +416,7 @@ class ProcessContainer(VerticalScroll):
                                     tested_number += 1
 
                                 with (
-                                    zip_ref.open(file) as source,
+                                    archive.open(file) as source,
                                     open(new_path, "wb") as target,
                                 ):
                                     shutil.copyfileobj(source, target)
@@ -420,14 +429,14 @@ class ProcessContainer(VerticalScroll):
                                 self.app.call_from_thread(bar.add_class, "error")
                                 return
                     try:
-                        zip_ref.extract(file.filename, path=destination_path)
+                        archive.extract(file, path=destination_path)
                     except PermissionError:
                         if action_on_permission_error == "ask":
                             do_what = self.app.call_from_thread(
                                 self.app.push_screen_wait,
                                 GiveMePermission(
                                     "Path has no write access to be overwritten.\nForcefully obtain and overwrite?",
-                                    border_title=file.filename,
+                                    border_title=filename,
                                 ),
                             )
                             if do_what["toggle"]:
@@ -438,16 +447,25 @@ class ProcessContainer(VerticalScroll):
                         match action:
                             case "force":
                                 if utils.force_obtain_write_permission(
-                                    path.join(destination_path, file.filename)
+                                    path.join(destination_path, filename)
                                 ):
-                                    zip_ref.extract(
-                                        file.filename, path=destination_path
-                                    )
+                                    archive.extract(file, path=destination_path)
                             case "skip":
                                 continue
                             case "cancel":
                                 self.app.call_from_thread(bar.add_class, "error")
                                 return
+        except (zipfile.BadZipFile, tarfile.TarError, ValueError) as e:
+            self.app.call_from_thread(
+                bar.update_label,
+                f"{utils.get_icon('general', 'open')[0]} {utils.get_icon('general', 'close')[0]} Error extracting archive.",
+            )
+            self.app.call_from_thread(bar.add_class, "error")
+            self.app.call_from_thread(
+                self.app.push_screen_wait,
+                Dismissable(f"Unzipping failed due to\n{e}\nProcess Aborted."),
+            )
+            return
         except Exception as e:
             self.app.call_from_thread(
                 bar.update_label,
