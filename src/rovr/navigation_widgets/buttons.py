@@ -12,9 +12,13 @@ class BackButton(Button):
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """Go back in the sesison's history"""
         state = self.app.tabWidget.active_tab.session
-        state.sessionHistoryIndex -= 1
+        if state.sessionHistoryIndex != 0:
+            state.sessionHistoryIndex -= 1
         # ! reminder to add a check for path!
-        self.app.cd(state.sessionDirectories[state.sessionHistoryIndex]["path"])
+        self.app.cd(
+            state.sessionDirectories[state.sessionHistoryIndex]["path"],
+            add_to_history=False,
+        )
 
 
 class ForwardButton(Button):
@@ -26,7 +30,10 @@ class ForwardButton(Button):
         state = self.app.tabWidget.active_tab.session
         state.sessionHistoryIndex += 1
         # ! reminder to add a check for path!
-        self.app.cd(state.sessionDirectories[state.sessionHistoryIndex]["path"])
+        self.app.cd(
+            state.sessionDirectories[state.sessionHistoryIndex]["path"],
+            add_to_history=False,
+        )
 
 
 class UpButton(Button):

@@ -339,6 +339,7 @@ class Application(App, inherit_bindings=False):
         add_to_history: bool = True,
         focus_on: str | None = None,
     ) -> None:
+        print("cd summoned")
         if path.exists(directory):
             if utils.normalise(getcwd()) == utils.normalise(directory):
                 self.query_one("#file_list").update_file_list(

@@ -4,30 +4,14 @@ from rich.segment import Segment
 from rich.style import Style
 from textual import events, work
 from textual.binding import Binding, BindingType
-from textual.content import Content, ContentText
+from textual.content import Content
 from textual.strip import Strip
 from textual.widgets import SelectionList
 from textual.widgets.option_list import OptionDoesNotExist
-from textual.widgets.selection_list import Selection
 
 from rovr import utils
+from rovr.options import ClipboardSelection
 from rovr.utils import config
-
-
-class ClipboardSelection(Selection):
-    def __init__(self, prompt: ContentText, *args, **kwargs) -> None:
-        """
-        Initialise the selection.
-
-        Args:
-            prompt: The prompt for the selection.
-            value: The value for the selection.
-            initial_state: The initial selected state of the selection.
-            id: The optional ID for the selection.
-            disabled: The initial enabled/disabled state. Enabled by default.
-        """
-        super().__init__(prompt, *args, **kwargs)
-        self.initial_prompt = prompt
 
 
 class Clipboard(SelectionList, inherit_bindings=False):

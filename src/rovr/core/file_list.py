@@ -1,4 +1,3 @@
-from contextlib import suppress
 from os import getcwd, path
 from os import system as cmd
 from typing import ClassVar
@@ -109,8 +108,11 @@ class FileList(SelectionList, inherit_bindings=False):
         cwd = utils.normalise(getcwd())
         self.clear_options()
         # get sessionstate
-        with suppress(AttributeError):
+        try:
+            # only happens when the tabs aren't mounted
             session = self.app.tabWidget.active_tab.session
+        except AttributeError:
+            return
         # Separate folders and files
         folders, files = utils.get_cwd_object(cwd)
         if folders == [PermissionError] or files == [PermissionError]:
@@ -165,9 +167,9 @@ class FileList(SelectionList, inherit_bindings=False):
             session.sessionHistoryIndex = len(session.sessionDirectories) - 1
         elif session.sessionDirectories == []:
             session.sessionDirectories = [{"path": utils.normalise(getcwd())}]
-        self.app.query_one("Button#back").disabled = session.sessionHistoryIndex == 0
-        print("sessionHistoryIndex", session.sessionHistoryIndex)
-        print("sessionDirectories", session.sessionDirectories)
+        print("setting disabled buttons")
+        self.app.query_one("Button#back").disabled = session.sessionHistoryIndex <= 0
+        print(self.app.query_one("Button#back").disabled)
         self.app.query_one("Button#forward").disabled = (
             session.sessionHistoryIndex == len(session.sessionDirectories) - 1
         )

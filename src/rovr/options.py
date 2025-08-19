@@ -1,6 +1,6 @@
 from os import DirEntry
 
-from textual.content import Content
+from textual.content import Content, ContentText
 from textual.widgets.option_list import Option
 from textual.widgets.selection_list import Selection
 
@@ -42,3 +42,19 @@ class FileListSelectionWidget(Selection):
         )
         self.dir_entry = dir_entry
         self.label = label
+
+
+class ClipboardSelection(Selection):
+    def __init__(self, prompt: ContentText, *args, **kwargs) -> None:
+        """
+        Initialise the selection.
+
+        Args:
+            prompt: The prompt for the selection.
+            value: The value for the selection.
+            initial_state: The initial selected state of the selection.
+            id: The optional ID for the selection.
+            disabled: The initial enabled/disabled state. Enabled by default.
+        """
+        super().__init__(prompt, *args, **kwargs)
+        self.initial_prompt = prompt

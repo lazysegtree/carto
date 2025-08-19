@@ -84,9 +84,7 @@ class Tabline(Tabs):
     @on(Tab.Clicked)
     @on(Tabs.TabActivated)
     async def check_tab_click(self, event: TablineTab.Clicked | Tab.Clicked) -> None:
-        if normalise(getcwd()) == event.tab.directory:
-            return
-        self.app.cd(event.tab.directory, add_to_session=False)
+        self.app.cd(event.tab.directory, add_to_history=False)
 
 
 class NewTabButton(Button):

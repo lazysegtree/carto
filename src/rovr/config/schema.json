@@ -240,7 +240,7 @@
           "items": {
             "type": "string"
           },
-          "description": "Toggle the current folder in the Pinned Folder Sidebar,"
+          "description": "Toggle the current folder in the Pinned Folder Sidebar."
         },
         "toggle_pinned_sidebar": {
           "type": "array",
@@ -331,7 +331,7 @@
           "items": {
             "type": "string"
           },
-          "description": "NOT IMPLEMENTED\nPaste the selected files in the clipboard into the current directory."
+          "description": "Paste the selected files in the clipboard into the current directory."
         },
         "cut": {
           "type": "array",
@@ -354,19 +354,19 @@
           },
           "description": "Rename the selected file in the file list to something else."
         },
-        "toggle_all": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "description": "Enter into select mode and select/unselect everything."
-        },
         "new": {
           "type": "array",
           "items": {
             "type": "string"
           },
           "description": "Create a new item in the current directory."
+        },
+        "toggle_all": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Enter into select mode and select/unselect everything."
         },
         "zip": {
           "type": "array",
