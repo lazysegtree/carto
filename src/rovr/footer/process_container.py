@@ -108,7 +108,11 @@ class ProcessContainer(VerticalScroll):
         last_update_time = time.monotonic()
         for i, item_dict in enumerate(files_to_delete):
             current_time = time.monotonic()
-            if current_time - last_update_time > 0.25 or i == len(files_to_delete) - 1:
+            if (
+                current_time - last_update_time > 0.25
+                or i == len(files_to_delete) - 1
+                or i == 0
+            ):
                 self.app.call_from_thread(
                     bar.update_label,
                     f"{utils.get_icon('general', 'delete')[0]} {item_dict['relative_loc']}",
@@ -373,6 +377,7 @@ class ProcessContainer(VerticalScroll):
                     if (
                         current_time - last_update_time > 0.25
                         or i == len(file_list) - 1
+                        or i == 0
                     ):
                         self.app.call_from_thread(
                             bar.update_label,
@@ -421,10 +426,6 @@ class ProcessContainer(VerticalScroll):
                                     shutil.copyfileobj(source, target)
                                 continue
                             case "cancel":
-                                self.app.call_from_thread(
-                                    bar.update_label,
-                                    f"{utils.get_icon('general', 'copy')[0]}",
-                                )
                                 self.app.call_from_thread(bar.add_class, "error")
                                 return
                     try:
@@ -521,7 +522,11 @@ class ProcessContainer(VerticalScroll):
         last_update_time = time.monotonic()
         for i, item_dict in enumerate(files_to_copy):
             current_time = time.monotonic()
-            if current_time - last_update_time > 0.25 or i == len(files_to_copy) - 1:
+            if (
+                current_time - last_update_time > 0.25
+                or i == len(files_to_copy) - 1
+                or i == 0
+            ):
                 self.app.call_from_thread(
                     bar.update_label,
                     f"{utils.get_icon('general', 'copy')[0]} {item_dict['relative_loc']}",
@@ -642,7 +647,11 @@ class ProcessContainer(VerticalScroll):
         last_update_time = time.monotonic()
         for i, item_dict in enumerate(files_to_cut):
             current_time = time.monotonic()
-            if current_time - last_update_time > 0.25 or i == len(files_to_cut) - 1:
+            if (
+                current_time - last_update_time > 0.25
+                or i == len(files_to_cut) - 1
+                or i == 0
+            ):
                 self.app.call_from_thread(
                     bar.update_label,
                     f"{utils.get_icon('general', 'cut')[0]} {item_dict['relative_loc']}",
