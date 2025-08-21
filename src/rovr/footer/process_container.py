@@ -340,7 +340,6 @@ class ProcessContainer(VerticalScroll):
             step=True,
         )
         self.app.call_from_thread(bar.add_class, "done")
-        self.app.call_from_thread(self.app.query_one("#refresh").action_press)
 
     @work(thread=True)
     def unzip_file(self, archive_path: str, destination_path: str) -> None:
@@ -484,7 +483,6 @@ class ProcessContainer(VerticalScroll):
             step=True,
         )
         self.app.call_from_thread(bar.add_class, "done")
-        self.app.call_from_thread(self.app.query_one("#refresh").action_press)
 
     @work(thread=True)
     def paste_items(self, copied: list[str], cutted: list[str], dest: str = "") -> None:
