@@ -12,7 +12,7 @@ export default defineConfig({
   integrations: [
     mermaid({}),
     starlight({
-      title: "rovr docs",
+      title: "rovr",
       social: [
         {
           icon: "github",
@@ -26,11 +26,22 @@ export default defineConfig({
           href: "https://discord.com/invite/smDsD9Pmbz",
         },
       ],
+      head: [
+        {
+          tag: 'meta',
+          attrs: { property: 'og:image', content: "https://github.com/NSPC911/rovr/blob/master/img/0.1.0/rovr_thumb.png?raw=true" },
+        },
+        {
+          tag: 'meta',
+          attrs: { property: 'twitter:image', content: "https://github.com/NSPC911/rovr/blob/master/img/0.1.0/rovr_thumb.png?raw=true" },
+        },
+      ],
       customCss: ["./src/styles/custom.css"],
       editLink: {
         baseUrl:
           "https://github.com/NSPC911/rovr/tree/docs/docs",
       },
+      tableOfContents: { minHeadingLevel: 1, maxHeadingLevel: 4 },
       lastUpdated: true,
       sidebar: [
         { label: "overview", slug: "overview" },

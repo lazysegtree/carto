@@ -102,7 +102,7 @@ html * {
     text-transform: lowercase;
     transition-property:
       background, color, border-inline-start, scrollbar-color;
-    transition-duration: calc((var(--sl-transition-duration) / 6) * 6);
+    transition-duration: var(--sl-transition-duration);
     transition-timing-function: ease-in-out;
   }
 }
@@ -175,7 +175,8 @@ summary {
     width: 25vw;
     max-width: 300px;
     > .sl-container {
-      width: calc(25vw - 2rem);
+      width: calc(25vw - (2 * var(--sidebar-pad-x)));
+      max-width: calc(300px - (2 * var(--sidebar-pad-x)));
     }
   }
   .main-frame:not(:has(> div > aside[class*="print:hidden"])) {
@@ -236,10 +237,10 @@ select > option:hover {
   -moz-appearance: none;
   appearance: none;
 }
-[data-theme="dark"] select.astro-bx376mqt:focus {
+[data-theme="dark"] select:focus {
   background: hsl(from var(--sl-color-gray-6) h s l / 1%) !important;
 }
-[data-theme="light"] select.astro-bx376mqt:focus {
+[data-theme="light"] select:focus {
   background: hsl(from var(--sl-color-gray-7) h s l / 1%) !important;
 }
 .header {
@@ -291,7 +292,8 @@ body {
 }
 button {
   box-shadow: unset !important;
-  transition: transform var(--sl-transition-duration) ease;
+  transition-property:
+    background, color, border-inline-start, scrollbar-color, transform;
   &:hover {
     transform: scale(1.125);
   }
@@ -398,15 +400,16 @@ starlight-file-tree {
 .site-title {
   color: transparent;
   &::before {
-    content: "  ____ ___  _  __ ____\a  / __// _ \\| |/ // __/\a/_/   \\___/|___//_/";
-    line-height: 1.1925;
+    content: "   _____ ____  _   __ _____\a   / ___// __ \\| | / // ___/\a  / /   / /_/ /| |/ // /\a/_/    \\____/ |___//_/";
+    line-height: 1.25;
     white-space: pre;
     display: block;
     position: absolute;
-    font-size: 0.67em;
+    font-size: 0.5em;
     color: var(--sl-color-accent);
-    transform: translateY(-0.375em);
+    transform: translateY(-0.25rem);
     font-weight: bolder;
+    font-variant-ligatures: none;
     text-shadow:
       1.25px 0 0 currentColor,
       -1.25px 0 0 currentColor,
@@ -426,7 +429,7 @@ starlight-file-tree ul:has(> li.file) {
     background-color: var(--sl-color-accent-high);
   }
 }
-.hero.astro-3w4tft3e {
+.hero {
   margin-bottom: calc(var(--sl-nav-height) * 2);
   > img {
     display: none;
