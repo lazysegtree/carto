@@ -113,27 +113,11 @@ class Application(App, inherit_bindings=False):
                     id="preview_sidebar",
                 )
             with HorizontalGroup(id="footer"):
-                # ? should we switch to a vertical scroll for richlog?
                 yield ProcessContainer()
                 yield MetadataContainer(id="metadata")
                 yield Clipboard(id="clipboard")
 
     def on_mount(self) -> None:
-        # this will stay until a beta release.
-        def warning(response: bool) -> None:
-            match response:
-                case True:
-                    pass
-                case False:
-                    self.app.exit(message="Bye! Hope to see you soon!")
-
-        self.push_screen(
-            YesOrNo(
-                "This is a pre-alpha application.\nUse at your own risk.\nContinue?",
-                reverse_color=True,
-            ),
-            warning,
-        )
         # border titles
         self.query_one("#menu").border_title = "Options"
         self.query_one("#below_menu").border_title = "Directory Actions"
