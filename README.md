@@ -5,7 +5,7 @@
   <img alt="Static Badge" src="https://img.shields.io/badge/Python-3.13-yellow?style=for-the-badge">
   <img alt="Static Badge" src="https://img.shields.io/badge/made_with-textual-0b171d?style=for-the-badge&logoColor=yellow">
   <!--python -c "import toml;print(len(toml.load('uv.lock')['package']))"-->
-  <img alt="Static Badge" src="https://img.shields.io/badge/Dependencies-77-purple?style=for-the-badge">
+  <img alt="Static Badge" src="https://img.shields.io/badge/Dependencies-87-purple?style=for-the-badge">
 </div>
 
 > [!caution]
@@ -14,7 +14,6 @@
 <!--toc:start-->
 
 - [Installation](#installation)
-- [Screenshots](#screenshots)
 - [FAQ](#faq)
 <!--toc:end-->
 
@@ -31,20 +30,6 @@ pipx install rovr
 ## or plain old pip
 pip install rovr
 ```
-
-### Screenshots
-
-Startup
-<img alt="Version 0.0.0.4" src="https://github.com/NSPC911/rovr/blob/master/img/0.0.0.4/rovr_main.png?raw=true">
-
-Create new Item
-<img alt="Version 0.0.0.4" src="https://github.com/NSPC911/rovr/blob/master/img/0.0.0.4/rovr_new.png?raw=true">
-
-Delete selected items
-<img alt="Version 0.0.0.4" src="https://github.com/NSPC911/rovr/blob/master/img/0.0.0.4/rovr_delete.png?raw=true">
-
-Zoxide integration
-<img alt="Version 0.0.0.4" src="https://github.com/NSPC911/rovr/blob/master/img/0.0.0.4/rovr_zoxide.png?raw=true">
 
 ### FAQ
 
