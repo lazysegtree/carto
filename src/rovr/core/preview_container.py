@@ -176,7 +176,11 @@ class PreviewContainer(Container):
 
             try:
                 await self.mount(
-                    timg.__dict__[f"{config['settings']['image_protocol']}Image"](
+                    timg.__dict__[
+                        config["settings"]["image_protocol"] + "Image"
+                        if config["settings"]["image_protocol"] != "Auto"
+                        else "Image"
+                    ](
                         self._current_file_path,
                         id="image_preview",
                         classes="inner_preview",
