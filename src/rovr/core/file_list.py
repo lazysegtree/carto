@@ -4,7 +4,7 @@ from typing import ClassVar
 
 from rich.segment import Segment
 from rich.style import Style
-from textual import events
+from textual import events, work
 from textual.binding import Binding, BindingType
 from textual.geometry import Size
 from textual.strip import Strip
@@ -94,7 +94,8 @@ class FileList(SelectionList, inherit_bindings=False):
             else:
                 self.highlighted = clicked_option
 
-    def update_file_list(
+    @work(exclusive=True)
+    async def update_file_list(
         self,
         add_to_session: bool = True,
         focus_on: str | None = None,
@@ -106,17 +107,18 @@ class FileList(SelectionList, inherit_bindings=False):
             focus_on (str | None): A custom item to set the focus as.
         """
         cwd = utils.normalise(getcwd())
-        self.clear_options()
         # get sessionstate
         try:
             # only happens when the tabs aren't mounted
             session = self.app.tabWidget.active_tab.session
         except AttributeError:
+            self.clear_options()
             return
         # Separate folders and files
         folders, files = utils.get_cwd_object(cwd)
+        options = []
         if folders == [PermissionError] or files == [PermissionError]:
-            self.add_option(
+            options.append(
                 Selection(
                     " Permission Error: Unable to access this directory.",
                     value="",
@@ -126,9 +128,7 @@ class FileList(SelectionList, inherit_bindings=False):
             )
             file_list_options = [".."]
         elif folders == [] and files == []:
-            self.add_option(
-                Selection("   --no-files--", value="", id="", disabled=True)
-            )
+            options.append(Selection("   --no-files--", value="", id="", disabled=True))
             preview = self.app.query_one("PreviewContainer")
             preview.remove_children()
             preview._current_preview_type = "none"
@@ -136,7 +136,7 @@ class FileList(SelectionList, inherit_bindings=False):
         else:
             file_list_options = folders + files
             for item in file_list_options:
-                self.add_option(
+                options.append(
                     FileListSelectionWidget(
                         icon=item["icon"],
                         label=item["name"],
@@ -145,9 +145,11 @@ class FileList(SelectionList, inherit_bindings=False):
                         id=utils.compress(item["name"]),
                     )
                 )
+        self.clear_options()
+        self.add_options(options)
         # session handler
         self.app.query_one("#path_switcher").value = cwd + "/"
-        # I question to myself why sessionDirectories isnt a list[str]
+        # I question to myself why sessionDirectories isn't a list[str]
         # but is a list[dict], so I'm down to take some PRs, because
         # I have other things that are more important.
         # TODO: use list[str] instead of list[dict] for sessionDirectories
@@ -167,9 +169,7 @@ class FileList(SelectionList, inherit_bindings=False):
             session.sessionHistoryIndex = len(session.sessionDirectories) - 1
         elif session.sessionDirectories == []:
             session.sessionDirectories = [{"path": utils.normalise(getcwd())}]
-        print("setting disabled buttons")
         self.app.query_one("Button#back").disabled = session.sessionHistoryIndex <= 0
-        print(self.app.query_one("Button#back").disabled)
         self.app.query_one("Button#forward").disabled = (
             session.sessionHistoryIndex == len(session.sessionDirectories) - 1
         )
@@ -197,7 +197,8 @@ class FileList(SelectionList, inherit_bindings=False):
         self.app.tabWidget.parent.on_resize()
         self.input.clear()
 
-    def dummy_update_file_list(
+    @work(exclusive=True)
+    async def dummy_update_file_list(
         self,
         cwd: str,
     ) -> None:
@@ -210,8 +211,9 @@ class FileList(SelectionList, inherit_bindings=False):
         self.clear_options()
         # Separate folders and files
         folders, files = utils.get_cwd_object(cwd)
+        self.list_of_options = []
         if folders == [PermissionError] or files == [PermissionError]:
-            self.add_option(
+            self.list_of_options.append(
                 Selection(
                     " Permission Error: Unable to access this directory.",
                     id="",
@@ -219,21 +221,23 @@ class FileList(SelectionList, inherit_bindings=False):
                     disabled=True,
                 )
             )
-            return
         elif folders == [] and files == []:
-            self.add_option(Selection("  --no-files--", value="", id="", disabled=True))
-            return
-        file_list_options = folders + files
-        for item in file_list_options:
-            self.add_option(
-                FileListSelectionWidget(
-                    icon=item["icon"],
-                    label=item["name"],
-                    dir_entry=item["dir_entry"],
-                    value=utils.compress(item["name"]),
-                    id=utils.compress(item["name"]),
-                )
+            self.list_of_options.append(
+                Selection("  --no-files--", value="", id="", disabled=True)
             )
+        else:
+            file_list_options = folders + files
+            for item in file_list_options:
+                self.list_of_options.append(
+                    FileListSelectionWidget(
+                        icon=item["icon"],
+                        label=item["name"],
+                        dir_entry=item["dir_entry"],
+                        value=utils.compress(item["name"]),
+                        id=utils.compress(item["name"]),
+                    )
+                )
+        self.add_options(self.list_of_options)
         # somehow prevents more debouncing, ill take it
         self.refresh(repaint=True, layout=True)
 
