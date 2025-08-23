@@ -33,8 +33,9 @@ class SearchInput(Input):
                 continue
             try:
                 option.disabled = not query_fuzzy(event.value, option.label)
-            except IndexError:
+            except (IndexError, AttributeError):
                 # Special section dividers, like Pinned Sidebar's dividers
+                # or the `--no-files--` thing in file list
                 option.disabled = True
         self.items_list.refresh()
         if (
