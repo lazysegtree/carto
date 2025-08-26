@@ -9,7 +9,13 @@
 :root {
   --sl-sidebar-width: 20vw;
   --sl-sidebar-item-padding-inline: 0.45rem;
-  --sl-transition-duration: 1s;
+  --sl-transition-duration: 0.375s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --sl-transition-duration: 0s
+  }
 }
 
 /* Dark mode colors. */
