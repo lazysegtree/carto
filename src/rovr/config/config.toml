@@ -22,6 +22,7 @@ copy_includes_metadata = true
 image_protocol = "Auto"
 allow_tab_nav = true
 append_new_tabs = true
+cd_on_quit = false
 
 [metadata]
 fields = ["type", "permissions", "size", "modified", "accessed", "created"]

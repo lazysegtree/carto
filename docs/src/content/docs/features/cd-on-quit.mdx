@@ -1,0 +1,60 @@
+---
+title: cd on quit
+description: how to make rovr change your shell's directory on quit.
+---
+
+import { Tabs, TabItem, Code, Aside } from "@astrojs/starlight/components";
+
+`rovr` can be configured to change the current directory to the directory you were when you quit it.
+
+### how it works
+
+when `cd_on_quit` is enabled, `rovr` will write the path of its current directory to a file named `rovr_quit_cd_path` in your config directory right before it exits.
+
+a small script or function in your shell's configuration file can then read this file, `cd` into the saved directory, and then delete the file.
+
+### enabling `cd_on_quit`
+
+to enable this feature, you need to set the `cd_on_quit` option to `true` in your `config.toml` file.
+
+<Code
+code={`[settings]\ncd_on_quit = true`}
+lang="toml"
+title="config.toml"
+/>
+
+### shell configuration
+
+After enabling the feature, you need to add a function to your shell's configuration file. This function will wrap the `rovr` command.
+
+<Tabs>
+<TabItem label="bash / zsh">
+<Code
+  code={`rovr () {\n    "rovr" "$@"\n    cd_path_file="$XDG_CONFIG_HOME/rovr/rovr_quit_cd_path"\n    if [ -f "$cd_path_file" ]; then\n        cd "$(cat \"$cd_path_file\")"\n        rm -f "$cd_path_file"\n    fi\n}`}
+  lang="bash"
+  frame="code"
+/>
+</TabItem>
+<TabItem label="fish">
+<Code
+  code={`function rovr\n    command rovr $argv\n    set cd_path_file "$XDG_CONFIG_HOME/rovr/rovr_quit_cd_path"\n    if test -f "$cd_path_file"\n        cd (cat "$cd_path_file")\n        rm -f "$cd_path_file"\n    end\nend`}
+  lang="fish"
+  frame="code"
+/>
+</TabItem>
+<TabItem label="powershell">
+<Code
+  code={`function rovr {\n    param ( [string[]]$Params )\n    & rovr.exe $Params\n    $cd_path_file = "$env:LOCALAPPDATA\\rovr\\rovr_quit_cd_path"\n    if (Test-Path $cd_path_file) {\n        Set-Location -Path (Get-Content $cd_path_file)\n        Remove-Item $cd_path_file\n    }\n}`}
+  lang="powershell"
+  frame="code"
+/>
+Powershell may prevent you from running such functions, so you may have to run
+<Code
+  code={`Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope LocalMachine`}
+  lang="powershell"
+/>
+for it to work. For more information on `Set-ExecutionPolicy`, refer to its [docs](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.security/set-executionpolicy)
+</TabItem>
+</Tabs>
+
+<Aside type="note">the path to the `rovr` executable and the `rovr_quit_cd_path` file might need to be adjusted based on your specific installation and system configuration.</Aside>

@@ -9,7 +9,7 @@
 :root {
   --sl-sidebar-width: 20vw;
   --sl-sidebar-item-padding-inline: 0.45rem;
-  --sl-transition-duration: 0.375s;
+  --sl-transition-duration: 1s;
 }
 
 /* Dark mode colors. */
@@ -112,7 +112,7 @@ code {
 }
 .expressive-code {
   * {
-    transition: all 0s !important;
+    transition-property: background, color;
     text-transform: none;
   }
   > figure > figcaption::before {
@@ -343,6 +343,18 @@ figure.frame {
     border-top-left-radius: 0;
     border-top-right-radius: 0;
   }
+  &:not(:has(> figcaption > span)) > pre[data-language] {
+    padding-top: 1em;
+    &::before{
+      position: absolute;
+      display: block;
+      content: attr(data-language);
+      left: 1em;
+      top: 6px;
+      transition: color var(--sl-transition-duration) linear
+    }
+  }
+
   > pre[data-language] {
     border-radius: 5px;
   }
@@ -408,19 +420,24 @@ starlight-file-tree {
     font-size: 0.5em;
     color: var(--sl-color-accent);
     transform: translateY(-0.25rem);
+    transition: color var(--sl-transition-duration) linear;
     font-weight: bolder;
     font-variant-ligatures: none;
     text-shadow:
-      1.25px 0 0 currentColor,
-      -1.25px 0 0 currentColor,
-      0 1.25px 0 currentColor,
-      0 -1.25px 0 currentColor;
+      1px 0 0 currentColor,
+      -1px 0 0 currentColor,
+      0 1px 0 currentColor,
+      0 -1px 0 currentColor,
+      1px 1px 0 currentColor,
+      -1px 1px 0 currentColor,
+      1px -1px 0 currentColor,
+      -1px -1px 0 currentColor;
   }
 }
 starlight-file-tree ul:has(> li.file) {
   border-inline-start: 2px solid var(--sl-color-gray-4);
 }
-.sl-markdown-content a {
+.sl-markdown-content a:not([id^=tab]) {
   color: var(--sl-color-accent-high);
   margin: 0 -0.25em;
   padding: 0 0.25em;
@@ -429,6 +446,14 @@ starlight-file-tree ul:has(> li.file) {
     background-color: var(--sl-color-accent-high);
   }
 }
+
+a[id^=tab] {
+  transition-property: background, color, border-inline-start, scrollbar-color, border-bottom;
+  &:hover[aria-selected="false"] {
+    border-bottom: 2px solid var(--sl-color-text-accent-hover);
+  }
+}
+
 .hero {
   margin-bottom: calc(var(--sl-nav-height) * 2);
   > img {
@@ -438,6 +463,9 @@ starlight-file-tree ul:has(> li.file) {
 .main-pane > main > .content-panel:has(> div > .hero) {
   margin: 0 min(10vw, 5rem);
   padding: 0;
+  .card {
+    background: transparent;
+  }
 }
 @media print {
   body > div:has(> nav) > div {

@@ -71,6 +71,7 @@ export default defineConfig({
           items: [
             { label: "previewing files", slug: "features/previewing-files" },
             { label: "image previews", slug: "features/image-previews" },
+            { label: "cd on quit", slug: "features/cd-on-quit" },
             { label: "search", slug: "features/search" },
             { label: "plugins", slug: "features/plugins" },
           ],

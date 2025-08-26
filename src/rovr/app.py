@@ -316,6 +316,12 @@ class Application(App, inherit_bindings=False):
             )
         ):
             return
+        if config["settings"]["cd_on_quit"]:
+            with open(
+                path.join(VAR_TO_DIR["CONFIG"], "rovr_quit_cd_path"), "w"
+            ) as file:
+                file.write(getcwd())
+                print(getcwd())
         self.exit()
 
     def cd(
