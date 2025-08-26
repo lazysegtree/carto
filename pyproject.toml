@@ -96,3 +96,5 @@ indent-style = "space"
 line-ending = "auto"
 preview = true
 
+[tool.ty.rules]
+possibly-unbound-import = "ignore"

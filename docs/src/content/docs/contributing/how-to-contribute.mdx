@@ -72,9 +72,10 @@ after making your necessary changes, you can run
 
 ```sh
 uvx ruff format
+uvx ty check . --ignore unresolved-import
 ```
 
-so that your code follows the defined style guide.
+so that your code follows the defined style guide and is typed properly.
 
 if you need help with conventional commits, [commitizen](https://github.com/commitizen-tools/commitizen) should be available as a dev dependency in the virtual environment, so you can run `cz c` to commit with commitizen.
 
