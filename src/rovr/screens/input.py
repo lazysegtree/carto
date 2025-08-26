@@ -63,11 +63,11 @@ class ModalInput(ModalScreen):
             else:
                 self.icon_widget.classes = "invalid"
                 self.horizontal_group.classes = "invalid"
-                try:
+                if event.validation_result:
                     self.horizontal_group.border_subtitle = str(
                         event.validation_result.failure_descriptions[0]
                     )
-                except AttributeError:
+                else:
                     # valid_empty = False
                     self.horizontal_group.border_subtitle = (
                         "The value must not be empty!"
@@ -98,8 +98,10 @@ class ModalInput(ModalScreen):
     @work
     async def on_input_submitted(self, event: Input.Submitted) -> None:
         """Handle input submission."""
-        if not self.query_one(Input).is_valid and any(
-            failure.validator.strict for failure in event.validation_result.failures
+        if (
+            not self.query_one(Input).is_valid
+            and event.validation_result
+            and event.validation_result.failures
         ):
             # shake
             for i in range(2):

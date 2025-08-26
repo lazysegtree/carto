@@ -5,7 +5,7 @@ import tarfile
 import zipfile
 from pathlib import Path
 from types import TracebackType
-from typing import IO, List, Optional, Union
+from typing import IO, List, Literal, Optional, Union
 
 
 class Archive:
@@ -98,7 +98,7 @@ class Archive:
                 else:
                     self._archive = tarfile.open(self.filename, tar_mode)  # noqa: SIM115
 
-    def _get_tar_write_mode(self) -> str:
+    def _get_tar_write_mode(self) -> Literal["w:gz", "w:bz2", "w:xz", "w"]:
         """Determine tar write mode based on file extension.
 
         Returns:
@@ -114,7 +114,9 @@ class Archive:
         else:
             return "w"
 
-    def _open_tar_with_compression(self, tar_mode: str) -> tarfile.TarFile:
+    def _open_tar_with_compression(
+        self, tar_mode: Literal["w:gz", "w:bz2", "w:xz", "w"]
+    ) -> tarfile.TarFile:
         """Open TAR file with specified compression level.
 
         Args:

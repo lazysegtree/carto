@@ -2,11 +2,12 @@ from json_schema_for_humans.generate import generate_from_filename
 from json_schema_for_humans.generation_configuration import GenerationConfiguration
 
 config = GenerationConfiguration()
-config.template_md_options["properties_table_columns"] = [
-    "Property",
-    "Type",
-    "Title/Description",
-]
+if config.template_md_options is not None:
+    config.template_md_options["properties_table_columns"] = [
+        "Property",
+        "Type",
+        "Title/Description",
+    ]
 config.template_name = "md"
 config.with_footer = False
 generate_from_filename(

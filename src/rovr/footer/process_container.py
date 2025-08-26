@@ -297,6 +297,7 @@ class ProcessContainer(VerticalScroll):
 
         try:
             with Archive(archive_name, "w") as archive:
+                assert archive._archive is not None
                 last_update_time = time.monotonic()
                 for i, file_path in enumerate(files_to_archive):
                     arcname = path.relpath(file_path, base_path)
@@ -311,17 +312,25 @@ class ProcessContainer(VerticalScroll):
                         )
                         last_update_time = current_time
                     self.app.call_from_thread(bar.update_progress, advance=1)
-                    if archive._is_zip:
-                        archive._archive.write(file_path, arcname=arcname)
-                    else:
-                        archive._archive.add(file_path, arcname=arcname)
+                    _archive = archive._archive
+                    if _archive:
+                        if archive._is_zip:
+                            assert isinstance(_archive, zipfile.ZipFile)
+                            _archive.write(file_path, arcname=arcname)
+                        else:
+                            assert isinstance(_archive, tarfile.TarFile)
+                            _archive.add(file_path, arcname=arcname)
                 for p in files:
                     if path.isdir(p) and not listdir(p):
                         arcname = path.relpath(p, base_path)
-                        if archive._is_zip:
-                            archive._archive.write(p, arcname=arcname)
-                        else:
-                            archive._archive.add(p, arcname=arcname)
+                        _archive = archive._archive
+                        if _archive:
+                            if archive._is_zip:
+                                assert isinstance(_archive, zipfile.ZipFile)
+                                _archive.write(p, arcname=arcname)
+                            else:
+                                assert isinstance(_archive, tarfile.TarFile)
+                                _archive.add(p, arcname=arcname)
 
         except Exception as e:
             self.app.call_from_thread(
@@ -419,11 +428,10 @@ class ProcessContainer(VerticalScroll):
                                         break
                                     tested_number += 1
 
-                                with (
-                                    archive.open(file) as source,
-                                    open(new_path, "wb") as target,
-                                ):
-                                    shutil.copyfileobj(source, target)
+                                source = archive.open(file)
+                                if source:
+                                    with source, open(new_path, "wb") as target:
+                                        shutil.copyfileobj(source, target)
                                 continue
                             case "cancel":
                                 self.app.call_from_thread(bar.add_class, "error")
