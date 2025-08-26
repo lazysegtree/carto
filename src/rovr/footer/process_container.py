@@ -277,7 +277,7 @@ class ProcessContainer(VerticalScroll):
         files_to_archive = []
         for p in files:
             if path.isdir(p):
-                if not listdir(p):  # empty dir
+                if not listdir(p):  # empty directory
                     files_to_archive.append(p)
                 else:
                     for dirpath, _, filenames in walk(p):

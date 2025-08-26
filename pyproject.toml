@@ -37,6 +37,7 @@ dependencies = [
 [project.urls]
 Issues = "https://github.com/NSPC911/rovr/issues"
 Source = "https://github.com/NSPC911/rovr"
+Documentation = "https://nspc911.github.io/rovr"
 
 [project.scripts]
 rovr = "rovr.__main__:main"

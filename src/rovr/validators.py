@@ -12,7 +12,7 @@ class IsValidFilePath(Validator):
         self.strict = strict
 
     def validate(self, value: str) -> ValidationResult:
-        value = normalise(getcwd() + "/" + value)
+        value = str(normalise(str(getcwd()) + "/" + value))
         if value == normalise(sanitize_filepath(value)):
             return self.success()
         else:
@@ -25,7 +25,7 @@ class PathDoesntExist(Validator):
         self.strict = strict
 
     def validate(self, value: str) -> ValidationResult:
-        value = normalise(getcwd() + "/" + value)
+        value = str(normalise(str(getcwd()) + "/" + value))
         if path.exists(value):
             return self.failure()
         else:

@@ -1,7 +1,6 @@
 from os import getcwd, path
 
 from textual import on
-from textual.await_complete import AwaitComplete
 from textual.widgets import Button, Tabs
 from textual.widgets._tabs import Tab
 
@@ -10,7 +9,9 @@ from rovr.utils import normalise
 
 
 class TablineTab(Tab):
-    def __init__(self, directory: str = "", label: str = "", *args, **kwargs) -> None:
+    def __init__(
+        self, directory: str | bytes = "", label: str = "", *args, **kwargs
+    ) -> None:
         """Initialise a Tab.
 
         Args:
@@ -24,7 +25,7 @@ class TablineTab(Tab):
             directory = getcwd()
         directory = normalise(directory)
         if label == "":
-            label = (
+            label = str(
                 path.basename(directory)
                 if path.basename(directory) != ""
                 else directory.strip("/")
@@ -37,7 +38,7 @@ class TablineTab(Tab):
 class Tabline(Tabs):
     async def add_tab(
         self, directory: str = "", label: str = "", *args, **kwargs
-    ) -> AwaitComplete:
+    ) -> None:
         """Add a new tab to the end of the tab list.
 
         Args:
@@ -64,7 +65,7 @@ class Tabline(Tabs):
         # redo max-width
         self.parent.on_resize()
 
-    async def remove_tab(self, tab_or_id: Tab | str | None) -> AwaitComplete:
+    async def remove_tab(self, tab_or_id: Tab | str | None) -> None:
         """Remove a tab.
 
         Args:
@@ -83,7 +84,8 @@ class Tabline(Tabs):
 
     @on(Tab.Clicked)
     @on(Tabs.TabActivated)
-    async def check_tab_click(self, event: TablineTab.Clicked | Tab.Clicked) -> None:
+    async def check_tab_click(self, event: TablineTab.Clicked) -> None:
+        assert isinstance(event.tab, TablineTab)
         self.app.cd(event.tab.directory, add_to_history=False)
 
 

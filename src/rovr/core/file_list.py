@@ -279,6 +279,7 @@ class FileList(SelectionList, inherit_bindings=False):
     async def on_option_list_option_highlighted(
         self, event: OptionList.OptionHighlighted
     ) -> None:
+        assert isinstance(event.option, FileListSelectionWidget)
         if self.dummy:
             return
         elif event.option.value == "HTI":

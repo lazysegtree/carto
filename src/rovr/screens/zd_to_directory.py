@@ -83,8 +83,8 @@ class ZDToDirectory(ModalScreen):
             ):  # ie same~ish query, resulting in same result
                 pass
             else:
-                # unline normally, im using an add_option**s** function
-                # using it without has a likelyhood of DuplicateID being
+                # unline normally, I'm using an add_option**s** function
+                # using it without has a likelihood of DuplicateID being
                 # raised, or just nothing showing up. By having the clear
                 # options and add options functions nearby, it hopefully
                 # reduces the likelihood of an empty option list
@@ -99,7 +99,7 @@ class ZDToDirectory(ModalScreen):
                 zoxide_options.add_option,
                 Option("  --No matches found--", disabled=True),
             )
-        # check 3, if somehow theres a new request after the mount
+        # check 3, if somehow there's a new request after the mount
         if self.any_in_queue():
             return  # nothing much to do now
         else:
@@ -118,6 +118,7 @@ class ZDToDirectory(ModalScreen):
     ) -> None:
         """Handle option selection."""
         selected_value = event.option.id
+        assert selected_value is not None
         run(
             ["zoxide", "add", utils.decompress(selected_value)],
             capture_output=True,

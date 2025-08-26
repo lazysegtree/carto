@@ -1,4 +1,5 @@
 import asyncio
+import asyncio.subprocess
 import tarfile
 import zipfile
 from os import path
@@ -351,7 +352,7 @@ class PreviewContainer(Container):
         if self._current_content is None:
             return
 
-        # you wouldnt want to re-render a failed thing, would you?
+        # you wouldn't want to re-render a failed thing, would you?
         is_special_content = self._current_content in (
             config["interface"]["preview_binary"],
             config["interface"]["preview_error"],

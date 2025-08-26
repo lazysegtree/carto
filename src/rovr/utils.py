@@ -34,7 +34,7 @@ config = {}
 pins = {}
 
 
-def normalise(location: str) -> str:
+def normalise(location: str | bytes) -> str | bytes:
     """'Normalise' the path
     Args:
         location (str): The location to the item
@@ -82,7 +82,7 @@ def open_file(filepath: str) -> None:
         print(f"Error opening file: {e}")
 
 
-def get_cwd_object(cwd: str) -> (list[dict], list[dict]):
+def get_cwd_object(cwd: str | bytes) -> tuple[list[dict], list[dict]]:
     """
     Get the objects (files and folders) in a provided directory
     Args:
@@ -168,7 +168,9 @@ def force_obtain_write_permission(item_path: str) -> bool:
         return False
 
 
-def get_recursive_files(object_path: str, with_folders: bool = False) -> list[dict]:
+def get_recursive_files(
+    object_path: str, with_folders: bool = False
+) -> list[dict] | tuple[list[dict], list[dict]]:
     """Get the files available at a directory recursively, regardless of whether it is a directory or not
     Args:
         object_path (str): The object's path
@@ -508,7 +510,7 @@ def load_pins() -> dict:
     return pins
 
 
-def add_pin(pin_name: str, pin_path: str) -> None:
+def add_pin(pin_name: str, pin_path: str | bytes) -> None:
     """
     Add a pin to the pins file.
 
@@ -548,7 +550,7 @@ def add_pin(pin_name: str, pin_path: str) -> None:
     load_pins()
 
 
-def remove_pin(pin_path: str) -> None:
+def remove_pin(pin_path: str | bytes) -> None:
     """
     Remove a pin from the pins file.
 
@@ -677,10 +679,6 @@ if not path.exists(path.join(VAR_TO_DIR["CONFIG"], "style.tcss")):
 
 def natural_size(integer: int) -> str:
     match config["metadata"]["filesize_suffix"]:
-        case "decimal":
-            return naturalsize(
-                value=integer, format=f"%.{config['metadata']['filesize_decimals']}f"
-            )
         case "gnu":
             return naturalsize(
                 value=integer,
@@ -692,4 +690,8 @@ def natural_size(integer: int) -> str:
                 value=integer,
                 binary=True,
                 format=f"%.{config['metadata']['filesize_decimals']}f",
+            )
+        case _:
+            return naturalsize(
+                value=integer, format=f"%.{config['metadata']['filesize_decimals']}f"
             )
