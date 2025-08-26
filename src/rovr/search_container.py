@@ -2,17 +2,6 @@ from textual import events
 from textual.widgets import Input, OptionList
 
 
-def query_fuzzy(searchfor: str, findin: str) -> bool:
-    searchfor, findin = searchfor.lower(), findin.lower()
-    for char in searchfor:
-        try:
-            findin.split(char)[1]
-            findin = char.join(findin.split(char)[1:])
-        except IndexError:
-            return False
-    return True
-
-
 class SearchInput(Input):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(
@@ -21,6 +10,16 @@ class SearchInput(Input):
 
     def on_mount(self) -> None:
         self.items_list: OptionList = self.parent.query_one(OptionList)
+
+    def query_fuzzy(self, searchfor: str, findin: str) -> bool:
+        searchfor, findin = searchfor.lower(), findin.lower()
+        for char in searchfor:
+            try:
+                findin.split(char)[1]
+                findin = char.join(findin.split(char)[1:])
+            except IndexError:
+                return False
+        return True
 
     def on_input_changed(self, event: Input.Changed) -> None:
         if event.value == "":
@@ -32,7 +31,7 @@ class SearchInput(Input):
                 option.disabled = True
                 continue
             try:
-                option.disabled = not query_fuzzy(event.value, option.label)
+                option.disabled = not self.query_fuzzy(event.value, option.label)
             except (IndexError, AttributeError):
                 # Special section dividers, like Pinned Sidebar's dividers
                 # or the `--no-files--` thing in file list
