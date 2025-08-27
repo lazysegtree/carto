@@ -43,12 +43,20 @@ class ProgressBarContainer(VerticalGroup):
     async def on_mount(self) -> None:
         await self.mount_all([self.label_container, self.progress_bar])
 
-    def update_text(self, label: str) -> None:
+    def update_text(self, label: str, is_path: bool = True) -> None:
         """
         Updates the text label
         Args:
             label (str): The new label
+            is_path (bool) = True: Whether the text is a path or not
         """
+        if is_path and config["settings"]["truncate_progress_file_path"]:
+            new_label = label.split("/")
+            new_path = new_label[0]
+            for path_item in new_label[1:-1]:
+                new_path += "/\u2026"
+            new_path += f"/{new_label[-1]}"
+            label = new_path
         self.text_label.update(label)
 
     def update_icon(self, icon: str) -> None:

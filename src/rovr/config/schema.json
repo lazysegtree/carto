@@ -28,6 +28,11 @@
           "default": false,
           "description": "When copying or deleting files, show a percentage of how much had been completed."
         },
+        "truncate_progress_file_paths": {
+          "type": "boolean",
+          "default": false,
+          "description": "When the process container is using file paths, truncate the file path to only view the first and last names of the path."
+        },
         "preview_error": {
           "type": "string",
           "default": "Hmm, I think this file got corrupted (or maybe not?)",
