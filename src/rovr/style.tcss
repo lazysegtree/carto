@@ -583,6 +583,12 @@ ProcessContainer {
 }
 
 ProgressBarContainer {
+  HorizontalGroup {
+    height: 1;
+    & > #icon {
+      margin-right: 1;
+    }
+  }
   &.error .bar--bar,
   &.error .bar--complete { color: $error }
   &.done .bar--complete { color: $success }

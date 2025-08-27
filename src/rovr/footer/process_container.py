@@ -9,7 +9,7 @@ from os import getcwd, listdir, makedirs, path, remove, walk
 from send2trash import send2trash
 from textual import events, work
 from textual.color import Gradient
-from textual.containers import VerticalGroup, VerticalScroll
+from textual.containers import HorizontalGroup, VerticalGroup, VerticalScroll
 from textual.types import UnusedParameter
 from textual.widgets import Label, ProgressBar
 from textual.widgets.option_list import OptionDoesNotExist
@@ -36,21 +36,28 @@ class ProgressBarContainer(VerticalGroup):
             show_eta=config["interface"]["show_progress_eta"],
             gradient=gradient,
         )
-        self.label = Label(label)
+        self.icon_label = Label(id="icon")
+        self.text_label = Label(label, id="label")
+        self.label_container = HorizontalGroup(self.icon_label, self.text_label)
 
     async def on_mount(self) -> None:
-        await self.mount_all([self.label, self.progress_bar])
+        await self.mount_all([self.label_container, self.progress_bar])
 
-    def update_label(self, label: str, step: bool = False) -> None:
+    def update_text(self, label: str) -> None:
         """
-        Updates the label, and optionally steps it
+        Updates the text label
         Args:
             label (str): The new label
-            step (bool) = False: Whether or not to increase the progress by 1
         """
-        self.label.update(label)
-        if step:
-            self.progress_bar.advance(1)
+        self.text_label.update(label)
+
+    def update_icon(self, icon: str) -> None:
+        """
+        Updates the icon label
+        Args:
+            icon (str): The new icon
+        """
+        self.icon_label.update(icon)
 
     def update_progress(
         self,
@@ -68,7 +75,9 @@ class ProcessContainer(VerticalScroll):
     async def new_process_bar(
         self, max: int | None = None, id: str | None = None, classes: str | None = None
     ) -> ProgressBarContainer:
-        new_bar = ProgressBarContainer(total=max, id=id, classes=classes)
+        new_bar: ProgressBarContainer = ProgressBarContainer(
+            total=max, id=id, classes=classes
+        )
         await self.mount(new_bar, before=0)
         return new_bar
 
@@ -85,10 +94,16 @@ class ProcessContainer(VerticalScroll):
             ignore_trash (bool): If True, files will be permanently deleted instead of sent to the recycle bin. Defaults to False.
         """
         # Create progress/process bar (why have I set names as such...)
-        bar = self.app.call_from_thread(self.new_process_bar, classes="active")
+        bar: ProgressBarContainer = self.app.call_from_thread(
+            self.new_process_bar, classes="active"
+        )
         self.app.call_from_thread(
-            bar.update_label,
-            f"{utils.get_icon('general', 'delete')[0]} Getting files to delete...",
+            bar.update_icon,
+            utils.get_icon("general", "delete")[0],
+        )
+        self.app.call_from_thread(
+            bar.update_text,
+            "Getting files to delete...",
         )
         # get files to delete
         files_to_delete = []
@@ -114,10 +129,10 @@ class ProcessContainer(VerticalScroll):
                 or i == 0
             ):
                 self.app.call_from_thread(
-                    bar.update_label,
-                    f"{utils.get_icon('general', 'delete')[0]} {item_dict['relative_loc']}",
+                    bar.update_text,
+                    item_dict["relative_loc"],
                 )
-                self.app.call_from_thread(bar.update_progress, advance=1)
+                self.app.call_from_thread(bar.update_progress, progress=i + 1)
                 last_update_time = current_time
             if path.exists(item_dict["path"]):
                 # I know that it `path.exists` prevents issues, but on the
@@ -155,6 +170,12 @@ class ProcessContainer(VerticalScroll):
                                     continue
                                 case "cancel":
                                     self.app.call_from_thread(bar.add_class, "error")
+                                    self.app.call_from_thread(
+                                        bar.update_icon,
+                                        utils.get_icon("general", "delete")[0]
+                                        + " "
+                                        + utils.get_icon("general", "close")[0],
+                                    )
                                     return
                         except Exception as e:
                             do_what = self.app.call_from_thread(
@@ -197,13 +218,25 @@ class ProcessContainer(VerticalScroll):
                         case "skip":
                             continue
                         case "cancel":
+                            self.app.call_from_thread(
+                                bar.update_icon,
+                                utils.get_icon("general", "delete")[0]
+                                + " "
+                                + utils.get_icon("general", "close")[0],
+                            )
                             self.app.call_from_thread(bar.add_class, "error")
                             return
                 except Exception as e:
                     # TODO: should probably let it continue, then have a summary
                     self.app.call_from_thread(
-                        bar.update_label,
-                        f"{utils.get_icon('general', 'delete')[0]} {utils.get_icon('general', 'close')[0]} Unhandled Error.",
+                        bar.update_icon,
+                        utils.get_icon("general", "delete")[0]
+                        + " "
+                        + utils.get_icon("general", "close")[0],
+                    )
+                    self.app.call_from_thread(
+                        bar.update_text,
+                        "Unhandled Error.",
                     )
                     self.app.call_from_thread(bar.add_class, "error")
                     self.app.call_from_thread(
@@ -232,8 +265,10 @@ class ProcessContainer(VerticalScroll):
                 severity="error",
             )
             self.app.call_from_thread(
-                bar.update_label,
-                f"{utils.get_icon('general', 'delete')[0]} {utils.get_icon('general', 'close')[0]} {bar.label._content[2:]}",
+                bar.update_icon,
+                utils.get_icon("general", "delete")[0]
+                + " "
+                + utils.get_icon("general", "close")[0],
             )
             self.app.call_from_thread(bar.add_class, "error")
             return
@@ -241,20 +276,19 @@ class ProcessContainer(VerticalScroll):
         # aside from 'Getting files to delete...'
         if files_to_delete == [] and folders_to_delete != []:
             self.app.call_from_thread(
-                bar.update_label,
-                f"{utils.get_icon('general', 'delete')[0]} {folders_to_delete[-1]}",
+                bar.update_text,
+                folders_to_delete[-1],
             )
         elif files_to_delete == folders_to_delete == []:
             # this cannot happen, but just as an easter egg :shippit:
             self.app.call_from_thread(
-                bar.update_label,
-                f"{utils.get_icon('general', 'delete')[0]} Successfully deleted nothing!",
+                bar.update_text,
+                "Successfully deleted nothing!",
             )
         # finished successfully
         self.app.call_from_thread(
-            bar.update_label,
-            f"{utils.get_icon('general', 'delete')[0]} {utils.get_icon('general', 'check')[0]} {bar.label._content[2:]}",
-            step=True,
+            bar.update_icon,
+            utils.get_icon("general", "check")[0],
         )
         self.app.call_from_thread(bar.progress_bar.advance)
         self.app.call_from_thread(bar.add_class, "done")
@@ -268,10 +302,16 @@ class ProcessContainer(VerticalScroll):
             files (list[str]): List of file paths to compress.
             archive_name (str): Path for the output archive.
         """
-        bar = self.app.call_from_thread(self.new_process_bar, classes="active")
+        bar: ProgressBarContainer = self.app.call_from_thread(
+            self.new_process_bar, classes="active"
+        )
         self.app.call_from_thread(
-            bar.update_label,
-            f"{utils.get_icon('general', 'zip')[0]} Getting files to archive...",
+            bar.update_icon,
+            utils.get_icon("general", "zip")[0],
+        )
+        self.app.call_from_thread(
+            bar.update_text,
+            "Getting files to archive...",
         )
 
         files_to_archive = []
@@ -307,8 +347,8 @@ class ProcessContainer(VerticalScroll):
                         or i == len(files_to_archive) - 1
                     ):
                         self.app.call_from_thread(
-                            bar.update_label,
-                            f"{utils.get_icon('general', 'zip')[0]} {arcname}",
+                            bar.update_text,
+                            arcname,
                         )
                         self.app.call_from_thread(bar.update_progress, progress=i + 1)
                         last_update_time = current_time
@@ -334,8 +374,14 @@ class ProcessContainer(VerticalScroll):
 
         except Exception as e:
             self.app.call_from_thread(
-                bar.update_label,
-                f"{utils.get_icon('general', 'zip')[0]} {utils.get_icon('general', 'close')[0]} Error creating archive file.",
+                bar.update_icon,
+                utils.get_icon("general", "zip")[0]
+                + " "
+                + utils.get_icon("general", "close")[0],
+            )
+            self.app.call_from_thread(
+                bar.update_text,
+                "Error creating archive file.",
             )
             self.app.call_from_thread(bar.add_class, "error")
             self.app.call_from_thread(
@@ -348,10 +394,10 @@ class ProcessContainer(VerticalScroll):
             return
 
         self.app.call_from_thread(
-            bar.update_label,
-            f"{utils.get_icon('general', 'zip')[0]} {utils.get_icon('general', 'check')[0]} {bar.label._content[2:]}",
-            step=True,
+            bar.update_icon,
+            utils.get_icon("general", "check")[0],
         )
+        self.app.call_from_thread(bar.progress_bar.advance)
         self.app.call_from_thread(bar.add_class, "done")
 
     @work(thread=True)
@@ -363,10 +409,16 @@ class ProcessContainer(VerticalScroll):
             archive_path (str): Path to the zip archive.
             destination_path (str): Path to the destination folder.
         """
-        bar = self.app.call_from_thread(self.new_process_bar, classes="active")
+        bar: ProgressBarContainer = self.app.call_from_thread(
+            self.new_process_bar, classes="active"
+        )
         self.app.call_from_thread(
-            bar.update_label,
-            f"{utils.get_icon('general', 'open')[0]} Preparing to extract...",
+            bar.update_icon,
+            utils.get_icon("general", "open")[0],
+        )
+        self.app.call_from_thread(
+            bar.update_text,
+            "Preparing to extract...",
         )
 
         do_what_on_existance = "ask"
@@ -389,8 +441,8 @@ class ProcessContainer(VerticalScroll):
                         or i == 0
                     ):
                         self.app.call_from_thread(
-                            bar.update_label,
-                            f"{utils.get_icon('general', 'open')[0]} {filename}",
+                            bar.update_text,
+                            filename,
                         )
                         self.app.call_from_thread(bar.update_progress, progress=i + 1)
                         last_update_time = current_time
@@ -434,6 +486,12 @@ class ProcessContainer(VerticalScroll):
                                         shutil.copyfileobj(source, target)
                                 continue
                             case "cancel":
+                                self.app.call_from_thread(
+                                    bar.update_icon,
+                                    utils.get_icon("general", "open")[0]
+                                    + " "
+                                    + utils.get_icon("general", "close")[0],
+                                )
                                 self.app.call_from_thread(bar.add_class, "error")
                                 return
                     try:
@@ -462,11 +520,23 @@ class ProcessContainer(VerticalScroll):
                                 continue
                             case "cancel":
                                 self.app.call_from_thread(bar.add_class, "error")
+                                self.app.call_from_thread(
+                                    bar.update_icon,
+                                    utils.get_icon("general", "open")[0]
+                                    + " "
+                                    + utils.get_icon("general", "close")[0],
+                                )
                                 return
         except (zipfile.BadZipFile, tarfile.TarError, ValueError) as e:
             self.app.call_from_thread(
-                bar.update_label,
-                f"{utils.get_icon('general', 'open')[0]} {utils.get_icon('general', 'close')[0]} Error extracting archive.",
+                bar.update_icon,
+                utils.get_icon("general", "open")[0]
+                + " "
+                + utils.get_icon("general", "close")[0],
+            )
+            self.app.call_from_thread(
+                bar.update_text,
+                "Error extracting archive.",
             )
             self.app.call_from_thread(bar.add_class, "error")
             self.app.call_from_thread(
@@ -476,8 +546,14 @@ class ProcessContainer(VerticalScroll):
             return
         except Exception as e:
             self.app.call_from_thread(
-                bar.update_label,
-                f"{utils.get_icon('general', 'open')[0]} {utils.get_icon('general', 'close')[0]} Error extracting archive.",
+                bar.update_icon,
+                utils.get_icon("general", "open")[0]
+                + " "
+                + utils.get_icon("general", "close")[0],
+            )
+            self.app.call_from_thread(
+                bar.update_text,
+                "Error extracting archive.",
             )
             self.app.call_from_thread(bar.add_class, "error")
             self.app.call_from_thread(
@@ -487,10 +563,10 @@ class ProcessContainer(VerticalScroll):
             return
 
         self.app.call_from_thread(
-            bar.update_label,
-            f"{utils.get_icon('general', 'open')[0]} {utils.get_icon('general', 'check')[0]} {bar.label._content[2:]}",
-            step=True,
+            bar.update_icon,
+            utils.get_icon("general", "check")[0],
         )
+        self.app.call_from_thread(bar.progress_bar.advance)
         self.app.call_from_thread(bar.add_class, "done")
 
     @work(thread=True)
@@ -508,8 +584,12 @@ class ProcessContainer(VerticalScroll):
             self.new_process_bar, classes="active"
         )
         self.app.call_from_thread(
-            bar.update_label,
-            f"{utils.get_icon('general', 'paste')[0]} Getting items to paste...",
+            bar.update_icon,
+            utils.get_icon("general", "paste")[0],
+        )
+        self.app.call_from_thread(
+            bar.update_text,
+            "Getting items to paste...",
         )
         files_to_copy = []
         files_to_cut = []
@@ -528,6 +608,11 @@ class ProcessContainer(VerticalScroll):
         action_on_existance = "ask"
         action_on_permission_error = "ask"
         last_update_time = time.monotonic()
+        if files_to_copy:
+            self.app.call_from_thread(
+                bar.update_icon,
+                utils.get_icon("general", "copy")[0],
+            )
         for i, item_dict in enumerate(files_to_copy):
             current_time = time.monotonic()
             if (
@@ -536,8 +621,8 @@ class ProcessContainer(VerticalScroll):
                 or i == 0
             ):
                 self.app.call_from_thread(
-                    bar.update_label,
-                    f"{utils.get_icon('general', 'copy')[0]} {item_dict['relative_loc']}",
+                    bar.update_text,
+                    item_dict["relative_loc"],
                 )
                 last_update_time = current_time
                 self.app.call_from_thread(bar.update_progress, progress=i + 1)
@@ -586,8 +671,14 @@ class ProcessContainer(VerticalScroll):
                                 item_dict["relative_loc"] = new_rel_path
                             case "cancel":
                                 self.app.call_from_thread(
-                                    bar.update_label,
-                                    f"{utils.get_icon('general', 'copy')[0]} {utils.get_icon('general', 'close')[0]} Process cancelled",
+                                    bar.update_icon,
+                                    utils.get_icon("general", "copy")[0]
+                                    + " "
+                                    + utils.get_icon("general", "close")[0],
+                                )
+                                self.app.call_from_thread(
+                                    bar.update_text,
+                                    "Process cancelled",
                                 )
                                 self.app.call_from_thread(bar.add_class, "error")
                                 return
@@ -631,6 +722,12 @@ class ProcessContainer(VerticalScroll):
                             continue
                         case "cancel":
                             self.app.call_from_thread(bar.add_class, "error")
+                            self.app.call_from_thread(
+                                bar.update_icon,
+                                utils.get_icon("general", "copy")[0]
+                                + " "
+                                + utils.get_icon("general", "close")[0],
+                            )
                             return
                 except FileNotFoundError:
                     # the only way this can happen is if the file is deleted
@@ -640,8 +737,14 @@ class ProcessContainer(VerticalScroll):
                 except Exception as e:
                     # TODO: should probably let it continue, then have a summary
                     self.app.call_from_thread(
-                        bar.update_label,
-                        f"{utils.get_icon('general', 'copy')[0]} {utils.get_icon('general', 'close')[0]} Unhandled Error.",
+                        bar.update_icon,
+                        utils.get_icon("general", "copy")[0]
+                        + " "
+                        + utils.get_icon("general", "close")[0],
+                    )
+                    self.app.call_from_thread(
+                        bar.update_text,
+                        "Unhandled Error.",
                     )
                     self.app.call_from_thread(bar.add_class, "error")
                     self.app.call_from_thread(
@@ -653,6 +756,11 @@ class ProcessContainer(VerticalScroll):
         cut_ignore = []
         action_on_permission_error = "ask"
         last_update_time = time.monotonic()
+        if files_to_cut:
+            self.app.call_from_thread(
+                bar.update_icon,
+                utils.get_icon("general", "cut")[0],
+            )
         for i, item_dict in enumerate(files_to_cut):
             current_time = time.monotonic()
             if (
@@ -661,8 +769,8 @@ class ProcessContainer(VerticalScroll):
                 or i == 0
             ):
                 self.app.call_from_thread(
-                    bar.update_label,
-                    f"{utils.get_icon('general', 'cut')[0]} {item_dict['relative_loc']}",
+                    bar.update_text,
+                    item_dict["relative_loc"],
                 )
                 self.app.call_from_thread(bar.update_progress, progress=i + 1)
                 last_update_time = current_time
@@ -721,8 +829,14 @@ class ProcessContainer(VerticalScroll):
                                 item_dict["relative_loc"] = new_rel_path
                             case "cancel":
                                 self.app.call_from_thread(
-                                    bar.update_label,
-                                    f"{utils.get_icon('general', 'copy')[0]} {utils.get_icon('general', 'close')[0]} Process cancelled",
+                                    bar.update_icon,
+                                    utils.get_icon("general", "cut")[0]
+                                    + " "
+                                    + utils.get_icon("general", "close")[0],
+                                )
+                                self.app.call_from_thread(
+                                    bar.update_text,
+                                    "Process cancelled",
                                 )
                                 self.app.call_from_thread(bar.add_class, "error")
                                 return
@@ -762,6 +876,12 @@ class ProcessContainer(VerticalScroll):
                             continue
                         case "cancel":
                             self.app.call_from_thread(bar.add_class, "error")
+                            self.app.call_from_thread(
+                                bar.update_icon,
+                                utils.get_icon("general", "cut")[0]
+                                + " "
+                                + utils.get_icon("general", "close")[0],
+                            )
                             return
                 except FileNotFoundError:
                     # the only way this can happen is if the file is deleted
@@ -771,8 +891,10 @@ class ProcessContainer(VerticalScroll):
                 except Exception as e:
                     # TODO: should probably let it continue, then have a summary
                     self.app.call_from_thread(
-                        bar.update_label,
-                        f"{utils.get_icon('general', 'copy')[0]} {utils.get_icon('general', 'close')} Unhandled Error.",
+                        bar.update_icon,
+                        utils.get_icon("general", "cut")[0]
+                        + " "
+                        + utils.get_icon("general", "close")[0],
                     )
                     self.app.call_from_thread(bar.add_class, "error")
                     self.app.call_from_thread(
@@ -803,8 +925,14 @@ class ProcessContainer(VerticalScroll):
                 f"Certain files in {folder} could not be moved.", severity="error"
             )
             self.app.call_from_thread(
-                bar.update_label,
-                f"{utils.get_icon('general', 'cut')[0]} {utils.get_icon('general', 'close')[0]} {path.basename(cutted[-1])}",
+                bar.update_icon,
+                utils.get_icon("general", "cut")[0]
+                + " "
+                + utils.get_icon("general", "close")[0],
+            )
+            self.app.call_from_thread(
+                bar.update_text,
+                path.basename(cutted[-1]),
             )
             self.app.call_from_thread(bar.add_class, "error")
             return
@@ -817,10 +945,14 @@ class ProcessContainer(VerticalScroll):
                     self.app.query_one("Clipboard").remove_option, utils.compress(item)
                 )
         self.app.call_from_thread(
-            bar.update_label,
-            f"{utils.get_icon('general', 'cut' if len(cutted) else 'copy')[0]} {utils.get_icon('general', 'check')[0]} {bar.label._content[2:]}",
-            step=True,
+            bar.update_icon,
+            utils.get_icon("general", "cut" if len(cutted) else "copy")[0],
         )
+        self.app.call_from_thread(
+            bar.update_icon,
+            utils.get_icon("general", "check")[0],
+        )
+        self.app.call_from_thread(bar.progress_bar.advance)
         self.app.call_from_thread(bar.add_class, "done")
 
     async def on_key(self, event: events.Key) -> None:
