@@ -1,0 +1,31 @@
+name: Formatting
+
+on:
+  push:
+    branches:
+    - '**'
+  workflow_dispatch:
+jobs:
+  format_repo:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }} # Make sure PR is checked
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          activate-environment: true
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Run ruff
+        uses: astral-sh/ruff-action@v3
+        with:
+          args: "check"
+
+      - name: Run ty
+        run: uvx ty check --ignore unresolved-attribute --ignore possibly-unbound-import

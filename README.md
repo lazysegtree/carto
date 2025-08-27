@@ -2,10 +2,13 @@
   <pre><code>  ___ ___ _ _ ___
   |  _| . | | |  _|
   |_| |___|\_/|_|  </code></pre>
-  <img alt="Static Badge" src="https://img.shields.io/badge/Python-3.13-yellow?style=for-the-badge">
-  <img alt="Static Badge" src="https://img.shields.io/badge/made_with-textual-0b171d?style=for-the-badge&logoColor=yellow">
+  <img alt="Python Version" src="https://img.shields.io/badge/Python-3.13-yellow?style=for-the-badge">
+  <img alt="Made with Textual" src="https://img.shields.io/badge/made_with-textual-0b171d?style=for-the-badge&logoColor=yellow">
   <!--python -c "import toml;print(len(toml.load('uv.lock')['package']))"-->
-  <img alt="Static Badge" src="https://img.shields.io/badge/Dependencies-87-purple?style=for-the-badge">
+  <img alt="Dependencies" src="https://img.shields.io/badge/Dependencies-87-purple?style=for-the-badge">
+  <br>
+  <img alt="GitHub Actions Docs Build Status" src="https://img.shields.io/github/actions/workflow/status/nspc911/rovr/.github%2Fworkflows%2Fdeploy.yml?style=for-the-badge&label=docs">
+  <img alt="GitHub Actions Formatting Status" src="https://img.shields.io/github/actions/workflow/status/nspc911/rovr/.github%2Fworkflows%2Fformatting.yml?style=for-the-badge&label=style">
 </div>
 
 > [!caution]
