@@ -117,8 +117,8 @@ class ProcessContainer(VerticalScroll):
                     bar.update_label,
                     f"{utils.get_icon('general', 'delete')[0]} {item_dict['relative_loc']}",
                 )
+                self.app.call_from_thread(bar.update_progress, advance=1)
                 last_update_time = current_time
-            self.app.call_from_thread(bar.update_progress, advance=1)
             if path.exists(item_dict["path"]):
                 # I know that it `path.exists` prevents issues, but on the
                 # off chance that anything happens, this should help
@@ -310,8 +310,8 @@ class ProcessContainer(VerticalScroll):
                             bar.update_label,
                             f"{utils.get_icon('general', 'zip')[0]} {arcname}",
                         )
+                        self.app.call_from_thread(bar.update_progress, progress=i + 1)
                         last_update_time = current_time
-                    self.app.call_from_thread(bar.update_progress, advance=1)
                     _archive = archive._archive
                     if _archive:
                         if archive._is_zip:
@@ -392,8 +392,8 @@ class ProcessContainer(VerticalScroll):
                             bar.update_label,
                             f"{utils.get_icon('general', 'open')[0]} {filename}",
                         )
+                        self.app.call_from_thread(bar.update_progress, progress=i + 1)
                         last_update_time = current_time
-                    self.app.call_from_thread(bar.update_progress, advance=1)
                     if path.exists(path.join(destination_path, filename)):
                         if do_what_on_existance == "ask":
                             response = self.app.call_from_thread(
@@ -540,7 +540,7 @@ class ProcessContainer(VerticalScroll):
                     f"{utils.get_icon('general', 'copy')[0]} {item_dict['relative_loc']}",
                 )
                 last_update_time = current_time
-            self.app.call_from_thread(bar.update_progress, advance=1)
+                self.app.call_from_thread(bar.update_progress, progress=i + 1)
             if path.exists(item_dict["path"]):
                 # again checks just in case something goes wrong
                 try:
@@ -664,8 +664,8 @@ class ProcessContainer(VerticalScroll):
                     bar.update_label,
                     f"{utils.get_icon('general', 'cut')[0]} {item_dict['relative_loc']}",
                 )
+                self.app.call_from_thread(bar.update_progress, progress=i + 1)
                 last_update_time = current_time
-            self.app.call_from_thread(bar.update_progress, advance=1)
             if path.exists(item_dict["path"]):
                 # again checks just in case something goes wrong
                 try:

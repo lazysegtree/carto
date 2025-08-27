@@ -30,30 +30,25 @@ this diagram roughly shows how the mechanism works, with the main thing being an
 - having a normal queue means that it would take a while for each item in the queue to be run, hence a very noticeable lag.
 - however, by having a queue of length 1, and overwriting the queue, it means that the latest added item is considered, and anything in between is ignored, greatly improving performance
 
-### logarithmic updates
+### debounced updates
 
 used in `MetadataContainer` and `ProcessBarContainer`
 
 ```mermaid
 flowchart TD
-    b --> bc[previous_updated_time = current_time]
-    bc --> c{do heavy process}
+    a(start heavy process) --> c{do heavy process}
     c --> |process completed|h[force label update]
     h --> s(stop)
-    c --> |process running|d{is last_updated + previous_updated_time < current_time?}
+    c --> |process running|d{0.25s + previous_updated_time < current_time?}
     d --> |true|e[update label]
-    e --> i{is time_diff < 1.00?}
-    i --> |true|j[time_diff += 0.01]
-    j --> bc
-    i --> |false|bc
+    e --> c
     d --> |false|f[skip updating label]
-    f --> bc
-    a(start heavy process) --> b[time_diff = 0]
+    f --> c
 ```
 
 this diagram shows how it works
 
 - when doing heavy tasks, like calculating folder size, or deleting folders, the appropriate widgets' labels are update spammed.
-- by using a 'debouncer' that scales based on how many times the update task was called, shorter tasks show a more accurate percentage, while longer tasks focus more on the task than updating the user
+- by using a 'debouncer', more time is spent on actually doing the process, than to update the progress of the process
 
 I am certainly not the first person to have discovered this, but it is such a nice mechanism to have
