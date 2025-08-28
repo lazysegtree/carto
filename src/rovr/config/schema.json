@@ -154,6 +154,71 @@
         }
       }
     },
+    "icons": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "files": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "pattern": {
+                "type": "string",
+                "description": "The file name pattern to match"
+              },
+              "match_type": {
+                "type": "string",
+                "enum": ["exact", "endswith"],
+                "default": "exact",
+                "description": "Type of matching:\n`exact`   : for exact file name matching\n`endswith`: for file name ends with matching"
+              },
+              "icon": {
+                "type": "string",
+                "description": "The icon character to use."
+              },
+              "color": {
+                "type": "string",
+                "description": "The color for the icon. Can be a named color or hex code."
+              }
+            },
+            "required": ["pattern", "icon", "color", "match_type"]
+          },
+          "default": [],
+          "description": "Custom file icon mappings. Earlier entries have higher priority."
+        },
+        "folders": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "pattern": {
+                "type": "string",
+                "description": "The folder name pattern to match"
+              },
+              "match_type": {
+                "type": "string",
+                "enum": ["exact", "endswith"],
+                "default": "exact",
+                "description": "Type of matching:\n`exact`   : for exact file name matching\n`endswith`: for file name ends with matching"
+              },
+              "icon": {
+                "type": "string",
+                "description": "The icon character to use (should be a nerd font character)"
+              },
+              "color": {
+                "type": "string",
+                "description": "The color for the icon. Can be a named color or hex code"
+              }
+            },
+            "required": ["pattern", "icon", "color", "match_type"]
+          },
+          "default": [],
+          "description": "Custom folder icon mappings. Earlier entries have higher priority."
+        }
+      },
+      "description": "Custom icon configurations for files and folders"
+    },
     "theme": {
       "type": "object",
       "additionalProperties": false,

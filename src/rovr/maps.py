@@ -83,7 +83,6 @@ ICONS = {
         "hidden": ["\uf7c9", "gray"],
         "home": ["\uf015", "cyan"],
         "music": ["\uf001", "magenta"],
-        "node_modules": ["\ue5fa", "green"],
         "onedrive": ["\U000f03ca", "#22a8de"],
         "open": ["\uf07c", "orange"],
         "pictures": ["\uf03e", "purple"],
@@ -247,7 +246,6 @@ FOLDER_MAP = {
     ".git": "git",
     ".github": "github",
     # other stuff
-    "node_modules": "node_modules",
     "rovr": "rovr",
     "home": "home",
     ".vscode": "vscode",

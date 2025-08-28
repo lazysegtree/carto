@@ -235,6 +235,24 @@ def get_icon_for_file(location: str) -> list:
         return ASCII_ICONS["file"]["default"]
     file_name = path.basename(location).lower()
 
+    # 0. Check for custom icons if configured
+    if "icons" in config and "files" in config["icons"]:
+        for custom_icon in config["icons"]["files"]:
+            pattern = custom_icon["pattern"].lower()
+            match_type = custom_icon.get("match_type", "exact")
+
+            is_match = False
+            if (
+                match_type == "exact"
+                and file_name == pattern
+                or match_type == "endswith"
+                and file_name.endswith(pattern)
+            ):
+                is_match = True
+
+            if is_match:
+                return [custom_icon["icon"], custom_icon["color"]]
+
     # 1. Check for full filename match
     if file_name in FILES_MAP:
         icon_key = FILES_MAP[file_name]
@@ -263,8 +281,28 @@ def get_icon_for_folder(location: str) -> list:
         list: The icon and color for the folder.
     """
     folder_name = path.basename(location).lower()
+
     if not config["interface"]["nerd_font"]:
         return ASCII_ICONS["folder"].get(folder_name, ASCII_ICONS["folder"]["default"])
+
+    # 0. Check for custom icons if configured
+    if "icons" in config and "folders" in config["icons"]:
+        for custom_icon in config["icons"]["folders"]:
+            pattern = custom_icon["pattern"].lower()
+            match_type = custom_icon.get("match_type", "exact")
+
+            is_match = False
+            if (
+                match_type == "exact"
+                and folder_name == pattern
+                or match_type == "endswith"
+                and folder_name.endswith(pattern)
+            ):
+                is_match = True
+
+            if is_match:
+                return [custom_icon["icon"], custom_icon["color"]]
+
     # Check for special folder types
     if folder_name in FOLDER_MAP:
         icon_key = FOLDER_MAP[folder_name]
