@@ -318,6 +318,7 @@ class FileList(SelectionList, inherit_bindings=False):
             ".tbz2",
             ".tar.xz",
             ".zip",
+            ".tar",
         ))
 
     def _update_lines(self) -> None:

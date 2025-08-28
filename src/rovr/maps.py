@@ -90,6 +90,7 @@ ICONS = {
         "rovr": ["\uf14e", "teal"],
         "videos": ["\uf03d", "violet"],
         "vscode": ["\ue8da", "#23a9f2"],
+        "pnpm": ["\ue865", "#4c4c4c"],  # too many yellows imo
         ":/drive:": ["\uf0a0", "white"],  # literally impossible to name a folder this
     },
     # shout out to https://github.com/acarl005/ls-go
@@ -107,7 +108,7 @@ ICONS = {
         "clj": ["\ue76a", "#68b338"],
         "conf": ["\ue615", "#8B8B8B"],
         "cpp": ["\ue646", "#0188d2"],
-        "css": ["\uf13c", "#2d53e5"],
+        "css": ["\uf13c", "#0259df"],
         "dart": ["\ue64c", "#03589b"],
         "db": ["\uf1c0", "#FF8400"],
         "deb": ["\ue77d", "#ab0836"],
@@ -116,11 +117,12 @@ ICONS = {
         "env": ["\uf462", "#eed645"],
         "f": ["\uf24f", "#8e44ad"],
         "font": ["\uf031", "#3498db"],
+        "fish": ["\uee41", "#2ecc71"],
         "fs": ["\ue7a7", "#2ecc71"],
         "gb": ["\ue272", "#f1c40f"],
         "gform": ["\uf298", "#9b59b6"],
         "git": ["\ue702", "#e67e22"],
-        "go": ["\ue627", "#6ed8e5"],
+        "go": ["\ue627", "#00a7d0"],
         "graphql": ["\ue662", "#e74c3c"],
         "groovy": ["\ue775", "#2ecc71"],
         "gruntfile.js": ["\ue74c", "#3498db"],
@@ -129,7 +131,7 @@ ICONS = {
         "h": ["\uf0fd", "#3498db"],
         "haml": ["\ue664", "#9b59b6"],
         "hs": ["\ue777", "#2980b9"],
-        "html": ["\uf13b", "#e67e22"],
+        "html": ["\uf13b", "#dd4b25"],
         "hx": ["\ue666", "#e74c3c"],
         "ics": ["\uf073", "#f1c40f"],
         "image": ["\uf1c5", "#e74c3c"],
@@ -142,16 +144,17 @@ ICONS = {
         "java": ["\ue738", "#5382a1"],
         "jenkinsfile": ["\ue767", "#e74c3c"],
         "jl": ["\ue624", "#2ecc71"],
-        "js": ["\ue781", "#f39c12"],
+        "js": ["\ue781", "#efd81c"],
         "json": ["\ue60b", "#f1c40f"],
         "jsx": ["\ue7ba", "#e67e22"],
         "key": ["\uf43d", "#f1c40f"],
         "ko": ["\uebc6", "#9b59b6"],
         "kt": ["\ue634", "#2980b9"],
         "less": ["\ue758", "#3498db"],
+        "license": ["\U000f0fc3", "#e7e480"],
         "lock": ["\uf023", "#f1c40f"],
         "log": ["\uf18d", "#7f8c8d"],
-        "lua": ["\ue620", "#e74c3c"],
+        "lua": ["\ue620", "#000080"],
         "maintainers": ["\uf0c0", "#7f8c8d"],
         "makefile": ["\ue20f", "#3498db"],
         "markdown": ["\uf48a", "#7f8c8d"],
@@ -164,7 +167,7 @@ ICONS = {
         "mustache": ["\ue60f", "#e67e22"],
         "nc": ["\U000f02c1", "#f1c40"],
         "nim": ["\ue677", "#3498db"],
-        "nix": ["\uf313", "#f39c12"],
+        "nix": ["\uf313", "#5a96c6"],
         "npmignore": ["\ue71e", "#e74c3c"],
         "package": ["\U000f03d7", "#9b59b6"],
         "passwd": ["\uf023", "#f1c40f"],
@@ -218,6 +221,7 @@ FOLDER_MAP = {
     # documents
     "documents": "documents",
     "docs": "documents",
+    "book": "documents",
     # downloads
     "downloads": "downloads",
     "download": "downloads",
@@ -249,6 +253,7 @@ FOLDER_MAP = {
     ".vscode": "vscode",
     # frameworks
     ".astro": "astro",
+    ".pnpm": "pnpm",
 }
 
 FILE_MAP = {
@@ -400,6 +405,7 @@ FILE_MAP = {
     ".gitattributes": "git",
     ".gitignore": "git",
     ".gitmodules": "git",
+    ".gitkeep": "git",
     # Binary files
     ".bin": "binary",
     ".dll": "windows",
@@ -459,7 +465,7 @@ FILES_MAP = {
     ".python-version": "py",
     "requirements.txt": "package",
     # rust
-    "cargo.lock": "package",
+    "cargo.toml": "package",
     # npm
     "package.json": "package",
     ".npmignore": "npmignore",
@@ -474,7 +480,6 @@ FILES_MAP = {
     # ruby
     "rubydoc": "rubydoc",
     "gemfile": "rb",
-    "gemfile.lock": "lock",
     "passwd": "passwd",
     # bots
     "agents.md": "robots",
@@ -482,6 +487,9 @@ FILES_MAP = {
     "crush.md": "robots",
     "gemini.md": "robots",
     "claude.md": "robots",
+    "llms.txt": "robots",
+    # general
+    "license": "license",
 }
 
 ARCHIVE_EXTENSIONS = [
