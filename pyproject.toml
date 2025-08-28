@@ -27,10 +27,10 @@ dependencies = [
   "send2trash>=1.8.3",
   "textual-autocomplete>=4.0.4",
   "textual-image[textual]>=0.8.2",
-  "textual[syntax]>=3.3.0,<=4.0.0",
+  "textual[syntax]>=3.3.0",
   "thefuzz>=0.22.1",
   "toml>=0.10.2",
-  "tree-sitter<=0.24.0",
+  "tree-sitter>=0.24.0",
   "ujson>=5.10.0",
 ]
 
