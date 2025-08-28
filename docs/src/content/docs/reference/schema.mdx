@@ -31,6 +31,7 @@ description: config schema humanified
   - [3.4. Property `Rovr Config > metadata > filesize_suffix`](#metadata_filesize_suffix)
 - [4. Property `Rovr Config > theme`](#theme)
   - [4.1. Property `Rovr Config > theme > default`](#theme_default)
+  - [4.2. Property `Rovr Config > theme > transparent`](#theme_transparent)
 - [5. Property `Rovr Config > custom_theme`](#custom_theme)
   - [5.1. Rovr Config > custom_theme > custom_theme items](#custom_theme_items)
     - [5.1.1. Property `Rovr Config > custom_theme > custom_theme items > name`](#custom_theme_items_name)
@@ -511,9 +512,10 @@ Must be one of:
 | **Required**              | No          |
 | **Additional properties** | Not allowed |
 
-| Property                     | Type   | Title/Description                                                          |
-| ---------------------------- | ------ | -------------------------------------------------------------------------- |
-|   [default](#theme_default ) | string | The default theme. Can be changed while in rovr, but it is not persistent. |
+| Property                             | Type    | Title/Description                                                          |
+| ------------------------------------ | ------- | -------------------------------------------------------------------------- |
+|   [default](#theme_default )         | string  | The default theme. Can be changed while in rovr, but it is not persistent. |
+|   [transparent](#theme_transparent ) | boolean | Use a transparent background.                                              |
 
 ### <a name="theme_default"></a>4.1. Property `Rovr Config > theme > default`
 
@@ -524,6 +526,16 @@ Must be one of:
 | **Default**  | `"nord"` |
 
 **Description:** The default theme. Can be changed while in rovr, but it is not persistent.
+
+### <a name="theme_transparent"></a>4.2. Property `Rovr Config > theme > transparent`
+
+|              |           |
+| ------------ | --------- |
+| **Type**     | `boolean` |
+| **Required** | No        |
+| **Default**  | `false`   |
+
+**Description:** Use a transparent background.
 
 ## <a name="custom_theme"></a>5. Property `Rovr Config > custom_theme`
 
