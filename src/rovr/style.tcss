@@ -140,9 +140,9 @@ Tooltip {
   }
   &:ansi {
     background: transparent;
-    border: round $border-blurred;
+    border: $border-style $border-blurred;
   }
-  &:light:ansi { border: round $border-blurred-light }
+  &:light:ansi { border: $border-style $border-blurred-light }
 }
 
 CommandInput { border: blank !important }
@@ -414,6 +414,7 @@ ProgressBarContainer {
     height: 1;
     & > #icon { margin-right: 1 }
   }
+  ProgressBar { width: 1fr }
   &.error .bar--bar,
   &.error .bar--complete { color: $error }
   &.done .bar--complete { color: $success }
@@ -503,35 +504,36 @@ Screen.-nopreview {
 
 ModalScreen Button:ansi {
   background: transparent;
+  border: $border-style $surface-darken-1;
   &.-active {
-    border: round $surface-lighten-1;
+    border: $border-style $surface-lighten-1;
     tint: transparent;
     color: auto;
     text-style: none;
   }
   &.-primary {
-    border: round $primary-lighten-3;
+    border: $border-style $primary-lighten-3;
     color: white;
-    &:hover { border: round $primary }
-    &.-active { border: round $primary-darken-3 }
+    &:hover { border: $border-style $primary }
+    &.-active { border: $border-style $primary-darken-3 }
   }
   &.-success {
-    border: round $success-lighten-2;
+    border: $border-style $success-lighten-2;
     color: white;
-    &:hover { border: round $success }
-    &.-active { border: round $success-darken-2 }
+    &:hover { border: $border-style $success }
+    &.-active { border: $border-style $success-darken-2 }
   }
   &.-warning{
-    border: round $warning-lighten-2;
+    border: $border-style $warning-lighten-2;
     color: white;
-    &:hover { border: round $warning }
-    &.-active { border: round $warning-darken-2 }
+    &:hover { border: $border-style $warning }
+    &.-active { border: $border-style $warning-darken-2 }
   }
   &.-error {
-    border: round $error-lighten-2;
+    border: $border-style $error-lighten-2;
     color: white;
-    &:hover { border: round $error }
-    &.-active { border: round $error-darken-2 }
+    &:hover { border: $border-style $error }
+    &.-active { border: $border-style $error-darken-2 }
   }
 }
 
