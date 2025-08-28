@@ -14,8 +14,8 @@
   <img alt="GitHub Actions Formatting Status" src="https://img.shields.io/github/actions/workflow/status/nspc911/rovr/.github%2Fworkflows%2Fformatting.yml?style=for-the-badge&label=style">
 </div>
 
-> [!caution]
-> This project is in its very early stages. Feedback is appreciated, but this cannot be daily-driven yet.
+> [!warning]
+> This project is in its very early stages. While this can be daily driven, expect some issues here and there.
 
 <!--toc:start-->
 
