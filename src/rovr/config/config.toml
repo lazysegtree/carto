@@ -33,7 +33,6 @@ filesize_decimals = 1
 filesize_suffix = "decimal"
 
 [theme]
-# transparency will not be supported. using transparency scuffes up the entire ui.
 default = "nord"
 transparent = false
 
