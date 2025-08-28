@@ -1,14 +1,18 @@
-/* Variables */
-$border-blurred: $primary-darken-3;
-$border: $primary-lighten-3;
+/* Border Variables */
 $border-style: round;
+$border-blurred: $primary-background-lighten-3;
+$border-blurred-light: $primary-background;
+$border: $primary-lighten-3;
+$border-disabled: $primary-background-lighten-1;
 
+/* Layout Dimensions */
 $pinned_sidebar_width: 20;
 $file_list_width: 1fr;
 $preview_sidebar_width: 35vw;
 $footer_unfocus_height: 8;
 $footer_focus_height: 10;
 
+/* Scrollbar Colors */
 $scrollbar: $primary;
 $scrollbar-hover: $primary-lighten-3;
 $scrollbar-active: $primary-lighten-3;
@@ -17,20 +21,201 @@ $scrollbar-background-hover: $primary-muted;
 $scrollbar-background-active: $primary-muted;
 $scrollbar-corner-color: $primary-muted;
 
+
 * {
   scrollbar-size: 1 1;
+  &:ansi {
+    scrollbar-corner-color: transparent;
+    scrollbar-background: transparent;
+    scrollbar-background-hover: transparent;
+    scrollbar-background-active: transparent;
+  }
+}
+
+/* border styling for main widgets */
+#menu,
+#below_menu,
+#pinned_sidebar_container,
+#file_list_container,
+#preview_sidebar,
+#path_switcher,
+#zoxide_options,
+#below_menu Button,
+#footer > * {
+  background: transparent;
+  border: $border-style $border-blurred;
+  border-subtitle-color: $background;
+  border-subtitle-background: $border-blurred;
+  opacity: 1 !important;
+  background-tint: transparent !important;
+  text-opacity: 1 !important;
+  tint: transparent !important;
+  &:disabled {
+    border: $border-style $border-disabled;
+  }
+  &:ansi {
+    border-subtitle-background: transparent;
+    border-subtitle-color: $border-blurred;
+    &:light {
+      border-subtitle-background: transparent;
+      border-subtitle-color: $border-blurred-light;
+    }
+  }
+  &:light {
+    border: $border-style $border-blurred-light;
+    border-subtitle-background: $border-blurred-light;
+  }
+}
+
+#menu:focus-within,
+#below_menu:focus-within,
+#pinned_sidebar_container:focus-within,
+#file_list_container:focus-within,
+#preview_sidebar:focus-within,
+#preview_sidebar:focus,
+#path_switcher:focus-within,
+#zoxide_options:focus,
+#below_menu Button:focus,
+#below_menu Button:hover,
+#file_list.-maximized,
+#pinned_sidebar.-maximized,
+#preview_sidebar .inner_preview.-maximized,
+#footer > *:focus {
+  border: $border-style $border;
+  border-subtitle-background: $border;
+  &:ansi {
+    border-subtitle-background: transparent;
+    border-subtitle-color: $border;
+    &:light {
+      border-subtitle-background: transparent;
+      border-subtitle-color: $border;
+    }
+  }
+  &:light {
+    border-subtitle-background: $border;
+    border-subtitle-color: $background;
+  }
+}
+
+.hide,
+.hidden { display: none }
+
+Input {
+  .input--placeholder { color: $foreground-darken-1 }
+  &:ansi .input--cursor {
+    color: $primary;
+    background: $background;
+  }
+  &:ansi .input--selection {
+    color: $background;
+    background: $primary;
+  }
 }
 
 Toast {
   max-height: 100%;
-  &.-information {
-    border-right: outer $success;
+  &.-information { border-right: outer $success }
+  &.-warning { border-right: outer $warning }
+  &.-error { border-right: outer $error }
+  &:ansi {
+    background: transparent;
+    &.-information { border: $border-style $success }
+    &.-warning { border: $border-style $warning }
+    &.error { border: $border-style $error }
   }
-  &.-warning {
-    border-right: outer $warning;
+}
+
+OptionList {
+  text-wrap: nowrap;
+  text-overflow: ellipsis;
+}
+
+Bar { width: 1fr }
+
+Tooltip {
+  background: $background-lighten-1;
+  &:light {
+    background: $background-darken-1;
+    color: black;
   }
-  &.-error {
-    border-right: outer $error;
+  &:ansi {
+    background: transparent;
+    border: round $border-blurred;
+  }
+  &:light:ansi { border: round $border-blurred-light }
+}
+
+CommandInput { border: blank !important }
+
+#headerArea {
+  padding: 0 1 0 1;
+  #newTabRight {
+    width: 1fr;
+    Button {
+      max-width: 3;
+      background: transparent;
+      color: $foreground;
+      &.-primary.-active {
+        color: $foreground;
+        background: $background
+      }
+      &.-active {
+        background: $background;
+        color: $foreground
+      }
+    }
+  }
+  Tabline {
+    TablineTab {
+      color: auto;
+      &:hover {
+        background: $boost-lighten-3;
+        color: $foreground;
+        &:ansi { background: transparent }
+      }
+      &.-active {
+        background: $primary;
+        color: $background;
+        &:hover {
+          background: $primary;
+          color: $background;
+        }
+     }
+    }
+    .underline--bar {
+      background: $background-lighten-1;
+      color: $primary;
+    }
+    &:light .underline--bar { background: $background-darken-1 }
+    &:ansi .underline--bar { background: $background-lighten-3 }
+    &:ansi:light .underline--bar { background: $background-darken-3 }
+  }
+
+  &:focus-within > HeaderClock,
+  &:focus-within > #newTabRight {
+    border-bottom: heavy $foreground-darken-3;
+    &:light { border-bottom: heavy $foreground-lighten-3 }
+    &:ansi {
+      border-bottom: solid $foreground-darken-3;
+      &:light { border-bottom: solid $foreground-lighten-3 }
+    }
+  }
+
+  &:focus-within > Tabline .underline--bar { background: $foreground-darken-3 }
+
+  HeaderClock, #newTabRight {
+    background: transparent;
+    dock: none;
+    opacity: 1 !important;
+    background-tint: transparent !important;
+    text-opacity: 1 !important;
+    tint: transparent !important;
+    border-bottom: heavy $background-lighten-1;
+    &:light { border-bottom: heavy $background-darken-1 }
+    &:ansi {
+      border-bottom: solid $background-lighten-3;
+      &:light { border-bottom: solid $background-darken-3 }
+    }
   }
 }
 
@@ -39,7 +224,72 @@ Toast {
   height: 3;
   margin: 0 1 0 1;
   padding: 0 1;
-  scrollbar-size: 0 0
+  scrollbar-size: 0 0;
+  Button {
+    &:ansi { background: transparent }
+    &:disabled {
+      opacity: 1 !important;
+      background-tint: transparent !important;
+      text-opacity: 1 !important;
+      color: $panel-lighten-3;
+      tint: transparent !important;
+    }
+    &:light:disabled { color: $panel-darken-3 }
+    &:ansi:hover { color: $primary }
+    &:light:ansi:hover { color: $secondary }
+  }
+}
+
+#below_menu {
+  margin: 0 1 0 1;
+  max-height: 11;
+  Input {
+    height: 3;
+    width: 1fr;
+    margin: 0 1 0 1;
+    padding: 0 1 0 1;
+    overflow: hidden hidden;
+    color: $foreground;
+  }
+  Input.hide_border_bottom {
+    border: $border-style $accent !important;
+    border-bottom: none !important;
+    height: 3;
+  }
+  Button {
+    margin: 0 1;
+    height: 3;
+    max-width: 7;
+  }
+  PathAutoCompleteInput {
+    padding: 0 1 0 1;
+    margin: -1 1 0 25;
+    overlay: screen;
+    width: 1fr;
+    border: $border-style $accent;
+    border-top: none;
+    background: $background;
+    &:ansi { background: transparent }
+    AutoCompleteList {
+      width: 1fr;
+      max-height: 4;
+      .option-list--option-highlighted {
+        color: $block-cursor-foreground;
+        background: $block-cursor-background;
+        text-style: $block-cursor-text-style;
+      }
+    }
+    Option { width: 100% }
+  }
+}
+
+.option {
+  border: none;
+  height: 1;
+  max-width: 3;
+  width: 3;
+  padding: 0;
+  margin: 0 1 0 0;
 }
 
 #main {
@@ -52,19 +302,13 @@ Toast {
 
 #file_list_container {
   height: 1fr;
-  border: none;
   width: $file_list_width;
 }
 
-#pinned_sidebar_container {
-  height: 1fr;
-  margin: 0;
-  width: $pinned_sidebar_width;
-}
+#file_list, #file_list_visual { height: 1fr }
 
 #pinned_sidebar_container,
 #file_list_container {
-  /* saving for when I add search bar */
   Input {
     padding: 0 0 0 1;
     margin: 0;
@@ -72,9 +316,6 @@ Toast {
     border: none;
     background: transparent;
     color: $foreground-lighten-1;
-    .input--placeholder {
-      color: $foreground-darken-1;
-    }
   }
   OptionList {
     background: transparent;
@@ -82,6 +323,23 @@ Toast {
     margin: 0 0;
   }
 }
+
+#pinned_sidebar_container {
+  height: 1fr;
+  margin: 0;
+  width: $pinned_sidebar_width;
+  min-width: 15;
+  scrollbar-size: 0 0 !important;
+  & > PinnedSidebar { scrollbar-size: 0 0 !important }
+  & > Input { display: none }
+  &:focus-within > Input,
+  Input.show,
+  & > Input:hover,
+  &:hover > Input { display: block }
+}
+
+#pinned_sidebar { height: 1fr }
+#pinned_sidebar { padding: 0 }
 
 #preview_sidebar {
   height: 1fr;
@@ -96,9 +354,11 @@ Toast {
     text-wrap: nowrap;
     width: auto;
   }
-  &.clip {
-    scrollbar-size: 0 0; /* scrollbars are useless, reminder */
+  TextArea * {
+    background: transparent;
   }
+ /* scrollbars are useless, reminder */
+  &.clip { scrollbar-size: 0 0 }
   &.clip > Static {
     width: 1fr;
     overflow-x: hidden !important;
@@ -109,99 +369,10 @@ Toast {
     padding: 0;
     margin: 0;
   }
-  & > FileList {
-    height: 1fr;
-  }
+  & > FileList { height: 1fr }
 }
 
-#below_menu {
-  margin: 0 1 0 1;
-  border: $border-style white;
-  max-height: 11;
-
-  Input {
-    height: 3;
-    width: 1fr;
-    margin: 0 1 0 1;
-    padding: 0 2 0 2;
-    overflow: hidden hidden;
-  }
-  Input.hide_border_bottom {
-    border: $border-style $accent !important;
-    border-bottom: none !important;
-    height: 3;
-  }
-  Button {
-    margin: 0 1;
-    height: 3;
-    max-width: 7;
-  }
-  PathAutoCompleteInput {
-    padding: 0 2 1 2;
-    margin: -1 1 0 33;
-    overlay: screen;
-    width: 1fr;
-    border: $border-style $accent;
-    border-top: none;
-    background: $background;
-
-    AutoCompleteList {
-      width: 1fr;
-      max-height: 4
-    }
-    Option {
-      width: 100%;
-    }
-  }
-}
-
-.option {
-  border: none;
-  height: 1;
-  max-width: 3;
-  width: 3;
-  padding: 0;
-  margin: 0 1 0 0;
-}
-
-#pinned_sidebar,
-#file_list,
-#file_list_visual { height: 1fr }
-
-#menu,
-#below_menu,
-#pinned_sidebar_container,
-#file_list_container,
-#preview_sidebar,
-#path_switcher,
-#zoxide_options,
-#below_menu Button {
-  background: transparent;
-  border: $border-style $border-blurred;
-  border-subtitle-color: $background;
-  border-subtitle-background: $border-blurred;
-}
-
-#menu:focus-within,
-#below_menu:focus-within,
-#pinned_sidebar_container:focus-within,
-#file_list_container:focus-within,
-#preview_sidebar:focus-within,
-/* only while using textual-image */
-#preview_sidebar:focus,
-#path_switcher:focus-within,
-#zoxide_options:focus,
-#below_menu Button:focus,
-/* This is when people maximize */
-#file_list.-maximized,
-#pinned_sidebar.-maximized,
-#preview_sidebar .inner_preview.-maximized {
-  border: $border-style $border;
-  border-subtitle-background: $border;
-}
-
-#preview_sidebar,
-#pinned_sidebar { padding: 0 }
+#preview_sidebar { padding: 0 }
 
 #image_preview {
   width: auto;
@@ -209,28 +380,93 @@ Toast {
   align: center bottom;
 }
 
-.hide,
-.hidden { display: none }
+#footer {
+  height: $footer_unfocus_height;
+  margin: 0 1;
 
-#pinned_sidebar_container {
-  min-width: 15;
-  scrollbar-size: 0 0 !important;
-  & > PinnedSidebar {
-    scrollbar-size: 0 0 !important;
+  & > * {
+    height: 1fr;
+    background: transparent;
   }
-  & > Input {
-    display: none;
-  }
-  &:focus-within > Input {
-     display: block;
+
+  &:focus-within { height: $footer_focus_height }
+}
+
+#processes { padding: 0 0 0 1 }
+
+#metadata {
+  layout: horizontal;
+  padding-left: 1;
+  padding-right: 1;
+  & > VerticalGroup > Static {
+    text-wrap: nowrap;
+    text-overflow: ellipsis;
   }
 }
 
-OptionList {
-  text-wrap: nowrap;
-  text-overflow: ellipsis;
+ProcessContainer {
+  scrollbar-gutter: stable;
+  margin: 0
 }
 
+ProgressBarContainer {
+  HorizontalGroup {
+    height: 1;
+    & > #icon { margin-right: 1 }
+  }
+  &.error .bar--bar,
+  &.error .bar--complete { color: $error }
+  &.done .bar--complete { color: $success }
+  .bar--indeterminate { color: $accent }
+  .bar--bar { color: $warning }
+}
+
+Content.selected { color: red }
+
+FileList, PinnedSidebar, Clipboard {
+  padding: 0 0 0 0;
+  .option-list--option-disabled { color: $border-blurred }
+  &:light .option-list--option-disabled { color: $border-blurred-light }
+  .option-list--option-highlighted {
+    color: $block-cursor-background;
+    background: transparent;
+  }
+  .option-list--option-hover {
+    color: $primary;
+    background: transparent
+  }
+  &:focus .option-list--option-highlighted {
+    color: $block-cursor-foreground;
+    background: $block-cursor-background;
+    text-style: $block-cursor-text-style;
+  }
+  .selection-list--button {
+    background: transparent;
+    color: $foreground;
+  }
+  .selection-list--button-selected {
+    background: transparent;
+    color: $primary;
+  }
+  .selection-list--button-highlighted {
+    background: $primary;
+    color: $background;
+  }
+  .selection-list--button-selected-highlighted {
+    background: $primary;
+    color: $background;
+  }
+  &:blur .selection-list--button-highlighted {
+    background: transparent;
+    color: $primary
+  }
+  &:blur .selection-list--button-selected-highlighted {
+    background: transparent;
+    color: $primary
+  }
+}
+
+/* Screen mode modifiers */
 Screen.-filelistonly {
   #pinned_sidebar_container,
   #preview_sidebar,
@@ -254,69 +490,53 @@ Screen.-nopreview {
   #footer { display: none !important }
 }
 
-#footer {
-  height: $footer_unfocus_height;
-  margin: 0 1;
-  & > * {
-    border: $border-style $border-blurred;
-    height: 1fr;
-    background: transparent;
-    &:focus-within { border: $border-style $border }
-  }
-  &:focus-within { height: $footer_focus_height }
+#dialog {
+  max-width: 57;
+  max-height: 15;
+  height: 75vh;
+  width: 75vw;
+  overflow-y: auto;
+  border-title-align: center;
+  border-subtitle-align: center;
+  Label { min-height: 1 }
 }
 
-#processes { padding: 0 0 0 1 }
-
-Content.selected { color: red }
-
-FileList, PinnedSidebar, Clipboard {
-  padding: 0 0 0 0;
-  .option-list--option-highlighted {
-    color: $block-cursor-background;
-    background: transparent;
+ModalScreen Button:ansi {
+  background: transparent;
+  &.-active {
+    border: round $surface-lighten-1;
+    tint: transparent;
+    color: auto;
+    text-style: none;
   }
-  .option-list--option-highlighted:hover {
-    background: $accent
+  &.-primary {
+    border: round $primary-lighten-3;
+    color: white;
+    &:hover { border: round $primary }
+    &.-active { border: round $primary-darken-3 }
   }
-  &:focus {
-    .option-list--option-highlighted {
-      color: $block-cursor-foreground;
-      background: $block-cursor-background;
-      text-style: $block-cursor-text-style;
-    }
+  &.-success {
+    border: round $success-lighten-2;
+    color: white;
+    &:hover { border: round $success }
+    &.-active { border: round $success-darken-2 }
   }
-  .selection-list--button {
-    background: transparent;
-    color: $foreground;
+  &.-warning{
+    border: round $warning-lighten-2;
+    color: white;
+    &:hover { border: round $warning }
+    &.-active { border: round $warning-darken-2 }
   }
-  .selection-list--button-selected {
-    background: transparent;
-    color: $primary;
-  }
-  .selection-list--button-highlighted {
-    background: $primary;
-    color: $background;
-  }
-  .selection-list--button-selected-highlighted {
-    background: $primary;
-    color: $background;
-  }
-  &:blur {
-    .selection-list--button-highlighted {
-      background: transparent;
-      color: $primary
-    }
-    .selection-list--button-selected-highlighted {
-      background: transparent;
-      color: $primary
-    }
+  &.-error {
+    border: round $error-lighten-2;
+    color: white;
+    &:hover { border: round $error }
+    &.-active { border: round $error-darken-2 }
   }
 }
 
 ZDToDirectory {
   align: center middle;
-
   #zoxide_input {
     width: 100%;
     max-width: 100%;
@@ -331,7 +551,6 @@ ZDToDirectory {
     background: transparent;
     border: $border-style $border;
     padding: 0;
-
     .option-list--option-highlighted {
       background: $border;
       color: $background;
@@ -340,19 +559,6 @@ ZDToDirectory {
   #zoxide_group {
     max-width: 50vw;
     max-height: 50vh;
-  }
-}
-
-#dialog {
-  max-width: 57;
-  max-height: 15;
-  height: 75vh;
-  width: 75vw;
-  overflow-y: auto;
-  border-title-align: center;
-  border-subtitle-align: center;
-  Label {
-    min-height: 1
   }
 }
 
@@ -375,7 +581,6 @@ Dismissable {
   Container { align: center middle }
   Button { width: 50% }
 }
-
 
 YesOrNo {
   align: center middle;
@@ -420,7 +625,6 @@ YesOrNo {
     }
   }
 }
-
 
 CommonFileNameDoWhat {
   align: center middle;
@@ -531,7 +735,6 @@ DeleteFiles {
   }
 }
 
-
 ModalInput {
   align: center middle;
   HorizontalGroup {
@@ -554,90 +757,5 @@ ModalInput {
     scrollbar-size: 0 0;
     overflow-x: scroll;
   }
-  Label {
-    height: 1;
-  }
-}
-
-
-Tooltip { background: $background-lighten-1 }
-
-CommandInput { border: blank !important }
-
-#metadata {
-  layout: horizontal;
-  padding-left: 1;
-  padding-right: 1;
-
-  & > VerticalGroup > Static {
-    text-wrap: nowrap;
-    text-overflow: ellipsis;
-  }
-}
-
-Bar { width: 1fr }
-
-ProcessContainer {
-  scrollbar-gutter: stable;
-  margin: 0
-}
-
-ProgressBarContainer {
-  HorizontalGroup {
-    height: 1;
-    & > #icon {
-      margin-right: 1;
-    }
-  }
-  &.error .bar--bar,
-  &.error .bar--complete { color: $error }
-  &.done .bar--complete { color: $success }
-  .bar--indeterminate { color: $accent }
-  .bar--bar { color: $warning }
-}
-#headerArea {
-  padding: 0 1 0 1;
-  #newTabRight {
-    width: 1fr;
-    Button {
-      max-width: 3;
-      background: transparent;
-      color: $foreground;
-      &.-primary.-active {
-        color: $foreground;
-        background: $background
-      }
-      &.-active {
-        background: $background;
-        color: $foreground
-      }
-    }
-  }
-  Tabline {
-    TablineTab {
-      &:hover {
-        background: $boost-lighten-3;
-        color: $foreground;
-      }
-      &.-active {
-        background: $primary;
-        color: $background;
-      }
-    }
-  }
-  &:focus-within > HeaderClock,
-  &:focus-within > #newTabRight {
-    border-bottom: heavy $foreground 30%;
-  }
-  &:focus-within > Tabline .underline--bar {
-    background: $foreground 30%;
-  }
-  HeaderClock, #newTabRight {
-    background: transparent;
-    border-bottom: heavy $foreground 10%;
-    dock: none;
-  }
-}
-PinnedSidebarOption:disabled {
-  display: none !important;
+  Label { height: 1 }
 }

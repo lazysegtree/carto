@@ -130,6 +130,7 @@ class Application(App, inherit_bindings=False):
         for theme in get_custom_themes():
             self.register_theme(theme)
         self.theme = config["theme"]["default"]
+        self.ansi_color = config["theme"]["transparent"]
         # tooltips
         if config["interface"]["tooltips"]:
             self.query_one("#back").tooltip = "Go back in history"
