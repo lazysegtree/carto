@@ -23,8 +23,6 @@ from rovr.utils import config
 
 
 class CustomTextArea(TextArea, inherit_bindings=False):
-    # This kind of is a waste, I could use FileList already,
-    # but I wasn't sure how to integrate it properly.
     BINDINGS: ClassVar[list[BindingType]] = (
         # Bindings from config
         [
@@ -403,6 +401,7 @@ class PreviewContainer(Container):
             await self.remove_children()
             self.remove_class("bat", "full", "clip")
 
+            # TODO: use normal FileList instead of ArchiveFileList
             await self.mount(
                 ArchiveFileList(
                     id="archive_preview",
