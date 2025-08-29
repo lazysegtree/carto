@@ -278,11 +278,13 @@ class FileList(SelectionList, inherit_bindings=False):
     async def on_option_list_option_highlighted(
         self, event: OptionList.OptionHighlighted
     ) -> None:
+        if isinstance(event.option, Selection) and not isinstance(
+            event.option, FileListSelectionWidget
+        ):
+            self.app.query_one("PreviewContainer").remove_children()
+            return
         assert isinstance(event.option, FileListSelectionWidget)
         if self.dummy:
-            return
-        elif event.option.value == "HTI":
-            self.app.query_one("PreviewContainer").remove_children()
             return
         if self.select_mode_enabled and self.selected is not None:
             utils.set_scuffed_subtitle(
@@ -438,8 +440,6 @@ class FileList(SelectionList, inherit_bindings=False):
             None: If there are no objects at that given location.
         """
         cwd = utils.normalise(getcwd())
-        if self.get_option_at_index(self.highlighted).value == "HTI":
-            return None
         if not self.select_mode_enabled:
             return [
                 utils.normalise(
