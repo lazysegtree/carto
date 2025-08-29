@@ -23,6 +23,8 @@ class NewItemButton(Button):
 
     @work
     async def on_button_pressed(self, event: Button.Pressed) -> None:
+        if self.disabled:
+            return
         response: str = await self.app.push_screen(
             ModalInput(
                 border_title="Create New Item",

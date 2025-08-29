@@ -47,11 +47,11 @@ class SearchInput(Input):
         else:
             try:
                 self.items_list.add_option(
-                    Option("  --no-matches--", id="", disabled=True)
+                    Option("   --no-matches--", id="", disabled=True)
                 )
             except SelectionError:
                 self.items_list.add_option(
-                    Selection("  --no-matches--", value="", id="", disabled=True)
+                    Selection("   --no-matches--", value="", id="", disabled=True)
                 )
         if self.items_list.highlighted is None:
             self.items_list.action_cursor_down()

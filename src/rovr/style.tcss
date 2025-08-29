@@ -114,6 +114,8 @@ Input {
 
 Toast {
   max-height: 100%;
+  padding: 0;
+  width: 33vw;
   &.-information { border-right: outer $success }
   &.-warning { border-right: outer $warning }
   &.-error { border-right: outer $error }

@@ -11,6 +11,8 @@ class BackButton(Button):
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """Go back in the sesison's history"""
+        if self.disabled:
+            return
         state = self.app.tabWidget.active_tab.session
         if state.sessionHistoryIndex != 0:
             state.sessionHistoryIndex -= 1
@@ -27,6 +29,8 @@ class ForwardButton(Button):
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """Go forward in the session's history"""
+        if self.disabled:
+            return
         state = self.app.tabWidget.active_tab.session
         state.sessionHistoryIndex += 1
         # ! reminder to add a check for path!
@@ -42,6 +46,8 @@ class UpButton(Button):
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """Go up the current location's directory"""
+        if self.disabled:
+            return
         parent = getcwd().split(path.sep)[-1]
         self.app.cd(
             path.sep.join(getcwd().split(path.sep)[:-1]) + path.sep, focus_on=parent

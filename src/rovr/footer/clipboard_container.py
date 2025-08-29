@@ -6,7 +6,7 @@ from textual import events, work
 from textual.binding import Binding, BindingType
 from textual.content import Content
 from textual.strip import Strip
-from textual.widgets import SelectionList
+from textual.widgets import Button, SelectionList
 from textual.widgets.option_list import OptionDoesNotExist
 
 from rovr import utils
@@ -52,6 +52,10 @@ class Clipboard(SelectionList, inherit_bindings=False):
         super().__init__(**kwargs)
         self.clipboard_contents = []
 
+    def on_mount(self) -> None:
+        self.mybutton: Button = self.app.query_one("#paste")
+        self.mybutton.disabled = True
+
     async def copy_to_clipboard(self, items: list[str]) -> None:
         """Copy the selected files to the clipboard"""
         for item in items[::-1]:
@@ -62,6 +66,8 @@ class Clipboard(SelectionList, inherit_bindings=False):
                     id=utils.compress(item),
                 )
             )
+        self.refresh(layout=True)
+        self.mybutton.disabled = False
         self.deselect_all()
         for item_number in range(len(items)):
             self.select(self.get_option_at_index(item_number))
@@ -77,6 +83,8 @@ class Clipboard(SelectionList, inherit_bindings=False):
                         id=utils.compress(item),
                     )
                 )
+        self.refresh(layout=True)
+        self.mybutton.disabled = False
         self.deselect_all()
         for item_number in range(len(items)):
             self.select(self.get_option_at_index(item_number))
@@ -182,7 +190,7 @@ class Clipboard(SelectionList, inherit_bindings=False):
             self.highlighted += 1
 
         # redraw
-        self.refresh(layout=True)
+        # self.refresh(layout=True)
 
     @work
     async def on_key(self, event: events.Key) -> None:
@@ -197,6 +205,9 @@ class Clipboard(SelectionList, inherit_bindings=False):
                     )
                     return
                 self.remove_option_at_index(self.highlighted)
+                self.mybutton.disabled = self.add_options
+                if self.option_count == 0:
+                    return
                 event.stop()
             elif event.key in config["keybinds"]["toggle_all"]:
                 """Select all items in the clipboard."""

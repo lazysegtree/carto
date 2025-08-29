@@ -26,6 +26,8 @@ class UnzipButton(Button):
 
     @work
     async def on_button_pressed(self, event: Button.Pressed) -> None:
+        if self.disabled:
+            return
         selected_files = await self.app.query_one("#file_list").get_selected_objects()
         if not selected_files or len(selected_files) != 1:
             self.notify(

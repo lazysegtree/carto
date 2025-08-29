@@ -125,7 +125,6 @@ class FileList(SelectionList, inherit_bindings=False):
                     disabled=True,
                 ),
             )
-            file_list_options = [".."]
         elif folders == [] and files == []:
             self.list_of_options.append(
                 Selection("   --no-files--", value="", id="", disabled=True)
@@ -146,6 +145,12 @@ class FileList(SelectionList, inherit_bindings=False):
                         id=utils.compress(item["name"]),
                     )
                 )
+        if len(self.list_of_options) == 1 and self.list_of_options[0].disabled:
+            for selector in ["#copy", "#cut", "#rename", "#delete", "#zip"]:
+                self.app.query_one(selector).disabled = True
+        else:
+            for selector in ["#copy", "#cut", "#rename", "#delete", "#zip"]:
+                self.app.query_one(selector).disabled = False
         self.clear_options()
         self.add_options(self.list_of_options)
         # session handler
@@ -397,6 +402,8 @@ class FileList(SelectionList, inherit_bindings=False):
 
     async def toggle_mode(self) -> None:
         """Toggle the selection mode between select and normal."""
+        if self.get_option_at_index(self.highlighted).disabled:
+            return
         self.select_mode_enabled = not self.select_mode_enabled
         highlighted = self.highlighted
         self.update_file_list(add_to_session=False)
@@ -446,6 +453,8 @@ class FileList(SelectionList, inherit_bindings=False):
                     self.select_mode_enabled and key in config["keybinds"]["select_up"]
                 ):
                     event.stop()
+                    if self.get_option_at_index(0).disabled:
+                        return
                     """Select the current and previous file."""
                     if self.highlighted == 0:
                         self.select(self.get_option_at_index(0))
@@ -459,6 +468,8 @@ class FileList(SelectionList, inherit_bindings=False):
                     and key in config["keybinds"]["select_down"]
                 ):
                     event.stop()
+                    if self.get_option_at_index(0).disabled:
+                        return
                     """Select the current and next file."""
                     if self.highlighted == len(self.options) - 1:
                         self.select(self.get_option_at_index(self.option_count - 1))
@@ -472,6 +483,8 @@ class FileList(SelectionList, inherit_bindings=False):
                     and key in config["keybinds"]["select_page_up"]
                 ):
                     event.stop()
+                    if self.get_option_at_index(0).disabled:
+                        return
                     """Select the options between the current and the previous 'page'."""
                     old = self.highlighted
                     self.action_page_up()
@@ -488,6 +501,8 @@ class FileList(SelectionList, inherit_bindings=False):
                     and key in config["keybinds"]["select_page_down"]
                 ):
                     event.stop()
+                    if self.get_option_at_index(0).disabled:
+                        return
                     """Select the options between the current and the next 'page'."""
                     old = self.highlighted
                     self.action_page_down()
@@ -504,6 +519,9 @@ class FileList(SelectionList, inherit_bindings=False):
                     and key in config["keybinds"]["select_home"]
                 ):
                     event.stop()
+                    if self.get_option_at_index(0).disabled:
+                        return
+                    """Select the options between the current and the first option"""
                     old = self.highlighted
                     self.action_first()
                     new = self.highlighted
@@ -516,6 +534,9 @@ class FileList(SelectionList, inherit_bindings=False):
                     self.select_mode_enabled and key in config["keybinds"]["select_end"]
                 ):
                     event.stop()
+                    if self.get_option_at_index(0).disabled:
+                        return
+                    """Select the options between the current and the last option"""
                     old = self.highlighted
                     self.action_last()
                     new = self.highlighted
@@ -529,6 +550,8 @@ class FileList(SelectionList, inherit_bindings=False):
                     and key in config["plugins"]["editor"]["keybinds"]
                 ):
                     event.stop()
+                    if self.get_option_at_index(self.highlighted).disabled:
+                        return
                     if path.isdir(
                         path.join(
                             getcwd(),
@@ -552,6 +575,8 @@ class FileList(SelectionList, inherit_bindings=False):
                     and key in config["keybinds"]["hist_previous"]
                 ):
                     event.stop()
+                    if self.get_option_at_index(self.highlighted).disabled:
+                        return
                     if self.app.query_one("#back").disabled:
                         self.app.query_one("UpButton").on_button_pressed(Button.Pressed)
                     else:

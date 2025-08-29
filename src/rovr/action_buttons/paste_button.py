@@ -21,6 +21,8 @@ class PasteButton(Button):
             self.tooltip = "Paste files from clipboard"
 
     async def on_button_pressed(self, event: Button.Pressed) -> None:
+        if self.disabled:
+            return
         """Paste files from clipboard"""
         selected_items = self.app.query_one(
             "Clipboard"

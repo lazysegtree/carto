@@ -17,6 +17,8 @@ class CopyButton(Button):
 
     async def on_button_pressed(self, event: Button.Pressed) -> None:
         """Copy selected files to the clipboard"""
+        if self.disabled:
+            return
         selected_files = await self.app.query_one("#file_list").get_selected_objects()
         if selected_files:
             await self.app.query_one("#clipboard").copy_to_clipboard(selected_files)
