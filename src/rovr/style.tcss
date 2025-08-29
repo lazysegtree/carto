@@ -100,7 +100,7 @@ $scrollbar-corner-color: $primary-muted;
 .hide,
 .hidden { display: none }
 
-Input {
+Input, TextArea {
   .input--placeholder { color: $foreground-darken-1 }
   &:ansi .input--cursor {
     color: $primary;

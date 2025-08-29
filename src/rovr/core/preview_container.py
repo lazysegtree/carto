@@ -570,7 +570,7 @@ class PreviewContainer(Container):
             self._current_preview_type == "bat"
             and "clip" in self.classes
             and event.size.height != self._initial_height
-        ):
+        ) or self._current_preview_type == "normal_text":
             await self._render_preview()
             self._initial_height = event.size.height
 
