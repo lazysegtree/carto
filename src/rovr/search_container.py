@@ -1,5 +1,10 @@
-from textual import events
+import os
+
+from textual import events, work
+from textual.fuzzy import Matcher
 from textual.widgets import Input, OptionList
+from textual.widgets.option_list import Option
+from textual.widgets.selection_list import Selection, SelectionError
 
 
 class SearchInput(Input):
@@ -10,37 +15,44 @@ class SearchInput(Input):
 
     def on_mount(self) -> None:
         self.items_list: OptionList = self.parent.query_one(OptionList)
+        self.initial_cwd = os.getcwd()
 
-    def query_fuzzy(self, searchfor: str, findin: str) -> bool:
-        searchfor, findin = searchfor.lower(), findin.lower()
-        for char in searchfor:
-            try:
-                findin.split(char)[1]
-                findin = char.join(findin.split(char)[1:])
-            except IndexError:
-                return False
-        return True
-
-    def on_input_changed(self, event: Input.Changed) -> None:
-        if event.value == "":
-            for option in self.items_list.options:
-                if not option.id.endswith("header"):
-                    option.disabled = False
-        for option in self.items_list.options:
-            if option.id.endswith("header"):
-                option.disabled = True
+    # exclusive when too many options, and not enough time to mount
+    @work(exclusive=True)
+    async def on_input_changed(self, event: Input.Changed) -> None:
+        if event.value == "" and self.initial_cwd == os.getcwd():
+            self.items_list.clear_options()
+            self.items_list.add_options(self.items_list.list_of_options)
+            return
+        elif event.value == "" and self.initial_cwd != os.getcwd():
+            self.initial_cwd = os.getcwd()
+            return
+        self.items_list.clear_options()
+        matches = []
+        matcher = Matcher(
+            event.value, match_style="underline"
+        )  # ty: ignore[invalid-argument-type]
+        assert hasattr(self.items_list, "list_of_options")
+        for option in self.items_list.list_of_options:
+            assert isinstance(option, Option)
+            if option.disabled:
+                matches.append(option)
                 continue
+            score = matcher.match(option.label)
+            if score > 0:
+                matches.append(option)
+        if matches:
+            self.items_list.add_options(matches)
+        else:
             try:
-                option.disabled = not self.query_fuzzy(event.value, option.label)
-            except (IndexError, AttributeError):
-                # Special section dividers, like Pinned Sidebar's dividers
-                # or the `--no-files--` thing in file list
-                option.disabled = True
-        self.items_list.refresh()
-        if (
-            self.items_list.highlighted is None
-            or self.items_list.get_option_at_index(self.items_list.highlighted).disabled
-        ):
+                self.items_list.add_option(
+                    Option("  --no-matches--", id="", disabled=True)
+                )
+            except SelectionError:
+                self.items_list.add_option(
+                    Selection("  --no-matches--", value="", id="", disabled=True)
+                )
+        if self.items_list.highlighted is None:
             self.items_list.action_cursor_down()
 
     def on_input_submitted(self, event: Input.Submitted) -> None:

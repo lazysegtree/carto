@@ -3,7 +3,6 @@ from typing import ClassVar
 
 from textual import events, on, work
 from textual.binding import Binding, BindingType
-from textual.geometry import Size
 from textual.widgets import Input, OptionList
 from textual.widgets.option_list import Option
 
@@ -49,39 +48,6 @@ class PinnedSidebar(OptionList, inherit_bindings=False):
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
 
-    def _update_lines(self) -> None:
-        """Update internal structures when new lines are added."""
-        if not self.scrollable_content_region:
-            return
-
-        line_cache = self._line_cache
-        line_cache.clear()
-        padding = self.get_component_styles("option-list--option").padding
-        width = self.scrollable_content_region.width - self._get_left_gutter_width()
-        for index, option in enumerate(self.options):
-            # in future, if anything was changed, you just need to add the line below
-            if not option.disabled or option.id.endswith("header"):
-                line_cache.index_to_line[index] = len(line_cache.lines)
-                line_count = (
-                    self._get_visual(option).get_height(
-                        self.styles, width - padding.width
-                    )
-                    + option._divider
-                )
-                line_cache.heights[index] = line_count
-                line_cache.lines.extend([
-                    (index, line_no) for line_no in range(0, line_count)
-                ])
-
-        last_divider = self.options and self.options[-1]._divider
-        virtual_size = Size(
-            self.scrollable_content_region.width,
-            len(line_cache.lines) - (1 if last_divider else 0),
-        )
-        if virtual_size != self.virtual_size:
-            self.virtual_size = virtual_size
-            self._scroll_update(virtual_size)
-
     @work(exclusive=True)
     async def reload_pins(self) -> None:
         """Reload pins shown
@@ -93,6 +59,7 @@ class PinnedSidebar(OptionList, inherit_bindings=False):
         available_pins = utils.load_pins()
         pins = available_pins["pins"]
         default = available_pins["default"]
+        self.list_of_options = []
         print(f"Reloading pins: {available_pins}")
         print(f"Reloading default folders: {default}")
         self.clear_options()
@@ -110,14 +77,16 @@ class PinnedSidebar(OptionList, inherit_bindings=False):
                 icon = utils.get_icon_for_folder(default_folder["name"])
             else:
                 icon = utils.get_icon_for_file(default_folder["name"])
-            self.add_option(
+            self.list_of_options.append(
                 PinnedSidebarOption(
                     icon=icon,
                     label=default_folder["name"],
                     id=f"{utils.compress(default_folder['path'])}-default",
                 )
             )
-        self.add_option(Option(" Pinned", id="pinned-header"))
+        self.list_of_options.append(
+            Option(" Pinned", id="pinned-header", disabled=True)
+        )
         for pin in pins:
             try:
                 pin["path"]
@@ -136,25 +105,26 @@ class PinnedSidebar(OptionList, inherit_bindings=False):
                 icon = utils.get_icon_for_folder(pin["name"])
             else:
                 icon = utils.get_icon_for_file(pin["name"])
-            self.add_option(
+            self.list_of_options.append(
                 PinnedSidebarOption(
                     icon=icon,
                     label=pin["name"],
                     id=f"{utils.compress(pin['path'])}-pinned",
                 )
             )
-        self.add_option(Option(" Drives", id="drives-header"))
+        self.list_of_options.append(
+            Option(" Drives", id="drives-header", disabled=True)
+        )
         drives = utils.get_mounted_drives()
         for drive in drives:
-            self.add_option(
+            self.list_of_options.append(
                 PinnedSidebarOption(
                     icon=utils.get_icon("folder", ":/drive:"),
                     label=drive,
                     id=f"{utils.compress(drive)}-drives",
                 )
             )
-        self.disable_option("pinned-header")
-        self.disable_option("drives-header")
+        self.add_options(self.list_of_options)
 
     async def on_mount(self) -> None:
         """Reload the pinned files from the config."""

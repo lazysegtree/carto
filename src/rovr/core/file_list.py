@@ -6,7 +6,6 @@ from rich.segment import Segment
 from rich.style import Style
 from textual import events, work
 from textual.binding import Binding, BindingType
-from textual.geometry import Size
 from textual.strip import Strip
 from textual.widgets import Button, Input, OptionList, SelectionList
 from textual.widgets.option_list import OptionDoesNotExist
@@ -116,9 +115,9 @@ class FileList(SelectionList, inherit_bindings=False):
             return
         # Separate folders and files
         folders, files = utils.get_cwd_object(cwd)
-        options = []
+        self.list_of_options = []
         if folders == [PermissionError] or files == [PermissionError]:
-            options.append(
+            self.list_of_options.append(
                 Selection(
                     " Permission Error: Unable to access this directory.",
                     value="",
@@ -128,7 +127,9 @@ class FileList(SelectionList, inherit_bindings=False):
             )
             file_list_options = [".."]
         elif folders == [] and files == []:
-            options.append(Selection("   --no-files--", value="", id="", disabled=True))
+            self.list_of_options.append(
+                Selection("   --no-files--", value="", id="", disabled=True)
+            )
             preview = self.app.query_one("PreviewContainer")
             preview.remove_children()
             preview._current_preview_type = "none"
@@ -136,7 +137,7 @@ class FileList(SelectionList, inherit_bindings=False):
         else:
             file_list_options = folders + files
             for item in file_list_options:
-                options.append(
+                self.list_of_options.append(
                     FileListSelectionWidget(
                         icon=item["icon"],
                         label=item["name"],
@@ -146,7 +147,7 @@ class FileList(SelectionList, inherit_bindings=False):
                     )
                 )
         self.clear_options()
-        self.add_options(options)
+        self.add_options(self.list_of_options)
         # session handler
         self.app.query_one("#path_switcher").value = cwd + "/"
         # I question to myself why sessionDirectories isn't a list[str]
@@ -322,38 +323,6 @@ class FileList(SelectionList, inherit_bindings=False):
             ".zip",
             ".tar",
         ))
-
-    def _update_lines(self) -> None:
-        """Update internal structures when new lines are added."""
-        if not self.scrollable_content_region:
-            return
-
-        line_cache = self._line_cache
-        line_cache.clear()
-        padding = self.get_component_styles("option-list--option").padding
-        width = self.scrollable_content_region.width - self._get_left_gutter_width()
-        for index, option in enumerate(self.options):
-            if not option.disabled or option.id.endswith("header") or option.id == "":
-                line_cache.index_to_line[index] = len(line_cache.lines)
-                line_count = (
-                    self._get_visual(option).get_height(
-                        self.styles, width - padding.width
-                    )
-                    + option._divider
-                )
-                line_cache.heights[index] = line_count
-                line_cache.lines.extend([
-                    (index, line_no) for line_no in range(0, line_count)
-                ])
-
-        last_divider = self.options and self.options[-1]._divider
-        virtual_size = Size(
-            self.scrollable_content_region.width,
-            len(line_cache.lines) - (1 if last_divider else 0),
-        )
-        if virtual_size != self.virtual_size:
-            self.virtual_size = virtual_size
-            self._scroll_update(virtual_size)
 
     # Use better versions of the checkbox icons
     def _get_left_gutter_width(

@@ -6,7 +6,7 @@ $border: $primary-lighten-3;
 $border-disabled: $primary-background-lighten-1;
 
 /* Layout Dimensions */
-$pinned_sidebar_width: 20;
+$pinned_sidebar_width: 18;
 $file_list_width: 1fr;
 $preview_sidebar_width: 35vw;
 $footer_unfocus_height: 8;
