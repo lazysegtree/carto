@@ -355,7 +355,10 @@ class Application(App, inherit_bindings=False):
         while True:
             await asyncio.sleep(1)
             new_cwd = getcwd()
-            new_cwd_items = listdir(new_cwd)
+            try:
+                new_cwd_items = listdir(new_cwd)
+            except PermissionError:
+                continue
             if self._cwd != new_cwd:
                 self._cwd = new_cwd
                 self._items = listdir(self._cwd)
