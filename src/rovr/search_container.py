@@ -30,8 +30,9 @@ class SearchInput(Input):
         self.items_list.clear_options()
         matches = []
         matcher = Matcher(
-            event.value, match_style="underline"
-        )  # ty: ignore[invalid-argument-type]
+            event.value,
+            match_style="underline",  # ty: ignore[invalid-argument-type]
+        )
         assert hasattr(self.items_list, "list_of_options")
         for option in self.items_list.list_of_options:
             assert isinstance(option, Option)
