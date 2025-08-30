@@ -93,25 +93,22 @@ variables = {
   - If NeoVim is considered modern, then Helix is post-modern
   - If superfile is considered modern, then rovr is post-modern
 
-3. Why did you say it cannot be daily driven?
-
-- Refer to the road map. There is many features yet to be completed. Pull Requests are appreciated
-
-4. What can I contribute?
+3. What can I contribute?
 
 - Themes, and features can be contributed.
 - Refactors will be frowned on, and may take a longer time before merging.
 
-5. I want to add a feature/theme/etc! How do I do so?
+4. I want to add a feature/theme/etc! How do I do so?
 
 - You need [uv](https://docs.astral.sh/uv) at minimum. [pre-commit](https://pre-commit.com/) and [ruff](https://docs.astral.sh/ruff) are recommended to be installed.
 - Clone the repo, and inside it, run `uv sync` and `pre-commit install`.
 - Make your changes, ensure that your changes are properly formatted (via the pre-commit hook), before pushing to a **custom** branch on your fork.
+- For more info, check the [how to contribute](https://nspc911.github.io/rovr/contributing/how-to-contribute) page.
 
-6. How do I make a feature suggestion?
+5. How do I make a feature suggestion?
 
-- Open an issue using the `feature-request` tag. Issue templates will come soon.
+- Open an issue using the `feature-request` tag, with an estimated difficulty as an optional difficulty level label
 
-7. Why not ratatui or bubbletea??? <sub><i>angry noises</i></sub>
+6. Why not ratatui or bubbletea??? <sub><i>angry noises</i></sub>
 
 - I like python.
