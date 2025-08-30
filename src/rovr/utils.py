@@ -466,6 +466,11 @@ def load_config() -> None:
                 pprint(f"[yellow]{exception.message}[/yellow]")
         exit(1)
 
+    # slight config fixes
+    # image protocol because "AutoImage" doesn't work with Sixel
+    if config["settings"]["image_protocol"] == "Auto":
+        config["settings"]["image_protocol"] = ""
+
 
 load_config()
 
