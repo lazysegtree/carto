@@ -172,9 +172,7 @@ class PreviewContainer(Container):
 
             try:
                 await self.mount(
-                    timg.__dict__[
-                        config["settings"]["image_protocol"] + "Image"
-                    ](
+                    timg.__dict__[config["settings"]["image_protocol"] + "Image"](
                         self._current_file_path,
                         id="image_preview",
                         classes="inner_preview",
@@ -186,7 +184,7 @@ class PreviewContainer(Container):
                     CustomTextArea(
                         id="text_preview",
                         show_line_numbers=False,
-                        soft_wrap=False,
+                        soft_wrap=True,
                         read_only=True,
                         text=config["interface"]["preview_error"],
                         language="markdown",
