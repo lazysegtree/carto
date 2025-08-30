@@ -185,7 +185,7 @@ class PreviewContainer(Container):
                 await self.mount(
                     CustomTextArea(
                         id="text_preview",
-                        show_line_numbers=True,
+                        show_line_numbers=False,
                         soft_wrap=False,
                         read_only=True,
                         text=config["interface"]["preview_error"],
@@ -313,8 +313,8 @@ class PreviewContainer(Container):
             await self.mount(
                 CustomTextArea(
                     id="text_preview",
-                    show_line_numbers=True,
-                    soft_wrap=False,
+                    show_line_numbers=False,
+                    soft_wrap=True,
                     read_only=True,
                     text=text_to_display,
                     language=language,
