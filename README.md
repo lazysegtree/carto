@@ -1,7 +1,5 @@
 <div align="center">
-  <pre><code>  ___ ___ _ _ ___
-  |  _| . | | |  _|
-  |_| |___|\_/|_|  </code></pre>
+  <h1>rovr</h1>
   <img alt="Python Version" src="https://img.shields.io/pypi/pyversions/rovr?style=for-the-badge&logo=python&logoColor=white&color=yellow">
   <img alt="Made with Textual" src="https://img.shields.io/badge/made_with-textual-0b171d?style=for-the-badge&logoColor=white">
   <!--python -c "import toml;print(len(toml.load('uv.lock')['package']))"-->
@@ -23,6 +21,7 @@
 - [Installation](#installation)
 - [Running from source](#running-from-source)
 - [FAQ](#faq)
+- [Stargazers](#stargazers)
 <!--toc:end-->
 
 ### Screenshot
@@ -112,3 +111,15 @@ variables = {
 6. Why not ratatui or bubbletea??? <sub><i>angry noises</i></sub>
 
 - I like python.
+
+
+### Stargazers
+Thank you so much for starring this repo! Each star pushes me more to make even more amazing features for you!
+![stargazers](https://api.star-history.com/svg?repos=NSPC911/rovr)
+```
+ _ __   ___   __  __   _ __
+/\`'__\/ __`\/\ \/\ \ /\`'__\
+\ \ \//\ \_\ \ \ \_/ |\ \ \/
+ \ \_\\ \____/\ \___/  \ \_\
+  \/_/ \/___/  \/__/    \/_/  by NSPC911
+```
