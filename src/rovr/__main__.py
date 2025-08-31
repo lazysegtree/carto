@@ -51,7 +51,7 @@ try:
             )
             return
         elif show_version:
-            print("v0.1.0-post1")
+            print("v0.2.1-post1")
             return
 
         for feature_path in with_features:
