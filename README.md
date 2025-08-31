@@ -115,7 +115,14 @@ variables = {
 
 ### Stargazers
 Thank you so much for starring this repo! Each star pushes me more to make even more amazing features for you!
-![stargazers](https://api.star-history.com/svg?repos=NSPC911/rovr)
+<a href="https://www.star-history.com/#nspc911/rovr&Date">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=nspc911/rovr&type=Date&theme=dark" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=nspc911/rovr&type=Date" />
+   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=nspc911/rovr&type=Date" />
+ </picture>
+</a>
+
 ```
  _ __   ___   __  __   _ __
 /\`'__\/ __`\/\ \/\ \ /\`'__\
