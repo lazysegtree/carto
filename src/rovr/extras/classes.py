@@ -86,6 +86,12 @@ class Archive:
                 )
             else:
                 self._archive = zipfile.ZipFile(self.filename, self.mode)
+            # Check for password protection
+            if self.mode == "r":
+                assert isinstance(self._archive, zipfile.ZipFile)
+                if any(zinfo.flag_bits & 0x1 for zinfo in self._archive.infolist()):
+                    self._archive.close()
+                    raise ValueError("Password-protected ZIP files are not supported")
         else:
             # Assume it's a tar file - let tarfile auto-detect compression
             self._is_zip = False
