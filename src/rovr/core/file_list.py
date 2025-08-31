@@ -88,7 +88,10 @@ class FileList(SelectionList, inherit_bindings=False):
         clicked_option: int | None = event.style.meta.get("option")
         if clicked_option is not None and not self._options[clicked_option].disabled:
             # in future, if anything was changed, you just need to add the lines below
-            if self.highlighted == clicked_option or self.select_mode_enabled:
+            if self.highlighted == clicked_option:
+                self.action_select()
+            elif self.select_mode_enabled:
+                self.highlighted = clicked_option
                 self.action_select()
             else:
                 self.highlighted = clicked_option
