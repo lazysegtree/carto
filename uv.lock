@@ -818,7 +818,7 @@ requires-dist = [
     { name = "platformdirs", specifier = ">=4.3.8" },
     { name = "psutil", specifier = ">=7.0.0" },
     { name = "send2trash", specifier = ">=1.8.3" },
-    { name = "textual", extras = ["syntax"], specifier = ">=3.3.0" },
+    { name = "textual", extras = ["syntax"], specifier = ">=3.3.0,<6.0.0" },
     { name = "textual-autocomplete", specifier = ">=4.0.4" },
     { name = "textual-image", extras = ["textual"], specifier = ">=0.8.2" },
     { name = "toml", specifier = ">=0.10.2" },
