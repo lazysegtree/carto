@@ -1,0 +1,52 @@
+name: feature request
+description: suggest an idea to implement
+labels: [feature-request]
+title: "<title>"
+
+body:
+  - type: markdown
+    attributes:
+      value: "Make sure you have checked issue #4 before requesting!"
+  - type: textarea
+    id: due-to-bug
+    attributes:
+      label: Is your request due to an existing bug?
+      description: A clear and concise description of what the problem is that you are facing, and wanting to fix
+      placeholder: No, it is not.
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-you-want
+    attributes:
+      label: What feature do you want in rovr?
+      description: Go straight to the point, what do you want?
+      placeholder: I want ... so that I can do ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Describe any alternatives you've considered
+      description: What other alternatives are there to this method, if there are any.
+      placeholder: There are no other alternatives.
+    validations:
+      required: false
+
+  - type: textarea
+    id: other-fm
+    attributes:
+      label: Are there any other file managers with this feature?
+      description: List the file explorers that may have the features that you are looking for
+      placeholder: No, no other file manager has this feature
+    validations:
+      required: true
+
+  - type: textarea
+    id: more-context
+    attributes:
+      label: Additional context
+      description: add any other context or screenshots about the feature request here.
+    validations:
+      required: false
