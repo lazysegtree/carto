@@ -58,8 +58,9 @@ description: config schema humanified
     - [6.1.9. Property `Rovr Config > custom_theme > custom_theme items > background`](#custom_theme_items_background)
     - [6.1.10. Property `Rovr Config > custom_theme > custom_theme items > surface`](#custom_theme_items_surface)
     - [6.1.11. Property `Rovr Config > custom_theme > custom_theme items > panel`](#custom_theme_items_panel)
-    - [6.1.12. Property `Rovr Config > custom_theme > custom_theme items > is_dark`](#custom_theme_items_is_dark)
-    - [6.1.13. Property `Rovr Config > custom_theme > custom_theme items > variables`](#custom_theme_items_variables)
+    - [6.1.12. Property `Rovr Config > custom_theme > custom_theme items > bar_gradient`](#custom_theme_items_bar_gradient)
+    - [6.1.13. Property `Rovr Config > custom_theme > custom_theme items > is_dark`](#custom_theme_items_is_dark)
+    - [6.1.14. Property `Rovr Config > custom_theme > custom_theme items > variables`](#custom_theme_items_variables)
 - [7. Property `Rovr Config > keybinds`](#keybinds)
   - [7.1. Property `Rovr Config > keybinds > toggle_pin`](#keybinds_toggle_pin)
     - [7.1.1. Rovr Config > keybinds > toggle_pin > toggle_pin items](#keybinds_toggle_pin_items)
@@ -753,21 +754,22 @@ Must be one of:
 | **Required**              | No          |
 | **Additional properties** | Not allowed |
 
-| Property                                        | Type    | Title/Description                                                                                                                                    |
-| ----------------------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-|   [name](#custom_theme_items_name )             | string  | A name for the theme. However, when the theme is available in the theme picker, it shows up as a hiphenated, lowercase version.                      |
-|   [primary](#custom_theme_items_primary )       | string  | A hex code or named color to use as the primary color. Refer to https://textual.textualize.io/css_types/color/#named-colors for the named colors.    |
-|   [secondary](#custom_theme_items_secondary )   | string  | A hex code or named color to use as the secondary color. Refer to https://textual.textualize.io/css_types/color/#named-colors for the named colors.  |
-|   [warning](#custom_theme_items_warning )       | string  | A hex code or named color to use as the warning color. Refer to https://textual.textualize.io/css_types/color/#named-colors for the named colors.    |
-|   [error](#custom_theme_items_error )           | string  | A hex code or named color to use as the error color. Refer to https://textual.textualize.io/css_types/color/#named-colors for the named colors.      |
-|   [success](#custom_theme_items_success )       | string  | A hex code or named color to use as the success color. Refer to https://textual.textualize.io/css_types/color/#named-colors for the named colors.    |
-|   [accent](#custom_theme_items_accent )         | string  | A hex code or named color to use as the accent color. Refer to https://textual.textualize.io/css_types/color/#named-colors for the named colors.     |
-|   [foreground](#custom_theme_items_foreground ) | string  | A hex code or named color to use as the foreground color. Refer to https://textual.textualize.io/css_types/color/#named-colors for the named colors. |
-|   [background](#custom_theme_items_background ) | string  | A hex code or named color to use as the background color. Refer to https://textual.textualize.io/css_types/color/#named-colors for the named colors. |
-|   [surface](#custom_theme_items_surface )       | string  | A hex code or named color to use as the surface color. Refer to https://textual.textualize.io/css_types/color/#named-colors for the named colors.    |
-|   [panel](#custom_theme_items_panel )           | string  | A hex code or named color to use as the panel color. Refer to https://textual.textualize.io/css_types/color/#named-colors for the named colors.      |
-|   [is_dark](#custom_theme_items_is_dark )       | boolean | Whether or not this theme is a dark type theme.                                                                                                      |
-|   [variables](#custom_theme_items_variables )   | object  | Extra variables to set unique to the theme.<br />Refer to https://textual.textualize.io/guide/design/#additional-variables for more information.     |
+| Property                                            | Type    | Title/Description                                                                                                                                                             |
+| --------------------------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|   [name](#custom_theme_items_name )                 | string  | A name for the theme. However, when the theme is available in the theme picker, it shows up as a hiphenated, lowercase version.                                               |
+|   [primary](#custom_theme_items_primary )           | string  | A hex code or named color to use as the primary color. Refer to https://textual.textualize.io/css_types/color/#named-colors for the named colors.                             |
+|   [secondary](#custom_theme_items_secondary )       | string  | A hex code or named color to use as the secondary color. Refer to https://textual.textualize.io/css_types/color/#named-colors for the named colors.                           |
+|   [warning](#custom_theme_items_warning )           | string  | A hex code or named color to use as the warning color. Refer to https://textual.textualize.io/css_types/color/#named-colors for the named colors.                             |
+|   [error](#custom_theme_items_error )               | string  | A hex code or named color to use as the error color. Refer to https://textual.textualize.io/css_types/color/#named-colors for the named colors.                               |
+|   [success](#custom_theme_items_success )           | string  | A hex code or named color to use as the success color. Refer to https://textual.textualize.io/css_types/color/#named-colors for the named colors.                             |
+|   [accent](#custom_theme_items_accent )             | string  | A hex code or named color to use as the accent color. Refer to https://textual.textualize.io/css_types/color/#named-colors for the named colors.                              |
+|   [foreground](#custom_theme_items_foreground )     | string  | A hex code or named color to use as the foreground color. Refer to https://textual.textualize.io/css_types/color/#named-colors for the named colors.                          |
+|   [background](#custom_theme_items_background )     | string  | A hex code or named color to use as the background color. Refer to https://textual.textualize.io/css_types/color/#named-colors for the named colors.                          |
+|   [surface](#custom_theme_items_surface )           | string  | A hex code or named color to use as the surface color. Refer to https://textual.textualize.io/css_types/color/#named-colors for the named colors.                             |
+|   [panel](#custom_theme_items_panel )               | string  | A hex code or named color to use as the panel color. Refer to https://textual.textualize.io/css_types/color/#named-colors for the named colors.                               |
+|   [bar_gradient](#custom_theme_items_bar_gradient ) | array   | A list of hex codes, or named colors to use as the progress bar's gradient colors. Refer to https://textual.textualize.io/css_types/color/#named-colors for the named colors. |
+|   [is_dark](#custom_theme_items_is_dark )           | boolean | Whether or not this theme is a dark type theme.                                                                                                                               |
+|   [variables](#custom_theme_items_variables )       | object  | Extra variables to set unique to the theme.<br />Refer to https://textual.textualize.io/guide/design/#additional-variables for more information.                              |
 
 #### <a name="custom_theme_items_name"></a>6.1.1. Property `Rovr Config > custom_theme > custom_theme items > name`
 
@@ -868,7 +870,25 @@ Must be one of:
 
 **Description:** A hex code or named color to use as the panel color. Refer to https://textual.textualize.io/css_types/color/#named-colors for the named colors.
 
-#### <a name="custom_theme_items_is_dark"></a>6.1.12. Property `Rovr Config > custom_theme > custom_theme items > is_dark`
+#### <a name="custom_theme_items_bar_gradient"></a>6.1.12. Property `Rovr Config > custom_theme > custom_theme items > bar_gradient`
+
+|              |         |
+| ------------ | ------- |
+| **Type**     | `array` |
+| **Required** | No      |
+| **Default**  | `[]`    |
+
+**Description:** A list of hex codes, or named colors to use as the progress bar's gradient colors. Refer to https://textual.textualize.io/css_types/color/#named-colors for the named colors.
+
+|                      | Array restrictions |
+| -------------------- | ------------------ |
+| **Min items**        | N/A                |
+| **Max items**        | N/A                |
+| **Items unicity**    | False              |
+| **Additional items** | False              |
+| **Tuple validation** | N/A                |
+
+#### <a name="custom_theme_items_is_dark"></a>6.1.13. Property `Rovr Config > custom_theme > custom_theme items > is_dark`
 
 |              |           |
 | ------------ | --------- |
@@ -877,7 +897,7 @@ Must be one of:
 
 **Description:** Whether or not this theme is a dark type theme.
 
-#### <a name="custom_theme_items_variables"></a>6.1.13. Property `Rovr Config > custom_theme > custom_theme items > variables`
+#### <a name="custom_theme_items_variables"></a>6.1.14. Property `Rovr Config > custom_theme > custom_theme items > variables`
 
 |                           |                  |
 | ------------------------- | ---------------- |
