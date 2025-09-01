@@ -370,15 +370,15 @@ def set_nested_value(d: dict, path_str: str, value: bool) -> None:
                 elif type(current[key]) is type(value):
                     current[key] = value
                 else:
-                    pprint("[bright_red][underline]Config Error:[/]")
+                    pprint("[bright_red underline]Config Error:[/]")
                     pprint(
-                        f"[cyan][b]{path_str}[/b][/cyan]'s new value of type [cyan][b]{type(value).__name__}[/b][/cyan] is not a [cyan][b]{type(current[key]).__name__}[/b][/cyan] type, and cannot be modified."
+                        f"[cyan bold]{path_str}[/]'s new value of type [cyan b]{type(value).__name__}[/] is not a [bold cyan]{type(current[key]).__name__}[/] type, and cannot be modified."
                     )
                     exit(1)
             except KeyError:
-                pprint("[bright_red][underline]Config Error:[/]")
+                pprint("[bright_red underline]Config Error:[/]")
                 pprint(
-                    f"[cyan][b]{path_str}[/b][/cyan] is not a valid path to an existing value and hence cannot be set."
+                    f"[cyan b]{path_str}[/] is not a valid path to an existing value and hence cannot be set."
                 )
                 exit(1)
         else:
@@ -406,7 +406,7 @@ def load_config() -> None:
         try:
             template_config = toml.loads(f.read())
         except toml.decoder.TomlDecodeError as e:
-            pprint(f"[red]TOML Syntax Error:\n    {e}")
+            pprint(f"[bright_red]TOML Syntax Error:\n    {e}")
             exit(1)
 
     user_config_path = path.join(VAR_TO_DIR["CONFIG"], "config.toml")
@@ -445,11 +445,11 @@ def load_config() -> None:
         if exception.path:
             path_str = ".".join(str(p) for p in exception.path)
         pprint(
-            f"[bold red]Config Error[/bold red] in `[bold blue]{path_str}[/bold blue]`:"
+            f"[underline bright_red]Config Error[/] at path [bold cyan]{path_str}[/]:"
         )
         match exception.validator:
             case "required":
-                pprint(f"Missing required property: {exception.message}.")
+                pprint(f"{exception.message}, but is not provided.")
             case "type":
                 type_error_message = (
                     f"Invalid type: expected [yellow]{exception.validator_value}[/yellow], "
@@ -459,7 +459,7 @@ def load_config() -> None:
             case "enum":
                 enum_error_message = (
                     f"Invalid value [yellow]'{exception.instance}'[/yellow]. "
-                    f"Allowed values are: {exception.validator_value}"
+                    f"\nAllowed values are: {exception.validator_value}"
                 )
                 pprint(enum_error_message)
             case _:
