@@ -163,7 +163,7 @@ class MetadataContainer(VerticalScroll):
                 self.query_one("#metadata-values").children
             ):
                 self.app.call_from_thread(
-                    child_widget.update, values_list[index]._content
+                    child_widget.update, values_list[index].content
                 )
         except NoMatches:
             self.app.call_from_thread(self.remove_children)
