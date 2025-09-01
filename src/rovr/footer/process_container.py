@@ -576,7 +576,9 @@ class ProcessContainer(VerticalScroll):
                 else:
                     self.app.call_from_thread(
                         self.app.push_screen_wait,
-                        Dismissable("Password-protected archive files cannot be extracted.")
+                        Dismissable(
+                            "Password-protected archive files cannot be extracted."
+                        ),
                     )
             else:
                 self.app.call_from_thread(

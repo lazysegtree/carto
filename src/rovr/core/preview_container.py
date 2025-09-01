@@ -312,7 +312,7 @@ class PreviewContainer(Container):
                 CustomTextArea(
                     id="text_preview",
                     show_line_numbers=False,
-                    soft_wrap=True,
+                    soft_wrap=False,
                     read_only=True,
                     text=text_to_display,
                     language=language,
