@@ -49,6 +49,30 @@ default = "nord"
 transparent = false
 
 [[custom_theme]]
+name="nord"
+primary="#88C0D0"
+secondary="#81A1C1"
+accent="#B48EAD"
+foreground="#D8DEE9"
+background="#2E3440"
+success="#A3BE8C"
+warning="#EBCB8B"
+error="#BF616A"
+surface="#3B4252"
+panel="#434C5E"
+is_dark=true
+bar_gradient=["#88c0d0", "#ebcb8b"]
+
+[custom_theme.variables]
+"block-cursor-background"= "#88C0D0"
+"block-cursor-foreground"= "#2E3440"
+"block-cursor-text-style"= "none"
+"footer-key-foreground"= "#88C0D0"
+"input-selection-background"= "#81a1c1 35%"
+"button-color-foreground"= "#2E3440"
+"button-focus-text-style"= "reverse"
+
+[[custom_theme]]
 name = "Solarized Dark"
 primary = "#93A1A1"
 secondary = "#839496"
@@ -61,6 +85,7 @@ background = "#073642"
 surface = "#284149"
 panel = "#657B83"
 is_dark = true
+bar_gradient = ["#93A1A1", "#D33682"]
 
 [[custom_theme]]
 name = "Dark Pink"

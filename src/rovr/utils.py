@@ -710,9 +710,24 @@ def _should_include_linux_mount_point(partition: "psutil._common.sdiskpart") -> 
     # - devpts: Pseudo-terminal filesystem
     # - binfmt_misc: Binary format support filesystem
     if partition.fstype in (
-        "autofs", "devfs", "devtmpfs", "tmpfs", "proc", "sysfs", "cgroup2",
-        "debugfs", "tracefs", "fusectl", "configfs", "securityfs", "pstore",
-        "bpf", "hugetlbfs", "mqueue", "devpts", "binfmt_misc"
+        "autofs",
+        "devfs",
+        "devtmpfs",
+        "tmpfs",
+        "proc",
+        "sysfs",
+        "cgroup2",
+        "debugfs",
+        "tracefs",
+        "fusectl",
+        "configfs",
+        "securityfs",
+        "pstore",
+        "bpf",
+        "hugetlbfs",
+        "mqueue",
+        "devpts",
+        "binfmt_misc",
     ):
         return False
 
@@ -724,7 +739,13 @@ def _should_include_linux_mount_point(partition: "psutil._common.sdiskpart") -> 
     # - /mnt/wsl: WSL system integration directory
     # Include everything else (root filesystem, /home, /media, Windows drives in WSL like /mnt/c, etc.)
     return not partition.mountpoint.startswith((
-        "/dev", "/proc", "/sys", "/run", "/boot", "/mnt/wslg", "/mnt/wsl"
+        "/dev",
+        "/proc",
+        "/sys",
+        "/run",
+        "/boot",
+        "/mnt/wslg",
+        "/mnt/wsl",
     ))
 
 
@@ -750,16 +771,12 @@ def get_mounted_drives() -> list:
         elif platform.system() == "Darwin":
             # For macOS, filter out system volumes and keep only user-relevant drives
             drives = [
-                p.mountpoint
-                for p in partitions
-                if _should_include_macos_mount_point(p)
+                p.mountpoint for p in partitions if _should_include_macos_mount_point(p)
             ]
         else:
             # For other Unix-like systems (Linux, WSL, etc.), filter out system mount points
             drives = [
-                p.mountpoint
-                for p in partitions
-                if _should_include_linux_mount_point(p)
+                p.mountpoint for p in partitions if _should_include_linux_mount_point(p)
             ]
     except Exception as e:
         print(f"Error getting mounted drives: {e}")

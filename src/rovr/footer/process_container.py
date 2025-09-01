@@ -10,6 +10,7 @@ from send2trash import send2trash
 from textual import events, work
 from textual.color import Gradient
 from textual.containers import HorizontalGroup, VerticalGroup, VerticalScroll
+from textual.renderables.bar import Bar as BarRenderable
 from textual.types import UnusedParameter
 from textual.widgets import Label, ProgressBar
 from textual.widgets.option_list import OptionDoesNotExist
@@ -20,22 +21,34 @@ from rovr.screens import CommonFileNameDoWhat, Dismissable, GiveMePermission, Ye
 from rovr.utils import config
 
 
+class ThickBar(BarRenderable):
+    HALF_BAR_LEFT = "▐"
+    BAR = "█"
+    HALF_BAR_RIGHT = "▌"
+
+
 class ProgressBarContainer(VerticalGroup):
     def __init__(
         self,
         total: int | None = None,
         label: str = "",
-        gradient: Gradient | None = None,
         *args,
         **kwargs,
     ) -> None:
         super().__init__(*args, **kwargs)
+        if hasattr(self.app.get_theme(self.app.theme), "bar_gradient"):
+            gradient = Gradient.from_colors(
+                *self.app.get_theme(self.app.theme).bar_gradient
+            )
+        else:
+            gradient = None
         self.progress_bar = ProgressBar(
             total=total,
             show_percentage=config["interface"]["show_progress_percentage"],
             show_eta=config["interface"]["show_progress_eta"],
             gradient=gradient,
         )
+        self.progress_bar.BAR_RENDERABLE = ThickBar
         self.icon_label = Label(id="icon")
         self.text_label = Label(label, id="label")
         self.label_container = HorizontalGroup(self.icon_label, self.text_label)

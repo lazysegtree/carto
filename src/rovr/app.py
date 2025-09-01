@@ -7,12 +7,14 @@ from types import SimpleNamespace
 from textual import events, work
 from textual.app import App, ComposeResult
 from textual.binding import Binding
+from textual.color import ColorParseError
 from textual.containers import (
     HorizontalGroup,
     HorizontalScroll,
     Vertical,
     VerticalGroup,
 )
+from textual.content import Content
 from textual.css.query import NoMatches
 from textual.widgets import Input
 
@@ -127,8 +129,20 @@ class Application(App, inherit_bindings=False):
         self.query_one("#metadata").border_title = "Metadata"
         self.query_one("#clipboard").border_title = "Clipboard"
         # themes
-        for theme in get_custom_themes():
-            self.register_theme(theme)
+        try:
+            for theme in get_custom_themes():
+                self.register_theme(theme)
+            parse_failed = False
+        except ColorParseError:
+            parse_failed = True
+        if parse_failed:
+            self.exit(
+                return_code=1,
+                message=Content.from_markup(
+                    "[underline ansi_red]Config Error[/]\n[bold ansi_cyan]custom_themes.bar_gradient[/]: One of the colors provided cannot be parsed."
+                ),
+            )
+            return
         self.theme = config["theme"]["default"]
         self.ansi_color = config["theme"]["transparent"]
         # tooltips

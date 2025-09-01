@@ -285,6 +285,11 @@
             "type": "string",
             "description": "A hex code or named color to use as the panel color. Refer to https://textual.textualize.io/css_types/color/#named-colors for the named colors."
           },
+          "bar_gradient": {
+            "type": "array",
+            "description": "A list of hex codes, or named colors to use as the progress bar's gradient colors. Refer to https://textual.textualize.io/css_types/color/#named-colors for the named colors.",
+            "default": []
+          },
           "is_dark": {
             "type": "boolean",
             "description": "Whether or not this theme is a dark type theme."
