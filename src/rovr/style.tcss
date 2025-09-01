@@ -121,9 +121,10 @@ Toast {
   &.-error { border-right: outer $error }
   &:ansi {
     background: transparent;
+    padding-left: 1;
     &.-information { border: $border-style $success }
     &.-warning { border: $border-style $warning }
-    &.error { border: $border-style $error }
+    &.-error { border: $border-style $error }
   }
 }
 
