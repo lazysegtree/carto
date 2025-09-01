@@ -102,8 +102,6 @@ class PathAutoCompleteInput(PathAutoComplete):
     async def _on_hide(self, event: events.Hide) -> None:
         super()._on_hide(event)
         self._target.remove_class("hide_border_bottom", update=True)
-        await self._target.action_submit()
-        self._target.focus()
 
 
 class PathInput(Input):
@@ -118,7 +116,11 @@ class PathInput(Input):
 
     def on_input_submitted(self, event: Input.Submitted) -> None:
         """Use a custom path entered as the current working directory"""
-        self.app.cd(event.value)
+        if path.exists(event.value) and event.value != "":
+            self.app.cd(event.value)
+        else:
+            self.notify("Path provided is not valid.", severity="error")
+        self.app.query_one("#file_list").focus()
 
     def on_key(self, event: events.Key) -> None:
         if event.key == "backspace":

@@ -173,11 +173,6 @@ class Application(App, inherit_bindings=False):
             return
         # Make sure that key binds don't break
         match event.key:
-            # after input
-            case "enter" | "escape" if self.focused.id == "path_switcher":
-                await self.query_one(PathInput).action_submit()
-                self.query_one("#file_list").focus()
-                return
             # placeholder, not yet existing
             case "escape" if "search" in self.focused.id:
                 match self.focused.id:
