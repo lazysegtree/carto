@@ -6,10 +6,11 @@ from textual.binding import Binding, BindingType
 from textual.widgets import Input, OptionList
 from textual.widgets.option_list import Option
 
-from rovr import utils
-from rovr.exceptions import FolderNotFileError
-from rovr.options import PinnedSidebarOption
-from rovr.utils import config
+from rovr.classes import FolderNotFileError, PinnedSidebarOption
+from rovr.functions import icons as icon_utils
+from rovr.functions import path as path_utils
+from rovr.functions import pins as pin_utils
+from rovr.variables.constants import config
 
 
 class PinnedSidebar(OptionList, inherit_bindings=False):
@@ -56,7 +57,7 @@ class PinnedSidebar(OptionList, inherit_bindings=False):
             FolderNotFileError: If the pin location is a file, and not a folder.
         """
         # be extra sure
-        available_pins = utils.load_pins()
+        available_pins = pin_utils.load_pins()
         pins = available_pins["pins"]
         default = available_pins["default"]
         self.list_of_options = []
@@ -74,14 +75,14 @@ class PinnedSidebar(OptionList, inherit_bindings=False):
             if "icon" in default_folder:
                 icon = default_folder["icon"]
             elif path.isdir(default_folder["path"]):
-                icon = utils.get_icon_for_folder(default_folder["name"])
+                icon = icon_utils.get_icon_for_folder(default_folder["name"])
             else:
-                icon = utils.get_icon_for_file(default_folder["name"])
+                icon = icon_utils.get_icon_for_file(default_folder["name"])
             self.list_of_options.append(
                 PinnedSidebarOption(
                     icon=icon,
                     label=default_folder["name"],
-                    id=f"{utils.compress(default_folder['path'])}-default",
+                    id=f"{path_utils.compress(default_folder['path'])}-default",
                 )
             )
         self.list_of_options.append(
@@ -102,26 +103,26 @@ class PinnedSidebar(OptionList, inherit_bindings=False):
             if "icon" in pin:
                 icon = pin["icon"]
             elif path.isdir(pin["path"]):
-                icon = utils.get_icon_for_folder(pin["name"])
+                icon = icon_utils.get_icon_for_folder(pin["name"])
             else:
-                icon = utils.get_icon_for_file(pin["name"])
+                icon = icon_utils.get_icon_for_file(pin["name"])
             self.list_of_options.append(
                 PinnedSidebarOption(
                     icon=icon,
                     label=pin["name"],
-                    id=f"{utils.compress(pin['path'])}-pinned",
+                    id=f"{path_utils.compress(pin['path'])}-pinned",
                 )
             )
         self.list_of_options.append(
             Option(" Drives", id="drives-header", disabled=True)
         )
-        drives = utils.get_mounted_drives()
+        drives = path_utils.get_mounted_drives()
         for drive in drives:
             self.list_of_options.append(
                 PinnedSidebarOption(
-                    icon=utils.get_icon("folder", ":/drive:"),
+                    icon=icon_utils.get_icon("folder", ":/drive:"),
                     label=drive,
-                    id=f"{utils.compress(drive)}-drives",
+                    id=f"{path_utils.compress(drive)}-drives",
                 )
             )
         self.add_options(self.list_of_options)
@@ -154,7 +155,7 @@ class PinnedSidebar(OptionList, inherit_bindings=False):
         selected_option = event.option
         # Get the file path from the option id
         assert selected_option.id is not None
-        file_path = utils.decompress(selected_option.id.split("-")[0])
+        file_path = path_utils.decompress(selected_option.id.split("-")[0])
         if not path.isdir(file_path):
             if path.exists(file_path):
                 raise FolderNotFileError(

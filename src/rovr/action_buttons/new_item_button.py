@@ -4,9 +4,11 @@ from textual import work
 from textual.content import Content
 from textual.widgets import Button
 
+from rovr.classes import IsValidFilePath, PathDoesntExist
+from rovr.functions.icons import get_icon
+from rovr.functions.path import normalise
 from rovr.screens import ModalInput
-from rovr.utils import config, get_icon, normalise
-from rovr.validators import IsValidFilePath, PathDoesntExist
+from rovr.variables.constants import config
 
 
 class NewItemButton(Button):

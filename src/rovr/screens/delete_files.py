@@ -4,7 +4,7 @@ from textual.containers import Container, Grid
 from textual.screen import ModalScreen
 from textual.widgets import Button, Label
 
-from rovr.utils import config
+from rovr.variables.constants import config
 
 
 class DeleteFiles(ModalScreen):

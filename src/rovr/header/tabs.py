@@ -4,8 +4,8 @@ from textual import on
 from textual.widgets import Button, Tabs
 from textual.widgets._tabs import Tab
 
-from rovr.extras.classes import SessionManager
-from rovr.utils import normalise
+from rovr.classes import SessionManager
+from rovr.functions.path import normalise
 
 
 class TablineTab(Tab):

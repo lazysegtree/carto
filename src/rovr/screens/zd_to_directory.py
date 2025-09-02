@@ -8,7 +8,7 @@ from textual.screen import ModalScreen
 from textual.widgets import Input, OptionList
 from textual.widgets.option_list import Option
 
-from rovr import utils
+from rovr.functions import path as path_utils
 
 
 class ZDToDirectory(ModalScreen):
@@ -76,7 +76,9 @@ class ZDToDirectory(ModalScreen):
         options = []
         if zoxide_output.stdout:
             for line in zoxide_output.stdout.splitlines():
-                options.append(Option(Content(f" {line}"), id=utils.compress(line)))
+                options.append(
+                    Option(Content(f" {line}"), id=path_utils.compress(line))
+                )
             if len(options) == len(zoxide_options.options) and all(
                 options[i].id == zoxide_options.options[i].id
                 for i in range(len(options))
@@ -120,7 +122,7 @@ class ZDToDirectory(ModalScreen):
         selected_value = event.option.id
         assert selected_value is not None
         run(
-            ["zoxide", "add", utils.decompress(selected_value)],
+            ["zoxide", "add", path_utils.decompress(selected_value)],
             capture_output=True,
             text=True,
         )

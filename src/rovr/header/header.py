@@ -7,7 +7,7 @@ from textual.css.query import NoMatches
 from textual.widgets import Static
 from textual.widgets._header import HeaderClock
 
-from rovr.utils import config
+from rovr.variables.constants import config
 
 from .tabs import NewTabButton, Tabline, TablineTab
 

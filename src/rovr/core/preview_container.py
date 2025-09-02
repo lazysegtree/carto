@@ -13,10 +13,12 @@ from textual.binding import Binding, BindingType
 from textual.containers import Container
 from textual.widgets import Static, TextArea
 
+from rovr.classes import Archive
 from rovr.core import FileList
-from rovr.extras.classes import Archive
-from rovr.maps import ARCHIVE_EXTENSIONS, EXT_TO_LANG_MAP, PIL_EXTENSIONS
-from rovr.utils import config
+from rovr.variables.constants import PreviewContainerTitles, config
+from rovr.variables.maps import ARCHIVE_EXTENSIONS, EXT_TO_LANG_MAP, PIL_EXTENSIONS
+
+titles = PreviewContainerTitles()
 
 
 class CustomTextArea(TextArea, inherit_bindings=False):
@@ -199,7 +201,7 @@ class PreviewContainer(Container):
                 self._current_preview_type = "none"
                 # re-make the widget itself
                 await self._show_image_preview()
-        self.border_title = "Image Preview"
+        self.border_title = titles.image
 
     async def _show_bat_file_preview(self) -> bool:
         """Render file preview using bat, updating in place if possible.
@@ -247,7 +249,7 @@ class PreviewContainer(Container):
                 else:
                     self.query_one("#text_preview", Static).update(new_content)
 
-                self.border_title = "File Preview (bat)"
+                self.border_title = titles.bat
                 self.remove_class("full", "clip")
                 if preview_full:
                     self.add_class("full")
@@ -325,7 +327,7 @@ class PreviewContainer(Container):
             text_area.text = text_to_display
             text_area.language = language
 
-        self.border_title = "File Preview"
+        self.border_title = titles.file
 
     async def _render_preview(self) -> None:
         """Render function dispatcher."""
@@ -385,7 +387,7 @@ class PreviewContainer(Container):
         folder_preview.dummy_update_file_list(
             cwd=folder_path,
         )
-        self.border_title = "Folder Preview"
+        self.border_title = titles.folder
 
     async def _show_archive_preview(self) -> None:
         """Render archive preview, updating in place if possible."""
@@ -407,7 +409,7 @@ class PreviewContainer(Container):
         self.query_one("#archive_preview", FileList).create_archive_list(
             self._current_content
         )
-        self.border_title = "Archive Preview"
+        self.border_title = titles.archive
 
     def any_in_queue(self) -> bool:
         if self._queued_task is not None:
@@ -570,14 +572,9 @@ class PreviewContainer(Container):
 
     async def on_key(self, event: events.Key) -> None:
         """Check for vim keybinds."""
-        if (
-            self.border_title == "File Preview (bat)"
-            or self.border_title == "Archive Preview"
-        ):
+        if self.border_title == titles.bat or self.border_title == titles.archive:
             widget = (
-                self
-                if self.border_title.endswith("(bat)")
-                else self.query_one(FileList)
+                self if self.border_title == titles.bat else self.query_one(FileList)
             )
             match event.key:
                 case key if key in config["keybinds"]["up"]:

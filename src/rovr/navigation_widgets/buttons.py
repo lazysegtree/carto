@@ -2,7 +2,7 @@ from os import getcwd, path
 
 from textual.widgets import Button
 
-from rovr.utils import get_icon
+from rovr.functions.icons import get_icon
 
 
 class BackButton(Button):

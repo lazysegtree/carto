@@ -10,9 +10,9 @@ from textual.css.query import NoMatches
 from textual.widgets import Static
 from textual.worker import WorkerState
 
-from rovr import utils
-from rovr.maps import SPINNER
-from rovr.utils import config
+from rovr.functions import utils
+from rovr.variables.constants import config
+from rovr.variables.maps import SPINNER
 
 
 class MetadataContainer(VerticalScroll):
@@ -126,7 +126,11 @@ class MetadataContainer(VerticalScroll):
                 case "size":
                     values_list.append(
                         Static(
-                            utils.natural_size(file_stat.st_size)
+                            utils.natural_size(
+                                file_stat.st_size,
+                                config["metadata"]["filesize_suffix"],
+                                config["metadata"]["filesize_decimals"],
+                            )
                             if type_str == "File"
                             else "--",
                             id="metadata-size",
@@ -214,7 +218,7 @@ class MetadataContainer(VerticalScroll):
                     spinner_index = spinner_index + 1 if spinner_index // 3 == 0 else 0
                     self.app.call_from_thread(
                         size_widget.update,
-                        f"{utils.natural_size(total_size)} {SPINNER[spinner_index]}",
+                        f"{utils.natural_size(total_size, config['metadata']['filesize_suffix'], config['metadata']['filesize_decimals'])} {SPINNER[spinner_index]}",
                     )
                     last_update_time = time.monotonic()
         except (OSError, FileNotFoundError):
@@ -223,7 +227,12 @@ class MetadataContainer(VerticalScroll):
 
         if not self._size_worker.is_cancelled:
             self.app.call_from_thread(
-                size_widget.update, utils.natural_size(total_size)
+                size_widget.update,
+                utils.natural_size(
+                    total_size,
+                    config["metadata"]["filesize_suffix"],
+                    config["metadata"]["filesize_decimals"],
+                ),
             )
 
     @on(events.Focus)

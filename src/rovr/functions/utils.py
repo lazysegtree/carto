@@ -1,0 +1,100 @@
+from humanize import naturalsize
+from lzstring import LZString
+from rich.console import Console
+from textual.widget import Widget
+
+from rovr.variables.maps import (
+    BORDER_BOTTOM,
+)
+
+lzstring = LZString()
+pprint = Console().print
+
+
+def deep_merge(d: dict, u: dict) -> dict:
+    """Mini lodash merge
+    Args:
+        d (dict): old dictionary
+        u (dict): new dictionary, to merge on top of d
+
+    Returns:
+        dict: Merged dictionary
+    """
+    for k, v in u.items():
+        if isinstance(v, dict):
+            d[k] = deep_merge(d.get(k, {}), v)
+        else:
+            d[k] = v
+    return d
+
+
+def set_nested_value(d: dict, path_str: str, value: bool) -> None:
+    """Sets a value in a nested dictionary using a dot-separated path string.
+
+    Args:
+        d (dict): The dictionary to modify.
+        path_str (str): The dot-separated path to the key (e.g., "plugins.zen_mode").
+        value (bool): The value to set. (boolean for now)
+    """
+    keys = path_str.split(".")
+    current = d
+    for i, key in enumerate(keys):
+        if i == len(keys) - 1:
+            try:
+                if isinstance(current[key], dict) and "enabled" in current[key]:
+                    current[key]["enabled"] = value
+                elif type(current[key]) is type(value):
+                    current[key] = value
+                else:
+                    pprint("[bright_red underline]Config Error:[/]")
+                    pprint(
+                        f"[cyan bold]{path_str}[/]'s new value of type [cyan b]{type(value).__name__}[/] is not a [bold cyan]{type(current[key]).__name__}[/] type, and cannot be modified."
+                    )
+                    exit(1)
+            except KeyError:
+                pprint("[bright_red underline]Config Error:[/]")
+                pprint(
+                    f"[cyan b]{path_str}[/] is not a valid path to an existing value and hence cannot be set."
+                )
+                exit(1)
+        else:
+            if not isinstance(current.get(key), dict):
+                current[key] = {}
+            current = current[key]
+
+
+def set_scuffed_subtitle(element: Widget, mode: str, frac: str) -> None:
+    """The most scuffed way to display a custom subtitle
+
+    Args:
+        element (Widget): The element containing style information.
+        mode (str): The mode of the subtitle.
+        frac (str): The fraction to display.
+    """
+    border_bottom = BORDER_BOTTOM.get(
+        element.styles.border_bottom[0], BORDER_BOTTOM["blank"]
+    )
+    element.border_subtitle = (
+        f"{mode} "
+        + (border_bottom if element.app.ansi_color else f"[r]{border_bottom}[/]")
+        + f" {frac}"
+    )
+
+
+def natural_size(integer: int, suffix: str, filesize_decimals: int) -> str:
+    assert suffix in ["decimal", "binary", "gnu"]
+    match suffix:
+        case "gnu":
+            return naturalsize(
+                value=integer,
+                gnu=True,
+                format=f"%.{filesize_decimals}f",
+            )
+        case "binary":
+            return naturalsize(
+                value=integer,
+                binary=True,
+                format=f"%.{filesize_decimals}f",
+            )
+        case _:
+            return naturalsize(value=integer, format=f"%.{filesize_decimals}f")

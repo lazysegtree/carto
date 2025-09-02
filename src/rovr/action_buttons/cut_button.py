@@ -1,6 +1,7 @@
 from textual.widgets import Button
 
-from rovr.utils import config, get_icon
+from rovr.functions.icons import get_icon
+from rovr.variables.constants import config
 
 
 class CutButton(Button):

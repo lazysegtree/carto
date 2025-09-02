@@ -1,8 +1,10 @@
 try:
     import click
 
-    from .maps import VAR_TO_DIR
-    from .utils import config, normalise, set_nested_value
+    from rovr.functions.path import normalise
+    from rovr.functions.utils import set_nested_value
+    from rovr.variables.constants import config
+    from rovr.variables.maps import VAR_TO_DIR
 
     @click.command(help="A post-modern terminal file explorer")
     @click.option(

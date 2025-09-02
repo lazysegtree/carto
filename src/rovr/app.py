@@ -18,7 +18,6 @@ from textual.content import Content
 from textual.css.query import NoMatches
 from textual.widgets import Input
 
-from rovr import utils
 from rovr.action_buttons import (
     CopyButton,
     CutButton,
@@ -35,8 +34,10 @@ from rovr.core import (
     PreviewContainer,
 )
 from rovr.footer import Clipboard, MetadataContainer, ProcessContainer
+from rovr.functions import icons
+from rovr.functions.path import decompress, normalise
+from rovr.functions.themes import get_custom_themes
 from rovr.header import HeaderArea
-from rovr.maps import VAR_TO_DIR
 from rovr.navigation_widgets import (
     BackButton,
     ForwardButton,
@@ -46,8 +47,8 @@ from rovr.navigation_widgets import (
 )
 from rovr.screens import YesOrNo, ZDToDirectory
 from rovr.search_container import SearchInput
-from rovr.themes import get_custom_themes
-from rovr.utils import config
+from rovr.variables.constants import config
+from rovr.variables.maps import VAR_TO_DIR
 
 
 class Application(App, inherit_bindings=False):
@@ -98,12 +99,12 @@ class Application(App, inherit_bindings=False):
             with HorizontalGroup(id="main"):
                 with VerticalGroup(id="pinned_sidebar_container"):
                     yield SearchInput(
-                        placeholder=f"({utils.get_icon('general', 'search')[0]}) Search"
+                        placeholder=f"({icons.get_icon('general', 'search')[0]}) Search"
                     )
                     yield PinnedSidebar(id="pinned_sidebar")
                 with VerticalGroup(id="file_list_container"):
                     yield SearchInput(
-                        placeholder=f"({utils.get_icon('general', 'search')[0]}) Search something..."
+                        placeholder=f"({icons.get_icon('general', 'search')[0]}) Search something..."
                     )
                     yield FileList(
                         id="file_list",
@@ -287,9 +288,7 @@ class Application(App, inherit_bindings=False):
                     """Handle the response from the ZDToDirectory dialog."""
                     if response:
                         pathinput = self.query_one(PathInput)
-                        pathinput.value = utils.decompress(response).replace(
-                            path.sep, "/"
-                        )
+                        pathinput.value = decompress(response).replace(path.sep, "/")
                         pathinput.on_input_submitted(
                             SimpleNamespace(value=pathinput.value)
                         )
@@ -339,7 +338,7 @@ class Application(App, inherit_bindings=False):
         focus_on: str | None = None,
     ) -> None:
         if path.exists(directory):
-            if utils.normalise(getcwd()) == utils.normalise(directory):
+            if normalise(getcwd()) == normalise(directory):
                 self.query_one("#file_list").update_file_list(
                     add_to_session=False, focus_on=focus_on
                 )
@@ -351,7 +350,7 @@ class Application(App, inherit_bindings=False):
                 )
         else:
             while not path.exists(directory):
-                directory = "/".join(utils.normalise(directory).split("/")[:-1])
+                directory = "/".join(normalise(directory).split("/")[:-1])
             chdir(directory)
             self.query_one("#file_list").update_file_list(
                 add_to_session=add_to_history, focus_on=focus_on

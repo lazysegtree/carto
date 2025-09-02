@@ -6,7 +6,7 @@ from textual.validation import Function
 from textual.widgets import Input
 from textual_autocomplete import DropdownItem, PathAutoComplete, TargetState
 
-from rovr.utils import get_icon
+from rovr.functions.icons import get_icon
 
 
 class PathDropdownItem(DropdownItem):

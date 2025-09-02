@@ -1,7 +1,9 @@
 from textual.widgets import Button
 
+from rovr.functions.icons import get_icon
+from rovr.functions.path import decompress
 from rovr.screens import YesOrNo
-from rovr.utils import config, decompress, get_icon
+from rovr.variables.constants import config
 
 
 class PasteButton(Button):

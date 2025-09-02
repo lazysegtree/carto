@@ -9,7 +9,7 @@ from textual.screen import ModalScreen
 from textual.validation import Length
 from textual.widgets import Input, Label
 
-from rovr import utils
+from rovr.functions import icons as icon_utils
 
 
 class ModalInput(ModalScreen):
@@ -35,7 +35,9 @@ class ModalInput(ModalScreen):
         self.is_folder = is_folder
         if self.is_path:
             self.icon_widget = Label(
-                f"> {utils.get_icon('file', 'default')[0]} ", id="icon", shrink=True
+                f"> {icon_utils.get_icon('file', 'default')[0]} ",
+                id="icon",
+                shrink=True,
             )
         else:
             self.icon_widget = Label("> ", id="icon", shrink=True)
@@ -75,13 +77,13 @@ class ModalInput(ModalScreen):
                     )
             if event.value.replace("\\", "/").endswith("/"):
                 # dir
-                icon = utils.get_icon_for_folder(event.value[:-1])
+                icon = icon_utils.get_icon_for_folder(event.value[:-1])
             elif self.is_folder:
                 # dir
-                icon = utils.get_icon_for_folder(event.value)
+                icon = icon_utils.get_icon_for_folder(event.value)
             else:
                 # file
-                icon = utils.get_icon_for_file(event.value)
+                icon = icon_utils.get_icon_for_file(event.value)
             self.icon_widget.update(
                 Content.from_markup(f"> [{icon[1]}]{icon[0]}[{icon[1]}] ")
             )
@@ -105,7 +107,7 @@ class ModalInput(ModalScreen):
             and event.validation_result.failures
         ):
             # shake
-            for i in range(2):
+            for _ in range(2):
                 self.horizontal_group.styles.offset = (1, 0)
                 await sleep(0.1)
                 self.horizontal_group.styles.offset = (0, 0)

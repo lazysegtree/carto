@@ -9,9 +9,10 @@ from textual.strip import Strip
 from textual.widgets import Button, SelectionList
 from textual.widgets.option_list import OptionDoesNotExist
 
-from rovr import utils
-from rovr.options import ClipboardSelection
-from rovr.utils import config
+from rovr.classes import ClipboardSelection
+from rovr.functions import icons as icon_utils
+from rovr.functions import path as path_utils
+from rovr.variables.constants import config
 
 
 class Clipboard(SelectionList, inherit_bindings=False):
@@ -61,9 +62,11 @@ class Clipboard(SelectionList, inherit_bindings=False):
         for item in items[::-1]:
             self.insert_selection_at_beginning(
                 ClipboardSelection(
-                    prompt=Content(f"{utils.get_icon('general', 'copy')[0]} {item}"),
-                    value=utils.compress(f"{item}-copy"),
-                    id=utils.compress(item),
+                    prompt=Content(
+                        f"{icon_utils.get_icon('general', 'copy')[0]} {item}"
+                    ),
+                    value=path_utils.compress(f"{item}-copy"),
+                    id=path_utils.compress(item),
                 )
             )
         self.refresh(layout=True)
@@ -78,9 +81,11 @@ class Clipboard(SelectionList, inherit_bindings=False):
             if isinstance(item, str):
                 self.insert_selection_at_beginning(
                     ClipboardSelection(
-                        prompt=Content(f"{utils.get_icon('general', 'cut')[0]} {item}"),
-                        value=utils.compress(f"{item}-cut"),
-                        id=utils.compress(item),
+                        prompt=Content(
+                            f"{icon_utils.get_icon('general', 'cut')[0]} {item}"
+                        ),
+                        value=path_utils.compress(f"{item}-cut"),
+                        id=path_utils.compress(item),
                     )
                 )
         self.refresh(layout=True)
@@ -100,9 +105,9 @@ class Clipboard(SelectionList, inherit_bindings=False):
             The width of the left gutter.
         """
         return len(
-            utils.get_toggle_button_icon("left")
-            + utils.get_toggle_button_icon("inner")
-            + utils.get_toggle_button_icon("right")
+            icon_utils.get_toggle_button_icon("left")
+            + icon_utils.get_toggle_button_icon("inner")
+            + icon_utils.get_toggle_button_icon("right")
             + " "
         )
 
@@ -141,14 +146,14 @@ class Clipboard(SelectionList, inherit_bindings=False):
         button_style += Style(meta={"option": selection_index})
 
         return Strip([
-            Segment(utils.get_toggle_button_icon("left"), style=side_style),
+            Segment(icon_utils.get_toggle_button_icon("left"), style=side_style),
             Segment(
-                utils.get_toggle_button_icon("inner_filled")
+                icon_utils.get_toggle_button_icon("inner_filled")
                 if selection.value in self._selected
-                else utils.get_toggle_button_icon("inner"),
+                else icon_utils.get_toggle_button_icon("inner"),
                 style=button_style,
             ),
-            Segment(utils.get_toggle_button_icon("right"), style=side_style),
+            Segment(icon_utils.get_toggle_button_icon("right"), style=side_style),
             Segment(" ", style=underlying_style),
             *line,
         ])

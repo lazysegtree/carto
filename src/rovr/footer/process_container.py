@@ -15,10 +15,11 @@ from textual.types import UnusedParameter
 from textual.widgets import Label, ProgressBar
 from textual.widgets.option_list import OptionDoesNotExist
 
-from rovr import utils
-from rovr.extras.classes import Archive
+from rovr.classes import Archive
+from rovr.functions import icons as icon_utils
+from rovr.functions import path as path_utils
 from rovr.screens import CommonFileNameDoWhat, Dismissable, GiveMePermission, YesOrNo
-from rovr.utils import config
+from rovr.variables.constants import config
 
 
 class ThickBar(BarRenderable):
@@ -120,7 +121,7 @@ class ProcessContainer(VerticalScroll):
         )
         self.app.call_from_thread(
             bar.update_icon,
-            utils.get_icon("general", "delete")[0],
+            icon_utils.get_icon("general", "delete")[0],
         )
         self.app.call_from_thread(
             bar.update_text,
@@ -131,10 +132,10 @@ class ProcessContainer(VerticalScroll):
         folders_to_delete = []
         for file in files:
             if compressed:
-                file = utils.decompress(file)
+                file = path_utils.decompress(file)
             if path.isdir(file):
                 folders_to_delete.append(file)
-            files_to_add, folders_to_add = utils.get_recursive_files(
+            files_to_add, folders_to_add = path_utils.get_recursive_files(
                 file, with_folders=True
             )
             files_to_delete.extend(files_to_add)
@@ -183,7 +184,7 @@ class ProcessContainer(VerticalScroll):
                                 action = action_on_permission_error
                             match action:
                                 case "force":
-                                    if utils.force_obtain_write_permission(
+                                    if path_utils.force_obtain_write_permission(
                                         item_dict["path"]
                                     ):
                                         remove(item_dict["path"])
@@ -193,9 +194,9 @@ class ProcessContainer(VerticalScroll):
                                     self.app.call_from_thread(bar.add_class, "error")
                                     self.app.call_from_thread(
                                         bar.update_icon,
-                                        utils.get_icon("general", "delete")[0]
+                                        icon_utils.get_icon("general", "delete")[0]
                                         + " "
-                                        + utils.get_icon("general", "close")[0],
+                                        + icon_utils.get_icon("general", "close")[0],
                                     )
                                     return
                         except Exception as e:
@@ -234,16 +235,18 @@ class ProcessContainer(VerticalScroll):
                         action = action_on_permission_error
                     match action:
                         case "force":
-                            if utils.force_obtain_write_permission(item_dict["path"]):
+                            if path_utils.force_obtain_write_permission(
+                                item_dict["path"]
+                            ):
                                 remove(item_dict["path"])
                         case "skip":
                             continue
                         case "cancel":
                             self.app.call_from_thread(
                                 bar.update_icon,
-                                utils.get_icon("general", "delete")[0]
+                                icon_utils.get_icon("general", "delete")[0]
                                 + " "
-                                + utils.get_icon("general", "close")[0],
+                                + icon_utils.get_icon("general", "close")[0],
                             )
                             self.app.call_from_thread(bar.add_class, "error")
                             return
@@ -251,9 +254,9 @@ class ProcessContainer(VerticalScroll):
                     # TODO: should probably let it continue, then have a summary
                     self.app.call_from_thread(
                         bar.update_icon,
-                        utils.get_icon("general", "delete")[0]
+                        icon_utils.get_icon("general", "delete")[0]
                         + " "
-                        + utils.get_icon("general", "close")[0],
+                        + icon_utils.get_icon("general", "close")[0],
                     )
                     self.app.call_from_thread(
                         bar.update_text,
@@ -287,9 +290,9 @@ class ProcessContainer(VerticalScroll):
             )
             self.app.call_from_thread(
                 bar.update_icon,
-                utils.get_icon("general", "delete")[0]
+                icon_utils.get_icon("general", "delete")[0]
                 + " "
-                + utils.get_icon("general", "close")[0],
+                + icon_utils.get_icon("general", "close")[0],
             )
             self.app.call_from_thread(bar.add_class, "error")
             return
@@ -309,7 +312,7 @@ class ProcessContainer(VerticalScroll):
         # finished successfully
         self.app.call_from_thread(
             bar.update_icon,
-            utils.get_icon("general", "check")[0],
+            icon_utils.get_icon("general", "check")[0],
         )
         self.app.call_from_thread(bar.progress_bar.advance)
         self.app.call_from_thread(bar.add_class, "done")
@@ -328,7 +331,7 @@ class ProcessContainer(VerticalScroll):
         )
         self.app.call_from_thread(
             bar.update_icon,
-            utils.get_icon("general", "zip")[0],
+            icon_utils.get_icon("general", "zip")[0],
         )
         self.app.call_from_thread(
             bar.update_text,
@@ -396,9 +399,9 @@ class ProcessContainer(VerticalScroll):
         except Exception as e:
             self.app.call_from_thread(
                 bar.update_icon,
-                utils.get_icon("general", "zip")[0]
+                icon_utils.get_icon("general", "zip")[0]
                 + " "
-                + utils.get_icon("general", "close")[0],
+                + icon_utils.get_icon("general", "close")[0],
             )
             self.app.call_from_thread(
                 bar.update_text,
@@ -416,7 +419,7 @@ class ProcessContainer(VerticalScroll):
 
         self.app.call_from_thread(
             bar.update_icon,
-            utils.get_icon("general", "check")[0],
+            icon_utils.get_icon("general", "check")[0],
         )
         self.app.call_from_thread(bar.progress_bar.advance)
         self.app.call_from_thread(bar.add_class, "done")
@@ -435,7 +438,7 @@ class ProcessContainer(VerticalScroll):
         )
         self.app.call_from_thread(
             bar.update_icon,
-            utils.get_icon("general", "open")[0],
+            icon_utils.get_icon("general", "open")[0],
         )
         self.app.call_from_thread(
             bar.update_text,
@@ -494,7 +497,7 @@ class ProcessContainer(VerticalScroll):
                                     new_filename = (
                                         f"{base_name} ({tested_number}){extension}"
                                     )
-                                    new_path = utils.normalise(
+                                    new_path = path_utils.normalise(
                                         path.join(destination_path, new_filename)
                                     )
                                     if not path.exists(new_path):
@@ -509,9 +512,9 @@ class ProcessContainer(VerticalScroll):
                             case "cancel":
                                 self.app.call_from_thread(
                                     bar.update_icon,
-                                    utils.get_icon("general", "open")[0]
+                                    icon_utils.get_icon("general", "open")[0]
                                     + " "
-                                    + utils.get_icon("general", "close")[0],
+                                    + icon_utils.get_icon("general", "close")[0],
                                 )
                                 self.app.call_from_thread(bar.add_class, "error")
                                 return
@@ -533,7 +536,7 @@ class ProcessContainer(VerticalScroll):
                             action = action_on_permission_error
                         match action:
                             case "force":
-                                if utils.force_obtain_write_permission(
+                                if path_utils.force_obtain_write_permission(
                                     path.join(destination_path, filename)
                                 ):
                                     archive.extract(file, path=destination_path)
@@ -543,17 +546,17 @@ class ProcessContainer(VerticalScroll):
                                 self.app.call_from_thread(bar.add_class, "error")
                                 self.app.call_from_thread(
                                     bar.update_icon,
-                                    utils.get_icon("general", "open")[0]
+                                    icon_utils.get_icon("general", "open")[0]
                                     + " "
-                                    + utils.get_icon("general", "close")[0],
+                                    + icon_utils.get_icon("general", "close")[0],
                                 )
                                 return
         except (zipfile.BadZipFile, tarfile.TarError, ValueError) as e:
             self.app.call_from_thread(
                 bar.update_icon,
-                utils.get_icon("general", "open")[0]
+                icon_utils.get_icon("general", "open")[0]
                 + " "
-                + utils.get_icon("general", "close")[0],
+                + icon_utils.get_icon("general", "close")[0],
             )
             self.app.call_from_thread(
                 bar.update_text,
@@ -591,9 +594,9 @@ class ProcessContainer(VerticalScroll):
         except Exception as e:
             self.app.call_from_thread(
                 bar.update_icon,
-                utils.get_icon("general", "open")[0]
+                icon_utils.get_icon("general", "open")[0]
                 + " "
-                + utils.get_icon("general", "close")[0],
+                + icon_utils.get_icon("general", "close")[0],
             )
             self.app.call_from_thread(
                 bar.update_text,
@@ -610,7 +613,7 @@ class ProcessContainer(VerticalScroll):
 
         self.app.call_from_thread(
             bar.update_icon,
-            utils.get_icon("general", "check")[0],
+            icon_utils.get_icon("general", "check")[0],
         )
         self.app.call_from_thread(bar.progress_bar.advance)
         self.app.call_from_thread(bar.add_class, "done")
@@ -631,7 +634,7 @@ class ProcessContainer(VerticalScroll):
         )
         self.app.call_from_thread(
             bar.update_icon,
-            utils.get_icon("general", "paste")[0],
+            icon_utils.get_icon("general", "paste")[0],
         )
         self.app.call_from_thread(
             bar.update_text,
@@ -641,11 +644,11 @@ class ProcessContainer(VerticalScroll):
         files_to_cut = []
         cut_files__folders = []
         for file in copied:
-            files_to_copy.extend(utils.get_recursive_files(file))
+            files_to_copy.extend(path_utils.get_recursive_files(file))
         for file in cutted:
             if path.isdir(file):
-                cut_files__folders.append(utils.normalise(file))
-            files, folders = utils.get_recursive_files(file, with_folders=True)
+                cut_files__folders.append(path_utils.normalise(file))
+            files, folders = path_utils.get_recursive_files(file, with_folders=True)
             files_to_cut.extend(files)
             cut_files__folders.extend(folders)
         self.app.call_from_thread(
@@ -657,7 +660,7 @@ class ProcessContainer(VerticalScroll):
         if files_to_copy:
             self.app.call_from_thread(
                 bar.update_icon,
-                utils.get_icon("general", "copy")[0],
+                icon_utils.get_icon("general", "copy")[0],
             )
         for i, item_dict in enumerate(files_to_copy):
             current_time = time.monotonic()
@@ -676,7 +679,7 @@ class ProcessContainer(VerticalScroll):
                 # again checks just in case something goes wrong
                 try:
                     makedirs(
-                        utils.normalise(
+                        path_utils.normalise(
                             path.join(dest, item_dict["relative_loc"], "..")
                         ),
                         exist_ok=True,
@@ -718,9 +721,9 @@ class ProcessContainer(VerticalScroll):
                             case "cancel":
                                 self.app.call_from_thread(
                                     bar.update_icon,
-                                    utils.get_icon("general", "copy")[0]
+                                    icon_utils.get_icon("general", "copy")[0]
                                     + " "
-                                    + utils.get_icon("general", "close")[0],
+                                    + icon_utils.get_icon("general", "close")[0],
                                 )
                                 self.app.call_from_thread(
                                     bar.update_text,
@@ -757,7 +760,7 @@ class ProcessContainer(VerticalScroll):
                         action = action_on_permission_error
                     match action:
                         case "force":
-                            if utils.force_obtain_write_permission(
+                            if path_utils.force_obtain_write_permission(
                                 path.join(dest, item_dict["relative_loc"])
                             ):
                                 shutil.copy(
@@ -770,9 +773,9 @@ class ProcessContainer(VerticalScroll):
                             self.app.call_from_thread(bar.add_class, "error")
                             self.app.call_from_thread(
                                 bar.update_icon,
-                                utils.get_icon("general", "copy")[0]
+                                icon_utils.get_icon("general", "copy")[0]
                                 + " "
-                                + utils.get_icon("general", "close")[0],
+                                + icon_utils.get_icon("general", "close")[0],
                             )
                             return
                 except FileNotFoundError:
@@ -784,9 +787,9 @@ class ProcessContainer(VerticalScroll):
                     # TODO: should probably let it continue, then have a summary
                     self.app.call_from_thread(
                         bar.update_icon,
-                        utils.get_icon("general", "copy")[0]
+                        icon_utils.get_icon("general", "copy")[0]
                         + " "
-                        + utils.get_icon("general", "close")[0],
+                        + icon_utils.get_icon("general", "close")[0],
                     )
                     self.app.call_from_thread(
                         bar.update_text,
@@ -805,7 +808,7 @@ class ProcessContainer(VerticalScroll):
         if files_to_cut:
             self.app.call_from_thread(
                 bar.update_icon,
-                utils.get_icon("general", "cut")[0],
+                icon_utils.get_icon("general", "cut")[0],
             )
         for i, item_dict in enumerate(files_to_cut):
             current_time = time.monotonic()
@@ -824,20 +827,22 @@ class ProcessContainer(VerticalScroll):
                 # again checks just in case something goes wrong
                 try:
                     makedirs(
-                        utils.normalise(
+                        path_utils.normalise(
                             path.join(dest, item_dict["relative_loc"], "..")
                         ),
                         exist_ok=True,
                     )
                     if path.exists(path.join(dest, item_dict["relative_loc"])):
                         print(
-                            utils.normalise(path.join(dest, item_dict["relative_loc"])),
-                            utils.normalise(item_dict["path"]),
+                            path_utils.normalise(
+                                path.join(dest, item_dict["relative_loc"])
+                            ),
+                            path_utils.normalise(item_dict["path"]),
                         )
 
-                        if utils.normalise(
+                        if path_utils.normalise(
                             path.join(dest, item_dict["relative_loc"])
-                        ) != utils.normalise(item_dict["path"]):
+                        ) != path_utils.normalise(item_dict["path"]):
                             cut_ignore.append(item_dict["path"])
                             continue
                         if action_on_existance == "ask":
@@ -876,9 +881,9 @@ class ProcessContainer(VerticalScroll):
                             case "cancel":
                                 self.app.call_from_thread(
                                     bar.update_icon,
-                                    utils.get_icon("general", "cut")[0]
+                                    icon_utils.get_icon("general", "cut")[0]
                                     + " "
-                                    + utils.get_icon("general", "close")[0],
+                                    + icon_utils.get_icon("general", "close")[0],
                                 )
                                 self.app.call_from_thread(
                                     bar.update_text,
@@ -909,9 +914,9 @@ class ProcessContainer(VerticalScroll):
                         action = action_on_permission_error
                     match action:
                         case "force":
-                            if utils.force_obtain_write_permission(
+                            if path_utils.force_obtain_write_permission(
                                 path.join(dest, item_dict["relative_loc"])
-                            ) and utils.force_obtain_write_permission(
+                            ) and path_utils.force_obtain_write_permission(
                                 item_dict["path"]
                             ):
                                 shutil.move(
@@ -924,9 +929,9 @@ class ProcessContainer(VerticalScroll):
                             self.app.call_from_thread(bar.add_class, "error")
                             self.app.call_from_thread(
                                 bar.update_icon,
-                                utils.get_icon("general", "cut")[0]
+                                icon_utils.get_icon("general", "cut")[0]
                                 + " "
-                                + utils.get_icon("general", "close")[0],
+                                + icon_utils.get_icon("general", "close")[0],
                             )
                             return
                 except FileNotFoundError:
@@ -938,9 +943,9 @@ class ProcessContainer(VerticalScroll):
                     # TODO: should probably let it continue, then have a summary
                     self.app.call_from_thread(
                         bar.update_icon,
-                        utils.get_icon("general", "cut")[0]
+                        icon_utils.get_icon("general", "cut")[0]
                         + " "
-                        + utils.get_icon("general", "close")[0],
+                        + icon_utils.get_icon("general", "close")[0],
                     )
                     self.app.call_from_thread(bar.add_class, "error")
                     self.app.call_from_thread(
@@ -972,9 +977,9 @@ class ProcessContainer(VerticalScroll):
             )
             self.app.call_from_thread(
                 bar.update_icon,
-                utils.get_icon("general", "cut")[0]
+                icon_utils.get_icon("general", "cut")[0]
                 + " "
-                + utils.get_icon("general", "close")[0],
+                + icon_utils.get_icon("general", "close")[0],
             )
             self.app.call_from_thread(
                 bar.update_text,
@@ -988,15 +993,16 @@ class ProcessContainer(VerticalScroll):
             # just catch it
             with suppress(OptionDoesNotExist):
                 self.app.call_from_thread(
-                    self.app.query_one("Clipboard").remove_option, utils.compress(item)
+                    self.app.query_one("Clipboard").remove_option,
+                    path_utils.compress(item),
                 )
         self.app.call_from_thread(
             bar.update_icon,
-            utils.get_icon("general", "cut" if len(cutted) else "copy")[0],
+            icon_utils.get_icon("general", "cut" if len(cutted) else "copy")[0],
         )
         self.app.call_from_thread(
             bar.update_icon,
-            utils.get_icon("general", "check")[0],
+            icon_utils.get_icon("general", "check")[0],
         )
         self.app.call_from_thread(bar.progress_bar.advance)
         self.app.call_from_thread(bar.add_class, "done")

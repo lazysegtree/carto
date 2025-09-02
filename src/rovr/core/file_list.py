@@ -11,10 +11,13 @@ from textual.widgets import Button, Input, OptionList, SelectionList
 from textual.widgets.option_list import OptionDoesNotExist
 from textual.widgets.selection_list import Selection
 
-from rovr import utils
-from rovr.maps import ARCHIVE_EXTENSIONS
-from rovr.options import FileListSelectionWidget
-from rovr.utils import config
+from rovr.classes import FileListSelectionWidget
+from rovr.functions import icons as icon_utils
+from rovr.functions import path as path_utils
+from rovr.functions import pins as pin_utils
+from rovr.functions import utils
+from rovr.variables.constants import config
+from rovr.variables.maps import ARCHIVE_EXTENSIONS
 
 
 class FileList(SelectionList, inherit_bindings=False):
@@ -109,7 +112,7 @@ class FileList(SelectionList, inherit_bindings=False):
             add_to_session (bool): Whether to add the current directory to the session history.
             focus_on (str | None): A custom item to set the focus as.
         """
-        cwd = utils.normalise(getcwd())
+        cwd = path_utils.normalise(getcwd())
         # get sessionstate
         try:
             # only happens when the tabs aren't mounted
@@ -118,7 +121,7 @@ class FileList(SelectionList, inherit_bindings=False):
             self.clear_options()
             return
         # Separate folders and files
-        folders, files = utils.get_cwd_object(cwd)
+        folders, files = path_utils.get_cwd_object(cwd)
         self.list_of_options = []
         if folders == [PermissionError] or files == [PermissionError]:
             self.list_of_options.append(
@@ -145,8 +148,8 @@ class FileList(SelectionList, inherit_bindings=False):
                         icon=item["icon"],
                         label=item["name"],
                         dir_entry=item["dir_entry"],
-                        value=utils.compress(item["name"]),
-                        id=utils.compress(item["name"]),
+                        value=path_utils.compress(item["name"]),
+                        id=path_utils.compress(item["name"]),
                     )
                 )
         if len(self.list_of_options) == 1 and self.list_of_options[0].disabled:
@@ -180,14 +183,14 @@ class FileList(SelectionList, inherit_bindings=False):
                 )
             session.sessionHistoryIndex = len(session.sessionDirectories) - 1
         elif session.sessionDirectories == []:
-            session.sessionDirectories = [{"path": utils.normalise(getcwd())}]
+            session.sessionDirectories = [{"path": path_utils.normalise(getcwd())}]
         self.app.query_one("Button#back").disabled = session.sessionHistoryIndex <= 0
         self.app.query_one("Button#forward").disabled = (
             session.sessionHistoryIndex == len(session.sessionDirectories) - 1
         )
         try:
             if focus_on:
-                self.highlighted = self.get_option_index(utils.compress(focus_on))
+                self.highlighted = self.get_option_index(path_utils.compress(focus_on))
             else:
                 self.highlighted = self.get_option_index(
                     session.sessionLastHighlighted[cwd]
@@ -222,7 +225,7 @@ class FileList(SelectionList, inherit_bindings=False):
         self.enter_into = cwd
         self.clear_options()
         # Separate folders and files
-        folders, files = utils.get_cwd_object(cwd)
+        folders, files = path_utils.get_cwd_object(cwd)
         self.list_of_options = []
         if folders == [PermissionError] or files == [PermissionError]:
             self.list_of_options.append(
@@ -245,8 +248,8 @@ class FileList(SelectionList, inherit_bindings=False):
                         icon=item["icon"],
                         label=item["name"],
                         dir_entry=item["dir_entry"],
-                        value=utils.compress(item["name"]),
-                        id=utils.compress(item["name"]),
+                        value=path_utils.compress(item["name"]),
+                        id=path_utils.compress(item["name"]),
                     )
                 )
         self.add_options(self.list_of_options)
@@ -269,17 +272,17 @@ class FileList(SelectionList, inherit_bindings=False):
         else:
             for file_path in file_list:
                 if file_path.endswith("/"):
-                    icon = utils.get_icon_for_folder(file_path.strip("/"))
+                    icon = icon_utils.get_icon_for_folder(file_path.strip("/"))
                 else:
-                    icon = utils.get_icon_for_file(file_path)
+                    icon = icon_utils.get_icon_for_file(file_path)
 
                 # Create a selection widget similar to FileListSelectionWidget but simpler
                 # since we don't have dir_entry metadata for archive contents
                 self.list_of_options.append(
                     Selection(
                         f" [{icon[1]}]{icon[0]}[/{icon[1]}] {file_path}",
-                        value=utils.compress(file_path),
-                        id=utils.compress(file_path),
+                        value=path_utils.compress(file_path),
+                        id=path_utils.compress(file_path),
                         disabled=True,  # Archive contents are not interactive like regular files
                     )
                 )
@@ -292,10 +295,10 @@ class FileList(SelectionList, inherit_bindings=False):
     ) -> None:
         # Get the filename from the option id
         event.prevent_default()
-        cwd = utils.normalise(getcwd())
+        cwd = path_utils.normalise(getcwd())
         # Get the selected option
         selected_option = self.get_option_at_index(self.highlighted)
-        file_name = utils.decompress(selected_option.value)
+        file_name = path_utils.decompress(selected_option.value)
         if self.dummy and path.isdir(path.join(self.enter_into, file_name)):
             # if the folder is selected, then cd there,
             # skipping the middle folder entirely
@@ -307,7 +310,7 @@ class FileList(SelectionList, inherit_bindings=False):
                 # If it's a folder, navigate into it
                 self.app.cd(path.join(cwd, file_name))
             else:
-                utils.open_file(path.join(cwd, file_name))
+                path_utils.open_file(path.join(cwd, file_name))
             if self.highlighted is None:
                 self.highlighted = 0
             utils.set_scuffed_subtitle(
@@ -347,16 +350,16 @@ class FileList(SelectionList, inherit_bindings=False):
         # Get the highlighted option
         highlighted_option = event.option
         self.app.tabWidget.active_tab.session.sessionLastHighlighted[
-            utils.normalise(getcwd())
+            path_utils.normalise(getcwd())
         ] = highlighted_option.value
         # Get the filename from the option id
-        file_name = utils.decompress(highlighted_option.value)
+        file_name = path_utils.decompress(highlighted_option.value)
         # total files as footer
         if self.highlighted is None:
             self.highlighted = 0
         # preview
         self.app.query_one("PreviewContainer").show_preview(
-            utils.normalise(path.join(getcwd(), file_name))
+            path_utils.normalise(path.join(getcwd(), file_name))
         )
         self.app.query_one("MetadataContainer").update_metadata(event.option.dir_entry)
         self.app.query_one("#unzip").disabled = not file_name.endswith(
@@ -377,9 +380,9 @@ class FileList(SelectionList, inherit_bindings=False):
         else:
             # in future, if anything was changed, you just need to add the line below
             return len(
-                utils.get_toggle_button_icon("left")
-                + utils.get_toggle_button_icon("inner")
-                + utils.get_toggle_button_icon("right")
+                icon_utils.get_toggle_button_icon("left")
+                + icon_utils.get_toggle_button_icon("inner")
+                + icon_utils.get_toggle_button_icon("right")
                 + " "
             )
 
@@ -422,14 +425,14 @@ class FileList(SelectionList, inherit_bindings=False):
 
         # in future, if anything was changed, you just need to fix the segments below
         return Strip([
-            Segment(utils.get_toggle_button_icon("left"), style=side_style),
+            Segment(icon_utils.get_toggle_button_icon("left"), style=side_style),
             Segment(
-                utils.get_toggle_button_icon("inner_filled")
+                icon_utils.get_toggle_button_icon("inner_filled")
                 if selection.value in self._selected
-                else utils.get_toggle_button_icon("inner"),
+                else icon_utils.get_toggle_button_icon("inner"),
                 style=button_style,
             ),
-            Segment(utils.get_toggle_button_icon("right"), style=side_style),
+            Segment(icon_utils.get_toggle_button_icon("right"), style=side_style),
             Segment(" ", style=underlying_style),
             *line,
         ])
@@ -449,13 +452,13 @@ class FileList(SelectionList, inherit_bindings=False):
             list[str]: If there are objects at that given location.
             None: If there are no objects at that given location.
         """
-        cwd = utils.normalise(getcwd())
+        cwd = path_utils.normalise(getcwd())
         if not self.select_mode_enabled:
             return [
-                utils.normalise(
+                path_utils.normalise(
                     path.join(
                         cwd,
-                        utils.decompress(
+                        path_utils.decompress(
                             self.get_option_at_index(self.highlighted).value
                         ),
                     )
@@ -463,7 +466,7 @@ class FileList(SelectionList, inherit_bindings=False):
             ]
         else:
             return [
-                utils.normalise(path.join(cwd, utils.decompress(option)))
+                path_utils.normalise(path.join(cwd, path_utils.decompress(option)))
                 for option in self.selected
             ]
 
@@ -589,19 +592,19 @@ class FileList(SelectionList, inherit_bindings=False):
                     if path.isdir(
                         path.join(
                             getcwd(),
-                            utils.decompress(
+                            path_utils.decompress(
                                 self.get_option_at_index(self.highlighted).id
                             ),
                         )
                     ):
                         with self.app.suspend():
                             cmd(
-                                f'{config["plugins"]["editor"]["folder_executable"]} "{path.join(getcwd(), utils.decompress(self.get_option_at_index(self.highlighted).id))}"'
+                                f'{config["plugins"]["editor"]["folder_executable"]} "{path.join(getcwd(), path_utils.decompress(self.get_option_at_index(self.highlighted).id))}"'
                             )
                     else:
                         with self.app.suspend():
                             cmd(
-                                f'{config["plugins"]["editor"]["file_executable"]} "{path.join(getcwd(), utils.decompress(self.get_option_at_index(self.highlighted).id))}"'
+                                f'{config["plugins"]["editor"]["file_executable"]} "{path.join(getcwd(), path_utils.decompress(self.get_option_at_index(self.highlighted).id))}"'
                             )
                 # hit buttons with keybinds
                 case key if (
@@ -635,7 +638,7 @@ class FileList(SelectionList, inherit_bindings=False):
                 # Toggle pin on current directory
                 case key if key in config["keybinds"]["toggle_pin"]:
                     event.stop()
-                    utils.toggle_pin(path.basename(getcwd()), getcwd())
+                    pin_utils.toggle_pin(path.basename(getcwd()), getcwd())
                     self.app.query_one("PinnedSidebar").reload_pins()
                 case key if key in config["keybinds"]["copy"]:
                     event.stop()

@@ -3,7 +3,7 @@ from os import getcwd, path
 from pathvalidate import sanitize_filepath
 from textual.validation import ValidationResult, Validator
 
-from rovr.utils import normalise
+from rovr.functions.path import normalise
 
 
 class IsValidFilePath(Validator):
