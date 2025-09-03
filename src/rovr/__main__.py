@@ -44,6 +44,7 @@ try:
         type=str,
         required=False
     )
+    @click.argument("path", type=str, required=False)
     def main(
         with_features: list[str],
         without_features: list[str],

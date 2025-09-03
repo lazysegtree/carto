@@ -14,11 +14,15 @@ def get_custom_themes() -> list:
     custom_themes = []
     for theme in config["custom_theme"]:
         if bar_gradient := theme.get("bar_gradient"):
-            for color in bar_gradient:
-                Color.parse(color)
+            if "default" in bar_gradient["default"]:
+                for color in bar_gradient["default"]:
+                    Color.parse(color)
+            if "error" in bar_gradient["error"]:
+                for color in bar_gradient["error"]:
+                    Color.parse(color)
         custom_themes.append(
             RovrThemeClass(
-                bar_gradient=theme.get("bar_gradient", []),
+                bar_gradient=theme.get("bar_gradient", {}),
                 name=theme["name"]
                 .lower()
                 .replace(" ", "-"),  # Keep it similar to default textual behaviour

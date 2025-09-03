@@ -36,7 +36,7 @@ from rovr.core import (
 )
 from rovr.footer import Clipboard, MetadataContainer, ProcessContainer
 from rovr.functions import icons
-from rovr.functions.path import decompress, normalise, ensure_existing_directory
+from rovr.functions.path import decompress, ensure_existing_directory, normalise
 from rovr.functions.themes import get_custom_themes
 from rovr.header import HeaderArea
 from rovr.navigation_widgets import (
@@ -73,7 +73,7 @@ class Application(App, inherit_bindings=False):
     def __init__(self, startup_path: str = "", *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.app_blurred = False
-        self.startup_path = startup_path        
+        self.startup_path = startup_path
 
     def compose(self) -> ComposeResult:
         print("Starting Rovr...")
@@ -137,13 +137,14 @@ class Application(App, inherit_bindings=False):
             for theme in get_custom_themes():
                 self.register_theme(theme)
             parse_failed = False
-        except ColorParseError:
+        except ColorParseError as e:
             parse_failed = True
+            exception = e
         if parse_failed:
             self.exit(
                 return_code=1,
                 message=Content.from_markup(
-                    "[underline ansi_red]Config Error[/]\n[bold ansi_cyan]custom_themes.bar_gradient[/]: One of the colors provided cannot be parsed."
+                    f"[underline ansi_red]Config Error[/]\n[bold ansi_cyan]custom_themes.bar_gradient[/]: {exception}"
                 ),
             )
             return
@@ -155,11 +156,13 @@ class Application(App, inherit_bindings=False):
             self.query_one("#forward").tooltip = "Go forward in history"
             self.query_one("#up").tooltip = "Go up the directory tree"
         self.tabWidget = self.query_one("Tabline")
-        
+
         # Change to startup directory. This also calls update_file_list()
         # causing the file_list to get populated
-        self.cd(directory=path.abspath(self.startup_path), 
-                focus_on=path.basename(self.startup_path))
+        self.cd(
+            directory=path.abspath(self.startup_path),
+            focus_on=path.basename(self.startup_path),
+        )
         self.query_one("#file_list").focus()
         # start mini watcher
         self.watch_for_changes_and_update()
@@ -350,7 +353,7 @@ class Application(App, inherit_bindings=False):
             add_to_history = False
         else:
             chdir(directory)
-        
+
         self.query_one("#file_list").update_file_list(
             add_to_session=add_to_history, focus_on=focus_on
         )
