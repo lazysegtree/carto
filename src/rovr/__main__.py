@@ -39,11 +39,7 @@ try:
         is_flag=True,
         help="Show the current version of rovr.",
     )
-    @click.argument(
-        "path",
-        type=str,
-        required=False
-    )
+    @click.argument("path", type=str, required=False)
     def main(
         with_features: list[str],
         without_features: list[str],
@@ -70,8 +66,8 @@ try:
 
         from rovr.app import Application
 
-        # Need to move this 'path' in the cofig dict, or a new runtime_config dict
-        # Eventually there will be many options coming via args, but we cant keep sending all of 
+        # TODO: Need to move this 'path' in the config dict, or a new runtime_config dict
+        # Eventually there will be many options coming via arguments, but we cant keep sending all of
         # them via this Application's __init__ function here
         Application(watch_css=True, startup_path=path).run()
 
