@@ -5,7 +5,7 @@
   <!--python -c "import toml;print(len(toml.load('uv.lock')['package']))"-->
   <img alt="Dependencies" src="https://img.shields.io/badge/Dependencies-85-purple?style=for-the-badge">
   <br>
-  <img alt="Discord" src="https://img.shields.io/discord/1110189201313513552?style=for-the-badge&logo=discord&logoColor=white&color=%235865f2">
+  <a href="https://nspc911.github.io/discord"><img alt="Discord" src="https://img.shields.io/discord/1110189201313513552?style=for-the-badge&logo=discord&logoColor=white&color=%235865f2"></a>
   <img alt="PyPI - Downloads" src="https://img.shields.io/pypi/dw/rovr?style=for-the-badge&logo=pypi&logoColor=white&color=darkgreen">
   <br>
   <img alt="GitHub Actions Docs Build Status" src="https://img.shields.io/github/actions/workflow/status/nspc911/rovr/.github%2Fworkflows%2Fdeploy.yml?style=for-the-badge&label=docs">

@@ -19,11 +19,10 @@ export default defineConfig({
           label: "GitHub",
           href: "https://github.com/NSPC911/rovr",
         },
-        /* to-do: create a link that always leads to discord, instead of hardcoding it here */
         {
           icon: "discord",
           label: "Discord",
-          href: "https://discord.com/invite/smDsD9Pmbz",
+          href: "https://nspc911.github.io/discord",
         },
       ],
       head: [
