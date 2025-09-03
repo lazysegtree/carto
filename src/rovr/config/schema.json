@@ -467,6 +467,13 @@
           },
           "description": "Extract a selected zip archive."
         },
+        "copy_path": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Copy the path of the item to the system clipboard."
+        },
         "up": {
           "type": "array",
           "items": {

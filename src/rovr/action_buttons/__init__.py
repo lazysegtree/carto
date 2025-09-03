@@ -1,4 +1,5 @@
 from .copy_button import CopyButton
+from .copy_path import PathCopyButton
 from .cut_button import CutButton
 from .delete_button import DeleteButton
 from .new_item_button import NewItemButton
@@ -16,4 +17,5 @@ __all__ = [
     "RenameItemButton",
     "UnzipButton",
     "ZipButton",
+    "PathCopyButton",
 ]

@@ -24,6 +24,7 @@ from rovr.action_buttons import (
     DeleteButton,
     NewItemButton,
     PasteButton,
+    PathCopyButton,
     RenameItemButton,
     UnzipButton,
     ZipButton,
@@ -86,6 +87,7 @@ class Application(App, inherit_bindings=False):
                 yield DeleteButton()
                 yield ZipButton()
                 yield UnzipButton()
+                yield PathCopyButton()
             with VerticalGroup(id="below_menu"):
                 with HorizontalGroup():
                     yield BackButton()

@@ -70,6 +70,7 @@ ICONS = {
         "rename": ["\uf246", "white"],
         "delete": ["\uf014", "red"],
         "zip": ["\uf410", "yellow"],
+        "link": ["\U000f0337"],
     },
     "folder": {
         "default": ["\uf07b", "#DAA520"],

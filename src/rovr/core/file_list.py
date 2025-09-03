@@ -16,7 +16,7 @@ from rovr.functions import icons as icon_utils
 from rovr.functions import path as path_utils
 from rovr.functions import pins as pin_utils
 from rovr.functions import utils
-from rovr.variables.constants import config
+from rovr.variables.constants import buttons_that_depend_on_path, config
 from rovr.variables.maps import ARCHIVE_EXTENSIONS
 
 
@@ -153,10 +153,10 @@ class FileList(SelectionList, inherit_bindings=False):
                     )
                 )
         if len(self.list_of_options) == 1 and self.list_of_options[0].disabled:
-            for selector in ["#copy", "#cut", "#rename", "#delete", "#zip"]:
+            for selector in buttons_that_depend_on_path:
                 self.app.query_one(selector).disabled = True
         else:
-            for selector in ["#copy", "#cut", "#rename", "#delete", "#zip"]:
+            for selector in buttons_that_depend_on_path:
                 self.app.query_one(selector).disabled = False
         self.clear_options()
         self.add_options(self.list_of_options)
@@ -635,6 +635,11 @@ class FileList(SelectionList, inherit_bindings=False):
                 ):
                     event.stop()
                     self.app.query_one("UpButton").on_button_pressed(Button.Pressed)
+                case key if event.key in config["keybinds"]["copy_path"]:
+                    event.stop()
+                    await self.app.query_one("PathCopyButton").on_button_pressed(
+                        Button.Pressed
+                    )
                 # Toggle pin on current directory
                 case key if key in config["keybinds"]["toggle_pin"]:
                     event.stop()

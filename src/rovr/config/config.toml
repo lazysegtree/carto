@@ -126,6 +126,9 @@ rename = ["r", "f2"]
 new = ["ctrl+n", "o"]
 zip = ["E"]
 unzip = ["ctrl+e"]
+# id love to use ctrl+shift+c
+# but that is taken by terminals
+copy_path = ["Y"]
 
 up = ["up", "k"]
 down = ["down", "j"]
