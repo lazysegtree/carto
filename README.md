@@ -89,7 +89,7 @@ variables = {
 2. Why is it considered post-modern?
 
 - Parody to my current editor, [helix](https://helix-editor.com)
-  - If NeoVim is considered modern, then Helix is post-modern
+  - If neovim is considered modern, then helix is post-modern
   - If superfile is considered modern, then rovr is post-modern
 
 3. What can I contribute?
