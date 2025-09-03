@@ -2,7 +2,7 @@ try:
     import click
 
     from rovr.functions.path import normalise
-    from rovr.functions.utils import set_nested_value
+    from rovr.functions.utils import pprint, set_nested_value
     from rovr.variables.constants import config
     from rovr.variables.maps import VAR_TO_DIR
 
@@ -50,12 +50,12 @@ try:
         """A post-modern terminal file explorer"""
 
         if config_path:
-            print(
+            pprint(
                 f"[cyan]Config Path[/cyan]: [pink]{normalise(VAR_TO_DIR['CONFIG'])}[/pink]"
             )
             return
         elif show_version:
-            print("v0.2.1-post2")
+            pprint("v0.2.1-post2")
             return
 
         for feature_path in with_features:
