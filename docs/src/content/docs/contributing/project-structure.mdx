@@ -12,15 +12,9 @@ the current file structure seperates each section in each folder
 <FileTree>
 - src/rovr
   - app.py houses the main application
-  - exceptions.py custom exceptions that are raised where necessary
-  - maps.py maps to icons and other things
-  - options.py classes for option/selection elements
   - py.typed
   - search_container.py search bar in pinned folders and file list
   - style.tcss default style
-  - themes.py theme loader
-  - utils.py utilities that cannot be split
-  - validators.py validations for input elements
 </FileTree>
 
 ### action buttons
@@ -35,6 +29,18 @@ the current file structure seperates each section in each folder
   - rename_item_button.py rename selected **item**
   - unzip_button.py unzip selected **item**
   - zip_button.py zip selected items
+</FileTree>
+
+### classes
+
+<FileTree>
+- src/rovr/classes
+  - archive.py classes for handling archives
+  - exceptions.py custom exceptions that are raised where necessary
+  - session_manager.py a class for managing session state
+  - textual_options.py classes for option/selection elements
+  - textual_validators.py validations for input elements
+  - theme.py a class for themes
 </FileTree>
 
 ### config
@@ -58,13 +64,6 @@ handles the middle elements
 </FileTree>
 `PreviewContainer` uses `FileList` as part of its Folder Preview mechanism. it currently doesn't use it for archive previews, so I'm ready to accept prs that fix this issue
 
-### extras
-<FileTree>
-- src/rovr/extras
-  - classes.py
-</FileTree>
-not much extras, might move some uncategorised stuff here
-
 ### footer
 
 handles the bottom row
@@ -76,6 +75,18 @@ handles the bottom row
   - process_container.py shows a list of active processes
 </FileTree>
 I'm currently waiting for textual's next release for a thicker progress bar, so that gradient bars can be added
+
+### functions
+
+<FileTree>
+- src/rovr/functions
+  - config.py functions for loading and validating the config
+  - icons.py functions for getting icons
+  - path.py functions for path manipulation
+  - pins.py functions for managing pins
+  - themes.py theme loader
+  - utils.py miscellaneous utility functions
+</FileTree>
 
 ### header
 
@@ -111,4 +122,12 @@ handles the modal screens used
   - yes_or_no.py simple yes or no prompt
   - zd_to_directory.py zoxide integration
   - _tester.py screen tester, not used at all
+</FileTree>
+
+### variables
+
+<FileTree>
+- src/rovr/variables
+  - constants.py global constants, including the loaded config
+  - maps.py maps to icons and other things
 </FileTree>
