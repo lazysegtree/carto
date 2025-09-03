@@ -26,3 +26,21 @@ buttons_that_depend_on_path = [
     "#zip",
     "#copy_path",
 ]
+
+ascii_logo = r"""
+ _ ___  ___ __   _ˍ_ ___
+/\`'__\/ __`\ \ /\ \`'__\
+\ \ \_/\ \_\ \ V_/ /\ \_/
+ \ \_\\ \____/\___/\ \_\
+  \/_/ \/___/\/__/  \/_/
+  """
+
+
+class MaxPossible:
+    @property
+    def height(self) -> int:
+        return 13 if config["interface"]["use_reactive_layout"] else 24
+
+    @property
+    def width(self) -> int:
+        return 26 if config["interface"]["use_reactive_layout"] else 70
