@@ -3,7 +3,10 @@ name: Formatting
 on:
   push:
     branches:
-    - '**'
+      - "**"
+  pull_request:
+    branches:
+      - "**"
   workflow_dispatch:
 jobs:
   format_repo:
@@ -12,7 +15,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.head_ref }} # Make sure PR is checked
+          ref: ${{ github.ref }}
 
       - name: Setup uv
         uses: astral-sh/setup-uv@v6
