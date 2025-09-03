@@ -39,7 +39,7 @@ try:
         is_flag=True,
         help="Show the current version of rovr.",
     )
-    @click.argument("path", type=str, required=False)
+    @click.argument("path", type=str, required=False, default="")
     def main(
         with_features: list[str],
         without_features: list[str],
