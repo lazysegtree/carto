@@ -4,11 +4,9 @@
 [interface]
 tooltips = true
 nerd_font = true
-
 show_progress_eta = false
 show_progress_percentage = true
 truncate_progress_file_path = false
-
 preview_error = "Hmm, I think this file got corrupted (or maybe not?)"
 preview_binary = "This file is not UTF-8 encoded, so I decline to read it."
 preview_start = "print(\"Hello, world!\")"
@@ -49,28 +47,22 @@ default = "nord"
 transparent = false
 
 [[custom_theme]]
-name="nord"
-primary="#88C0D0"
-secondary="#81A1C1"
-accent="#B48EAD"
-foreground="#D8DEE9"
-background="#2E3440"
-success="#A3BE8C"
-warning="#EBCB8B"
-error="#BF616A"
-surface="#3B4252"
-panel="#434C5E"
-is_dark=true
-bar_gradient=["#88c0d0", "#ebcb8b"]
+name = "nord"
+primary = "#88C0D0"
+secondary = "#81A1C1"
+accent = "#B48EAD"
+foreground = "#D8DEE9"
+background = "#2E3440"
+success = "#A3BE8C"
+warning = "#EBCB8B"
+error = "#BF616A"
+surface = "#3B4252"
+panel = "#434C5E"
+is_dark = true
 
-[custom_theme.variables]
-"block-cursor-background"= "#88C0D0"
-"block-cursor-foreground"= "#2E3440"
-"block-cursor-text-style"= "none"
-"footer-key-foreground"= "#88C0D0"
-"input-selection-background"= "#81a1c1 35%"
-"button-color-foreground"= "#2E3440"
-"button-focus-text-style"= "reverse"
+[custom_theme.bar_gradient]
+default = ["#88c0d0", "#5e81ac"]
+error = ["#bf616a","#d08770"]
 
 [[custom_theme]]
 name = "Solarized Dark"
@@ -85,7 +77,10 @@ background = "#073642"
 surface = "#284149"
 panel = "#657B83"
 is_dark = true
-bar_gradient = ["#93A1A1", "#D33682"]
+
+[custom_theme.bar_gradient]
+default = ["#93A1A1", "#D33682"]
+error = ["#dc322f", "#b58900"]
 
 [[custom_theme]]
 name = "Dark Pink"
@@ -101,6 +96,15 @@ surface = "#FD7AFF"
 panel = "#2b2b2b"
 is_dark = true
 
+[custom_theme.variables]
+"block-cursor-background" = "#88C0D0"
+"block-cursor-foreground" = "#2E3440"
+"block-cursor-text-style" = "none"
+"footer-key-foreground" = "#88C0D0"
+"input-selection-background" = "#81a1c1 35%"
+"button-color-foreground" = "#2E3440"
+"button-focus-text-style" = "reverse"
+
 [keybinds]
 # id love to get some help separating
 # vi bindings from sane bindings
@@ -108,7 +112,6 @@ toggle_pin = ["P"]
 toggle_pinned_sidebar = ["S"]
 toggle_preview_sidebar = ["I"]
 toggle_footer = ["F"]
-
 focus_toggle_pinned_sidebar = ["s"]
 focus_file_list = ["escape"]
 focus_toggle_preview_sidebar = ["i"]
@@ -117,7 +120,6 @@ focus_search = ["ctrl+f", "slash"]
 focus_toggle_processes = ["f6"]
 focus_toggle_clipboard = ["c"]
 focus_toggle_metadata = ["m"]
-
 copy = ["y", "ctrl+c"]
 paste = ["p", "ctrl+v"]
 cut = ["x", "ctrl+x"]
@@ -129,7 +131,6 @@ unzip = ["ctrl+e"]
 # id love to use ctrl+shift+c
 # but that is taken by terminals
 copy_path = ["Y"]
-
 up = ["up", "k"]
 down = ["down", "j"]
 up_tree = ["left", "h"]
@@ -138,25 +139,20 @@ page_up = ["pageup", "ctrl+b"]
 page_down = ["pagedown", "ctrl+f"]
 home = ["home", "g"]
 end = ["end", "G"]
-
 hist_previous = ["backspace", "u"]
 hist_next = ["space"]
-
 toggle_visual = ["v"]
 toggle_all = ["%", "ctrl+a"]
-
 select_up = ["shift+up", "K"]
 select_down = ["shift+down", "J"]
 select_page_up = ["shift+pageup"]
 select_page_down = ["shift+pagedown"]
 select_home = ["shift+home"]
 select_end = ["shift+end"]
-
 tab_next = ["ctrl+j"]
 tab_previous = ["ctrl+k"]
 tab_new = ["n"]
 tab_close = ["w"]
-
 preview_scroll_left = ["left", "h"]
 preview_scroll_right = ["right", "l"]
 preview_select_left = ["shift+left", "H"]

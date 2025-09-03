@@ -286,9 +286,19 @@
             "description": "A hex code or named color to use as the panel color. Refer to https://textual.textualize.io/css_types/color/#named-colors for the named colors."
           },
           "bar_gradient": {
-            "type": "array",
-            "description": "A list of hex codes, or named colors to use as the progress bar's gradient colors. Refer to https://textual.textualize.io/css_types/color/#named-colors for the named colors.",
-            "default": []
+            "type": "object",
+            "description": "The gradient colors for the progress bar.",
+            "additionalProperties": false,
+            "properties": {
+              "default": {
+                "type": "array",
+                "description": "A list of hex codes, or named colors to use as the progress bar's gradient colors. Refer to https://textual.textualize.io/css_types/color/#named-colors for the named colors."
+              },
+              "error": {
+                "type": "array",
+                "description": "A list of hex codes, or named colors to use as the progress bar's gradient colors **when it encountered an error**. Refer to https://textual.textualize.io/css_types/color/#named-colors for the named colors."
+              }
+            }
           },
           "is_dark": {
             "type": "boolean",

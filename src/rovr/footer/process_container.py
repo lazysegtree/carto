@@ -39,7 +39,7 @@ class ProgressBarContainer(VerticalGroup):
         super().__init__(*args, **kwargs)
         if hasattr(self.app.get_theme(self.app.theme), "bar_gradient"):
             gradient = Gradient.from_colors(
-                *self.app.get_theme(self.app.theme).bar_gradient
+                *self.app.get_theme(self.app.theme).bar_gradient["default"]
             )
         else:
             gradient = None
@@ -88,6 +88,42 @@ class ProgressBarContainer(VerticalGroup):
         advance: float | UnusedParameter = UnusedParameter(),
     ) -> None:
         self.progress_bar.update(total=total, progress=progress, advance=advance)
+
+    def panic(
+        self,
+        dismiss_with: dict = {},
+        notify: dict = {},
+        bar_text: str = "",
+    ) -> None:
+        """Do something when an error occurs.
+        Args:
+            dismiss_with(dict): The message for the Dismissable screen (must contain `message` and `subtitle`)
+            notify(dict): The notify message (must contain `message` and `title`)
+            bar_text(str): The new text to update the label
+        """
+        if bar_text:
+            self.update_text(bar_text)
+        if self.progress_bar.total is None:
+            self.progress_bar.update(total=1, progress=0)
+        self.add_class("error")
+        if hasattr(self.app.get_theme(self.app.theme), "bar_gradient"):
+            self.progress_bar.gradient = Gradient.from_colors(
+                *self.app.get_theme(self.app.theme).bar_gradient["error"]
+            )
+        self.update_icon(
+            self.icon_label.content + " " + icon_utils.get_icon("general", "close")[0]
+        )
+        if dismiss_with:
+            self.app.call_from_thread(
+                self.app.push_screen_wait,
+                Dismissable(
+                    dismiss_with["message"], border_subtitle=dismiss_with["subtitle"]
+                ),
+            )
+        if notify:
+            self.notify(
+                message=notify["message"], severity="error", title=notify["title"]
+            )
 
 
 class ProcessContainer(VerticalScroll):
@@ -191,13 +227,7 @@ class ProcessContainer(VerticalScroll):
                                 case "skip":
                                     continue
                                 case "cancel":
-                                    self.app.call_from_thread(bar.add_class, "error")
-                                    self.app.call_from_thread(
-                                        bar.update_icon,
-                                        icon_utils.get_icon("general", "delete")[0]
-                                        + " "
-                                        + icon_utils.get_icon("general", "close")[0],
-                                    )
+                                    bar.panic()
                                     return
                         except Exception as e:
                             do_what = self.app.call_from_thread(
@@ -242,33 +272,16 @@ class ProcessContainer(VerticalScroll):
                         case "skip":
                             continue
                         case "cancel":
-                            self.app.call_from_thread(
-                                bar.update_icon,
-                                icon_utils.get_icon("general", "delete")[0]
-                                + " "
-                                + icon_utils.get_icon("general", "close")[0],
-                            )
-                            self.app.call_from_thread(bar.add_class, "error")
+                            bar.panic()
                             return
                 except Exception as e:
                     # TODO: should probably let it continue, then have a summary
-                    self.app.call_from_thread(
-                        bar.update_icon,
-                        icon_utils.get_icon("general", "delete")[0]
-                        + " "
-                        + icon_utils.get_icon("general", "close")[0],
-                    )
-                    self.app.call_from_thread(
-                        bar.update_text,
-                        "Unhandled Error.",
-                    )
-                    self.app.call_from_thread(bar.add_class, "error")
-                    self.app.call_from_thread(
-                        self.app.push_screen_wait,
-                        Dismissable(
-                            f"Deleting failed due to\n{e}\nProcess Aborted.",
-                            border_subtitle="If this is a bug, please file an issue!",
-                        ),
+                    bar.panic(
+                        dismiss_with={
+                            "message": f"Deleting failed due to\n{e}\nProcess Aborted.",
+                            "subtitle": "If this is a bug, please file an issue!",
+                        },
+                        bar_text="Unhandled Error",
                     )
                     return
         # The reason for an extra +1 in the total is for this
@@ -283,18 +296,12 @@ class ProcessContainer(VerticalScroll):
                 # ig it got removed?
                 pass
         if has_perm_error:
-            self.notify(
-                f"Certain files in {folder} could not be deleted due to PermissionError.",
-                title="Delete Files",
-                severity="error",
+            bar.panic(
+                notify={
+                    "message": f"Certain files in {folder} could not be deleted due to PermissionError.",
+                    "title": "Delete Files",
+                },
             )
-            self.app.call_from_thread(
-                bar.update_icon,
-                icon_utils.get_icon("general", "delete")[0]
-                + " "
-                + icon_utils.get_icon("general", "close")[0],
-            )
-            self.app.call_from_thread(bar.add_class, "error")
             return
         # if there werent any files, show something useful
         # aside from 'Getting files to delete...'
@@ -312,7 +319,7 @@ class ProcessContainer(VerticalScroll):
         # finished successfully
         self.app.call_from_thread(
             bar.update_icon,
-            icon_utils.get_icon("general", "check")[0],
+            bar.icon_label.content + " " + icon_utils.get_icon("general", "check")[0],
         )
         self.app.call_from_thread(bar.progress_bar.advance)
         self.app.call_from_thread(bar.add_class, "done")
@@ -397,29 +404,17 @@ class ProcessContainer(VerticalScroll):
                                 _archive.add(p, arcname=arcname)
 
         except Exception as e:
-            self.app.call_from_thread(
-                bar.update_icon,
-                icon_utils.get_icon("general", "zip")[0]
-                + " "
-                + icon_utils.get_icon("general", "close")[0],
-            )
-            self.app.call_from_thread(
-                bar.update_text,
-                "Error creating archive file.",
-            )
-            self.app.call_from_thread(bar.add_class, "error")
-            self.app.call_from_thread(
-                self.app.push_screen_wait,
-                Dismissable(
-                    f"Archiving failed due to\n{e}\nProcess Aborted.",
-                    border_subtitle="File an issue if this is a bug!",
-                ),
+            bar.panic(
+                dismiss_with={
+                    "message": f"Archiving failed due to\n{e}\nProcess Aborted.",
+                    "subtitle": "File an issue if this is a bug!",
+                }
             )
             return
 
         self.app.call_from_thread(
             bar.update_icon,
-            icon_utils.get_icon("general", "check")[0],
+            bar.icon_label.content + " " + icon_utils.get_icon("general", "check")[0],
         )
         self.app.call_from_thread(bar.progress_bar.advance)
         self.app.call_from_thread(bar.add_class, "done")
@@ -510,13 +505,7 @@ class ProcessContainer(VerticalScroll):
                                         shutil.copyfileobj(source, target)
                                 continue
                             case "cancel":
-                                self.app.call_from_thread(
-                                    bar.update_icon,
-                                    icon_utils.get_icon("general", "open")[0]
-                                    + " "
-                                    + icon_utils.get_icon("general", "close")[0],
-                                )
-                                self.app.call_from_thread(bar.add_class, "error")
+                                bar.panic()
                                 return
                     try:
                         archive.extract(file, path=destination_path)
@@ -543,71 +532,37 @@ class ProcessContainer(VerticalScroll):
                             case "skip":
                                 continue
                             case "cancel":
-                                self.app.call_from_thread(bar.add_class, "error")
-                                self.app.call_from_thread(
-                                    bar.update_icon,
-                                    icon_utils.get_icon("general", "open")[0]
-                                    + " "
-                                    + icon_utils.get_icon("general", "close")[0],
-                                )
+                                bar.panic()
                                 return
         except (zipfile.BadZipFile, tarfile.TarError, ValueError) as e:
-            self.app.call_from_thread(
-                bar.update_icon,
-                icon_utils.get_icon("general", "open")[0]
-                + " "
-                + icon_utils.get_icon("general", "close")[0],
-            )
-            self.app.call_from_thread(
-                bar.update_text,
-                "Error extracting archive.",
-            )
-            self.app.call_from_thread(bar.add_class, "error")
-            if bar.progress_bar.total is None:
-                bar.progress_bar.total = 1
+            dismiss_with = {"subtitle": ""}
             if isinstance(e, ValueError) and "Password" in e.__str__():
                 if "ZIP" in e.__str__():
-                    self.app.call_from_thread(
-                        self.app.push_screen_wait,
-                        Dismissable("Password-protected ZIP files cannot be unzipped."),
+                    dismiss_with["message"] = (
+                        "Password-protected ZIP files cannot be unzipped"
                     )
                 elif "RAR" in e.__str__():
-                    self.app.call_from_thread(
-                        self.app.push_screen_wait,
-                        Dismissable("Password-protected RAR files cannot be unzipped."),
+                    dismiss_with["message"] = (
+                        "Password-protected RAR files cannot be unzipped"
                     )
                 else:
-                    self.app.call_from_thread(
-                        self.app.push_screen_wait,
-                        Dismissable(
-                            "Password-protected archive files cannot be extracted."
-                        ),
+                    dismiss_with["message"] = (
+                        "Password-protected archive files cannot be unzipped"
                     )
             else:
-                self.app.call_from_thread(
-                    self.app.push_screen_wait,
-                    Dismissable(
-                        f"Unzipping failed due to {type(e).__name__}\n{e}\nProcess Aborted."
-                    ),
-                )
+                dismiss_with = {
+                    "message": f"Unzipping failed due to {type(e).__name__}\n{e}\nProcess Aborted.",
+                    "subtitle": "If this is a bug, file an issue!",
+                }
+            bar.panic(dismiss_with=dismiss_with, bar_text="Error extracting archive")
             return
         except Exception as e:
-            self.app.call_from_thread(
-                bar.update_icon,
-                icon_utils.get_icon("general", "open")[0]
-                + " "
-                + icon_utils.get_icon("general", "close")[0],
-            )
-            self.app.call_from_thread(
-                bar.update_text,
-                "Error extracting archive.",
-            )
-            self.app.call_from_thread(bar.add_class, "error")
-            if bar.progress_bar.total is None:
-                bar.progress_bar.total = 1
-            self.app.call_from_thread(
-                self.app.push_screen_wait,
-                Dismissable(f"Unzipping failed due to\n{e}\nProcess Aborted."),
+            bar.panic(
+                dismiss_with={
+                    "message": f"Unzipping failed due to {type(e).__name__}\n{e}\nProcess Aborted.",
+                    "subtitle": "If this is a bug, please file an issue!",
+                },
+                bar_text="Unhandled Error",
             )
             return
 
@@ -719,17 +674,7 @@ class ProcessContainer(VerticalScroll):
                                     tested_number += 1
                                 item_dict["relative_loc"] = new_rel_path
                             case "cancel":
-                                self.app.call_from_thread(
-                                    bar.update_icon,
-                                    icon_utils.get_icon("general", "copy")[0]
-                                    + " "
-                                    + icon_utils.get_icon("general", "close")[0],
-                                )
-                                self.app.call_from_thread(
-                                    bar.update_text,
-                                    "Process cancelled",
-                                )
-                                self.app.call_from_thread(bar.add_class, "error")
+                                bar.panic(bar_text="Process cancelled.")
                                 return
                     if config["settings"]["copy_includes_metadata"]:
                         shutil.copy2(
@@ -785,20 +730,12 @@ class ProcessContainer(VerticalScroll):
                     pass
                 except Exception as e:
                     # TODO: should probably let it continue, then have a summary
-                    self.app.call_from_thread(
-                        bar.update_icon,
-                        icon_utils.get_icon("general", "copy")[0]
-                        + " "
-                        + icon_utils.get_icon("general", "close")[0],
-                    )
-                    self.app.call_from_thread(
-                        bar.update_text,
-                        "Unhandled Error.",
-                    )
-                    self.app.call_from_thread(bar.add_class, "error")
-                    self.app.call_from_thread(
-                        self.app.push_screen_wait,
-                        Dismissable(f"Deleting failed due to\n{e}\nProcess Aborted."),
+                    bar.panic(
+                        dismiss_with={
+                            "message": f"Copying failed due to {type(e).__name__}\n{e}\nProcess Aborted.",
+                            "subtitle": "If this is a bug, please file an issue!",
+                        },
+                        bar_text="Unhandled Error",
                     )
                     return
 
@@ -879,17 +816,7 @@ class ProcessContainer(VerticalScroll):
                                     tested_number += 1
                                 item_dict["relative_loc"] = new_rel_path
                             case "cancel":
-                                self.app.call_from_thread(
-                                    bar.update_icon,
-                                    icon_utils.get_icon("general", "cut")[0]
-                                    + " "
-                                    + icon_utils.get_icon("general", "close")[0],
-                                )
-                                self.app.call_from_thread(
-                                    bar.update_text,
-                                    "Process cancelled",
-                                )
-                                self.app.call_from_thread(bar.add_class, "error")
+                                bar.panic(bar_text="Process cancelled.")
                                 return
                     shutil.move(
                         item_dict["path"],
@@ -926,13 +853,7 @@ class ProcessContainer(VerticalScroll):
                         case "skip":
                             continue
                         case "cancel":
-                            self.app.call_from_thread(bar.add_class, "error")
-                            self.app.call_from_thread(
-                                bar.update_icon,
-                                icon_utils.get_icon("general", "cut")[0]
-                                + " "
-                                + icon_utils.get_icon("general", "close")[0],
-                            )
+                            bar.panic(bar_text="Process cancelled.")
                             return
                 except FileNotFoundError:
                     # the only way this can happen is if the file is deleted
@@ -941,20 +862,14 @@ class ProcessContainer(VerticalScroll):
                     pass
                 except Exception as e:
                     # TODO: should probably let it continue, then have a summary
-                    self.app.call_from_thread(
-                        bar.update_icon,
-                        icon_utils.get_icon("general", "cut")[0]
-                        + " "
-                        + icon_utils.get_icon("general", "close")[0],
+                    bar.panic(
+                        dismiss_with={
+                            "message": f"Moving failed due to {type(e).__name__}\n{e}\nProcess Aborted.",
+                            "subtitle": "If this is a bug, please file an issue!",
+                        },
+                        bar_text="Unhandled Error",
                     )
-                    self.app.call_from_thread(bar.add_class, "error")
-                    self.app.call_from_thread(
-                        self.app.push_screen_wait,
-                        Dismissable(
-                            f"Deleting failed due to \n{e}\nProcess Aborted.",
-                            border_subtitle="If this is a bug, file an issue!",
-                        ),
-                    )
+                    return
         # delete the folders
         has_perm_error = False
         for folder in cut_files__folders:
@@ -972,20 +887,13 @@ class ProcessContainer(VerticalScroll):
                 # ig it got removed?
                 continue
         if has_perm_error:
-            self.notify(
-                f"Certain files in {folder} could not be moved.", severity="error"
+            bar.panic(
+                notify={
+                    "message": f"Certain files in {folder} could not be deleted due to PermissionError.",
+                    "title": "Delete Files",
+                },
+                bar_text=path.basename(cutted[-1]),
             )
-            self.app.call_from_thread(
-                bar.update_icon,
-                icon_utils.get_icon("general", "cut")[0]
-                + " "
-                + icon_utils.get_icon("general", "close")[0],
-            )
-            self.app.call_from_thread(
-                bar.update_text,
-                path.basename(cutted[-1]),
-            )
-            self.app.call_from_thread(bar.add_class, "error")
             return
         # remove from clipboard
         for item in cutted:

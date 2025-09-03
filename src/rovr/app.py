@@ -137,13 +137,14 @@ class Application(App, inherit_bindings=False):
             for theme in get_custom_themes():
                 self.register_theme(theme)
             parse_failed = False
-        except ColorParseError:
+        except ColorParseError as e:
             parse_failed = True
+            exception = e
         if parse_failed:
             self.exit(
                 return_code=1,
                 message=Content.from_markup(
-                    "[underline ansi_red]Config Error[/]\n[bold ansi_cyan]custom_themes.bar_gradient[/]: One of the colors provided cannot be parsed."
+                    f"[underline ansi_red]Config Error[/]\n[bold ansi_cyan]custom_themes.bar_gradient[/]: {exception}"
                 ),
             )
             return
