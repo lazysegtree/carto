@@ -102,7 +102,7 @@ class ProgressBarContainer(VerticalGroup):
             bar_text(str): The new text to update the label
         """
         if bar_text:
-            self.update_text(bar_text)
+            self.update_text(bar_text, False)
         if self.progress_bar.total is None:
             self.progress_bar.update(total=1, progress=0)
         self.add_class("error")
@@ -313,8 +313,7 @@ class ProcessContainer(VerticalScroll):
         elif files_to_delete == folders_to_delete == []:
             # this cannot happen, but just as an easter egg :shippit:
             self.app.call_from_thread(
-                bar.update_text,
-                "Successfully deleted nothing!",
+                bar.update_text, "Successfully deleted nothing!", False
             )
         # finished successfully
         self.app.call_from_thread(
@@ -340,10 +339,7 @@ class ProcessContainer(VerticalScroll):
             bar.update_icon,
             icon_utils.get_icon("general", "zip")[0],
         )
-        self.app.call_from_thread(
-            bar.update_text,
-            "Getting files to archive...",
-        )
+        self.app.call_from_thread(bar.update_text, "Getting files to archive...", False)
 
         files_to_archive = []
         for p in files:
