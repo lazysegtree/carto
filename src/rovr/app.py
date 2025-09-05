@@ -407,5 +407,20 @@ class Application(App, inherit_bindings=False):
             await self.push_screen_wait(TerminalTooSmall())
             self.has_pushed_screen = False
 
+    async def _on_css_change(self) -> None:
+        await super()._on_css_change()
+        if self._css_has_errors:
+            self.notify(
+                "Errors were found in the TCSS!",
+                title="Stylesheet Watcher",
+                severity="error",
+            )
+        else:
+            self.notify(
+                "TCSS reloaded successfully!",
+                title="Stylesheet Watcher",
+                severity="information",
+            )
+
 
 app = Application(watch_css=True)
