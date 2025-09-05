@@ -466,9 +466,11 @@ FileList, PinnedSidebar, Clipboard {
     background: $primary;
     color: $background;
   }
-  &:blur .selection-list--button-highlighted {
+  &:blur .selection-list--button-highlighted,
+  &:blur .option-list--option-highlighted {
     background: transparent;
-    color: $primary
+    color: $primary;
+    text-style: bold
   }
   &:blur .selection-list--button-selected-highlighted {
     background: transparent;

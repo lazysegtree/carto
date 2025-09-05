@@ -305,6 +305,7 @@ class FileList(SelectionList, inherit_bindings=False):
             # if the folder is selected, then cd there,
             # skipping the middle folder entirely
             self.app.cd(path.join(self.enter_into, file_name))
+            self.app.tabWidget.active_tab.sessionSelectedItems = []
             self.app.query_one("#file_list").focus()
         elif not self.select_mode_enabled:
             # Check if it's a folder or a file
@@ -320,9 +321,13 @@ class FileList(SelectionList, inherit_bindings=False):
                 "NORMAL",
                 f"{self.highlighted + 1}/{self.option_count}",
             )
+            self.app.tabWidget.active_tab.sessionSelectedItems = []
         else:
             utils.set_scuffed_subtitle(
                 self.parent, "SELECT", f"{len(self.selected)}/{len(self.options)}"
+            )
+            self.app.tabWidget.active_tab.session.sessionSelectedItems = (
+                self.selected.copy()
             )
 
     # No clue why I'm using an OptionList method for SelectionList
@@ -397,17 +402,53 @@ class FileList(SelectionList, inherit_bindings=False):
         Returns:
             A [`Strip`][textual.strip.Strip] that is the line to render.
         """
-        line = super(SelectionList, self).render_line(y)
+
+        def super_render_line(y: int, selection_style: str = "") -> Strip:
+            line_number = self.scroll_offset.y + y
+            try:
+                option_index, line_offset = self._lines[line_number]
+                option = self.options[option_index]
+            except IndexError:
+                return Strip.blank(
+                    self.scrollable_content_region.width,
+                    self.get_visual_style("option-list--option").rich_style,
+                )
+
+            mouse_over = self._mouse_hovering_over == option_index
+            component_class = ""
+            if selection_style == "selection-list--button-selected":
+                component_class = selection_style
+            elif option.disabled:
+                component_class = "option-list--option-disabled"
+            elif self.highlighted == option_index:
+                component_class = "option-list--option-highlighted"
+            elif mouse_over:
+                component_class = "option-list--option-hover"
+
+            if component_class:
+                style = self.get_visual_style("option-list--option", component_class)
+            else:
+                style = self.get_visual_style("option-list--option")
+
+            strips = self._get_option_render(option, style)
+            try:
+                strip = strips[line_offset]
+            except IndexError:
+                return Strip.blank(
+                    self.scrollable_content_region.width,
+                    self.get_visual_style("option-list--option").rich_style,
+                )
+            return strip
 
         if self.dummy or not self.select_mode_enabled:
-            return Strip([*line])
+            return Strip([*super_render_line(y)])
 
         _, scroll_y = self.scroll_offset
         selection_index = scroll_y + y
         try:
             selection = self.get_option_at_index(selection_index)
         except OptionDoesNotExist:
-            return line
+            return super_render_line(y)
 
         component_style = "selection-list--button"
         if selection.value in self._selected:
@@ -415,6 +456,7 @@ class FileList(SelectionList, inherit_bindings=False):
         if self.highlighted == selection_index:
             component_style += "-highlighted"
 
+        line = super_render_line(y, component_style)
         underlying_style = next(iter(line)).style or self.rich_style
         assert underlying_style is not None
 
@@ -444,9 +486,10 @@ class FileList(SelectionList, inherit_bindings=False):
         if self.get_option_at_index(self.highlighted).disabled:
             return
         self.select_mode_enabled = not self.select_mode_enabled
-        highlighted = self.highlighted
-        self.update_file_list(add_to_session=False)
-        self.highlighted = highlighted
+        self.refresh()
+        self.app.tabWidget.active_tab.session.sessionSelectMode = (
+            self.select_mode_enabled
+        )
 
     async def get_selected_objects(self) -> list[str] | None:
         """Get the selected objects in the file list.

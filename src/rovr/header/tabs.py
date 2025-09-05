@@ -1,8 +1,9 @@
 from os import getcwd, path
 
 from textual import on
-from textual.widgets import Button, Tabs
+from textual.widgets import Button, SelectionList, Tabs
 from textual.widgets._tabs import Tab
+from textual.widgets.option_list import OptionDoesNotExist
 
 from rovr.classes import SessionManager
 from rovr.functions.path import normalise
@@ -86,7 +87,24 @@ class Tabline(Tabs):
     @on(Tabs.TabActivated)
     async def check_tab_click(self, event: TablineTab.Clicked) -> None:
         assert isinstance(event.tab, TablineTab)
-        self.app.cd(event.tab.directory, add_to_history=False)
+
+        def callback() -> None:
+            assert isinstance(event.tab, TablineTab)
+            file_list: SelectionList = self.app.query_one("#file_list")
+            file_list.select_mode_enabled = event.tab.session.sessionSelectMode
+            if event.tab.session.sessionSelectMode:
+                # Wait a bit for the file list to be updated
+                for option in event.tab.session.sessionSelectedItems:
+                    try:
+                        file_list.select(file_list.get_option(option))
+                        print(f"Successfully selected option: {option}")
+                    except (OptionDoesNotExist, AttributeError) as e:
+                        print(f"Failed to select option {option}: {e}")
+                        # Option might not exist anymore if files were deleted/renamed
+                        # or if the file list hasn't been fully populated yet
+                        pass
+
+        self.app.cd(event.tab.directory, add_to_history=False, callback=callback)
 
 
 class NewTabButton(Button):

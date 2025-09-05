@@ -3,6 +3,7 @@ import shutil
 from contextlib import suppress
 from os import chdir, getcwd, listdir, path
 from types import SimpleNamespace
+from typing import Callable
 
 from textual import events, work
 from textual.app import App, ComposeResult
@@ -362,6 +363,7 @@ class Application(App, inherit_bindings=False):
         directory: str,
         add_to_history: bool = True,
         focus_on: str | None = None,
+        callback: Callable | None = None,
     ) -> None:
         # Makes sure `directory` is a directory, or chdir will fail with exception
         directory = ensure_existing_directory(directory)
@@ -374,6 +376,8 @@ class Application(App, inherit_bindings=False):
         self.query_one("#file_list").update_file_list(
             add_to_session=add_to_history, focus_on=focus_on
         )
+        if callback:
+            self.call_later(callback)
 
     @work
     async def watch_for_changes_and_update(self) -> None:
