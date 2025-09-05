@@ -142,6 +142,11 @@ class PinnedSidebar(OptionList, inherit_bindings=False):
     async def hide_input_when_leave(self, event: events.Leave) -> None:
         self.input.remove_class("show")
 
+    @on(events.Focus)
+    def focus_this_thing(self, event: events.Focus) -> None:
+        if self.highlighted is None:
+            self.action_cursor_down()
+
     async def on_option_list_option_selected(
         self, event: OptionList.OptionSelected
     ) -> None:
@@ -165,7 +170,8 @@ class PinnedSidebar(OptionList, inherit_bindings=False):
                 return
         self.app.cd(file_path)
         self.app.query_one("#file_list").focus()
-        self.input.clear()
+        with self.input.prevent(Input.Changed):
+            self.input.clear()
         self.clear_options()
         self.add_options(self.list_of_options)
 
