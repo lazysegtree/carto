@@ -208,7 +208,8 @@ class FileList(SelectionList, inherit_bindings=False):
         )
         self.app.tabWidget.active_tab.directory = cwd
         self.app.tabWidget.parent.on_resize()
-        self.input.clear()
+        with self.input.prevent(self.input.Changed):
+            self.input.clear()
 
     @work(exclusive=True)
     async def dummy_update_file_list(
@@ -376,10 +377,11 @@ class FileList(SelectionList, inherit_bindings=False):
         Returns:
             The width of the left gutter.
         """
+        # In normal mode or dummy mode, we don't have a gutter
         if self.dummy or not self.select_mode_enabled:
             return 0
         else:
-            # in future, if anything was changed, you just need to add the line below
+            # Calculate the exact width of the checkbox components
             return len(
                 icon_utils.get_toggle_button_icon("left")
                 + icon_utils.get_toggle_button_icon("inner")
@@ -396,6 +398,13 @@ class FileList(SelectionList, inherit_bindings=False):
         Returns:
             A [`Strip`][textual.strip.Strip] that is the line to render.
         """
+        # Insane monkey patching was done here, mainly:
+        # - replacing render_line from OptionList with super_render_line()
+        #   to theme selected options when not highlighted.
+        # - ignoring rendering of the checkboxes when
+        #   it is a dummy or not in select mode.
+        #   - ignore checkbox rendering on disabled options.
+        # - using custom icons for the checkbox.
 
         def super_render_line(y: int, selection_style: str = "") -> Strip:
             line_number = self.scroll_offset.y + y
@@ -434,15 +443,20 @@ class FileList(SelectionList, inherit_bindings=False):
                 )
             return strip
 
+        # just return standard rendering
         if self.dummy or not self.select_mode_enabled:
-            return Strip([*super_render_line(y)])
+            return super_render_line(y)
 
+        # calculate with checkbox rendering
         _, scroll_y = self.scroll_offset
         selection_index = scroll_y + y
         try:
             selection = self.get_option_at_index(selection_index)
         except OptionDoesNotExist:
-            return super_render_line(y)
+            return Strip([*super_render_line(y)])
+
+        if selection.disabled:
+            return Strip([*super_render_line(y)])
 
         component_style = "selection-list--button"
         if selection.value in self._selected:
@@ -461,7 +475,6 @@ class FileList(SelectionList, inherit_bindings=False):
         side_style += Style(meta={"option": selection_index})
         button_style += Style(meta={"option": selection_index})
 
-        # in future, if anything was changed, you just need to fix the segments below
         return Strip([
             Segment(icon_utils.get_toggle_button_icon("left"), style=side_style),
             Segment(
@@ -480,10 +493,11 @@ class FileList(SelectionList, inherit_bindings=False):
         if self.get_option_at_index(self.highlighted).disabled:
             return
         self.select_mode_enabled = not self.select_mode_enabled
-        self.refresh()
-        self.app.tabWidget.active_tab.session.sessionSelectMode = (
-            self.select_mode_enabled
-        )
+        if not self.select_mode_enabled:
+            self._line_cache.clear()
+            self._option_render_cache.clear()
+        self.refresh(layout=True, repaint=True)
+        self.app.tabWidget.active_tab.session.selectMode = self.select_mode_enabled
 
     async def get_selected_objects(self) -> list[str] | None:
         """Get the selected objects in the file list.
