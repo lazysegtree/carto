@@ -210,6 +210,8 @@ class FileList(SelectionList, inherit_bindings=False):
         self.app.tabWidget.parent.on_resize()
         with self.input.prevent(self.input.Changed):
             self.input.clear()
+        if not add_to_session:
+            self.input.clear_selected()
 
     @work(exclusive=True)
     async def dummy_update_file_list(

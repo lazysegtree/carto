@@ -15,6 +15,7 @@ class SessionManager:
         selectMode (bool): Whether select mode is enabled for that directory.
         selectedItems (list[str]): A dictionary mapping directory paths to the
             list of selected items in that directory.
+        search (str): The current search string.
     """
 
     def __init__(self) -> None:
@@ -23,3 +24,4 @@ class SessionManager:
         self.lastHighlighted: dict[str, int] = {}
         self.selectMode: bool = False
         self.selectedItems: list[str] = []
+        self.search: str = ""
