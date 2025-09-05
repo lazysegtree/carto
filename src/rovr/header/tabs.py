@@ -1,7 +1,7 @@
 from os import getcwd, path
 
 from textual import on
-from textual.widgets import Button, SelectionList, Tabs
+from textual.widgets import Button, Input, SelectionList, Tabs
 from textual.widgets._tabs import Tab
 from textual.widgets.option_list import OptionDoesNotExist
 
@@ -91,18 +91,15 @@ class Tabline(Tabs):
         def callback() -> None:
             assert isinstance(event.tab, TablineTab)
             file_list: SelectionList = self.app.query_one("#file_list")
-            file_list.select_mode_enabled = event.tab.session.sessionSelectMode
-            if event.tab.session.sessionSelectMode:
-                # Wait a bit for the file list to be updated
-                for option in event.tab.session.sessionSelectedItems:
+            assert isinstance(file_list.input, Input)
+            file_list.select_mode_enabled = event.tab.session.selectMode
+            if event.tab.session.selectMode:
+                for option in event.tab.session.selectedItems:
                     try:
                         file_list.select(file_list.get_option(option))
                         print(f"Successfully selected option: {option}")
                     except (OptionDoesNotExist, AttributeError) as e:
                         print(f"Failed to select option {option}: {e}")
-                        # Option might not exist anymore if files were deleted/renamed
-                        # or if the file list hasn't been fully populated yet
-                        pass
 
         self.app.cd(event.tab.directory, add_to_history=False, callback=callback)
 

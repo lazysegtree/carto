@@ -164,45 +164,41 @@ class FileList(SelectionList, inherit_bindings=False):
         self.app.query_one("#path_switcher").value = cwd + (
             "" if cwd.endswith("/") else "/"
         )
-        # I question to myself why sessionDirectories isn't a list[str]
+        # I question to myself why directories isn't a list[str]
         # but is a list[dict], so I'm down to take some PRs, because
         # I have other things that are more important.
-        # TODO: use list[str] instead of list[dict] for sessionDirectories
+        # TODO: use list[str] instead of list[dict] for directories
         if add_to_session:
-            if session.sessionHistoryIndex != len(session.sessionDirectories) - 1:
-                session.sessionDirectories = session.sessionDirectories[
-                    : session.sessionHistoryIndex + 1
-                ]
-            session.sessionDirectories.append({
+            if session.historyIndex != len(session.directories) - 1:
+                session.directories = session.directories[: session.historyIndex + 1]
+            session.directories.append({
                 "path": cwd,
             })
-            if session.sessionLastHighlighted.get(cwd) is None:
+            if session.lastHighlighted.get(cwd) is None:
                 # Hard coding is my passion (referring to the id)
-                session.sessionLastHighlighted[cwd] = (
+                session.lastHighlighted[cwd] = (
                     self.app.query_one("#file_list").options[0].value
                 )
-            session.sessionHistoryIndex = len(session.sessionDirectories) - 1
-        elif session.sessionDirectories == []:
-            session.sessionDirectories = [{"path": path_utils.normalise(getcwd())}]
-        self.app.query_one("Button#back").disabled = session.sessionHistoryIndex <= 0
+            session.historyIndex = len(session.directories) - 1
+        elif session.directories == []:
+            session.directories = [{"path": path_utils.normalise(getcwd())}]
+        self.app.query_one("Button#back").disabled = session.historyIndex <= 0
         self.app.query_one("Button#forward").disabled = (
-            session.sessionHistoryIndex == len(session.sessionDirectories) - 1
+            session.historyIndex == len(session.directories) - 1
         )
         try:
             if focus_on:
                 self.highlighted = self.get_option_index(path_utils.compress(focus_on))
             else:
-                self.highlighted = self.get_option_index(
-                    session.sessionLastHighlighted[cwd]
-                )
+                self.highlighted = self.get_option_index(session.lastHighlighted[cwd])
         except OptionDoesNotExist:
             self.highlighted = 0
-            session.sessionLastHighlighted[cwd] = (
+            session.lastHighlighted[cwd] = (
                 self.app.query_one("#file_list").options[0].value
             )
         except KeyError:
             self.highlighted = 0
-            session.sessionLastHighlighted[cwd] = (
+            session.lastHighlighted[cwd] = (
                 self.app.query_one("#file_list").options[0].value
             )
 
@@ -305,7 +301,7 @@ class FileList(SelectionList, inherit_bindings=False):
             # if the folder is selected, then cd there,
             # skipping the middle folder entirely
             self.app.cd(path.join(self.enter_into, file_name))
-            self.app.tabWidget.active_tab.sessionSelectedItems = []
+            self.app.tabWidget.active_tab.selectedItems = []
             self.app.query_one("#file_list").focus()
         elif not self.select_mode_enabled:
             # Check if it's a folder or a file
@@ -321,14 +317,12 @@ class FileList(SelectionList, inherit_bindings=False):
                 "NORMAL",
                 f"{self.highlighted + 1}/{self.option_count}",
             )
-            self.app.tabWidget.active_tab.sessionSelectedItems = []
+            self.app.tabWidget.active_tab.selectedItems = []
         else:
             utils.set_scuffed_subtitle(
                 self.parent, "SELECT", f"{len(self.selected)}/{len(self.options)}"
             )
-            self.app.tabWidget.active_tab.session.sessionSelectedItems = (
-                self.selected.copy()
-            )
+            self.app.tabWidget.active_tab.session.selectedItems = self.selected.copy()
 
     # No clue why I'm using an OptionList method for SelectionList
     async def on_option_list_option_highlighted(
@@ -356,7 +350,7 @@ class FileList(SelectionList, inherit_bindings=False):
             )
         # Get the highlighted option
         highlighted_option = event.option
-        self.app.tabWidget.active_tab.session.sessionLastHighlighted[
+        self.app.tabWidget.active_tab.session.lastHighlighted[
             path_utils.normalise(getcwd())
         ] = highlighted_option.value
         # Get the filename from the option id

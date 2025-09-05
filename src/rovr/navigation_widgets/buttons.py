@@ -14,11 +14,11 @@ class BackButton(Button):
         if self.disabled:
             return
         state = self.app.tabWidget.active_tab.session
-        if state.sessionHistoryIndex != 0:
-            state.sessionHistoryIndex -= 1
+        if state.historyIndex != 0:
+            state.historyIndex -= 1
         # ! reminder to add a check for path!
         self.app.cd(
-            state.sessionDirectories[state.sessionHistoryIndex]["path"],
+            state.directories[state.historyIndex]["path"],
             add_to_history=False,
         )
 
@@ -32,10 +32,10 @@ class ForwardButton(Button):
         if self.disabled:
             return
         state = self.app.tabWidget.active_tab.session
-        state.sessionHistoryIndex += 1
+        state.historyIndex += 1
         # ! reminder to add a check for path!
         self.app.cd(
-            state.sessionDirectories[state.sessionHistoryIndex]["path"],
+            state.directories[state.historyIndex]["path"],
             add_to_history=False,
         )
 
