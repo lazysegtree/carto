@@ -41,8 +41,8 @@ filesize_suffix = "decimal"
 [[icons.files]]
 pattern = "yaml"
 match_type = "endswith"
-icon = "\ue8eb"
-color = "#ca121a"
+icon = "\ue60b"
+color = "#F71A10"
 
 [[icons.folders]]
 pattern = "node_modules"

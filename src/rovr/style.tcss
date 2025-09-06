@@ -462,14 +462,15 @@ FileList, PinnedSidebar, Clipboard, CommandList {
     color: $primary;
   }
   .selection-list--button-highlighted {
-    background: $border;
+    background: $primary;
     color: $background;
   }
   .selection-list--button-selected-highlighted {
-    background: $border;
+    background: $primary;
     color: $background;
   }
-  &:blur .selection-list--button-selected-highlighted {
+  &:blur .selection-list--button-selected-highlighted,
+  &:blur .selection-list--button-highlighted {
     background: transparent;
     color: $primary
   }
