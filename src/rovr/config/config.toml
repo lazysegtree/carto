@@ -19,13 +19,18 @@ enabled = true
 align = "left"
 
 [settings]
-use_recycle_bin = true
 preview_full = false
-copy_includes_metadata = true
 image_protocol = "Auto"
+
+copy_includes_metadata = true
+use_recycle_bin = true
+
 allow_tab_nav = true
 append_new_tabs = true
+
 cd_on_quit = false
+
+double_click_delay = 0.25
 
 [metadata]
 fields = ["type", "permissions", "size", "modified", "accessed", "created"]

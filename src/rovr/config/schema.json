@@ -111,6 +111,11 @@
           "type": "boolean",
           "default": false,
           "description": "When quitting rovr, write the current directory to a file, so that you can cd into it."
+        },
+        "double_click_delay": {
+          "type": "number",
+          "default": 0.25,
+          "description": "The delay between two consecutive clicks to enter into a directory, or open a file."
         }
       }
     },
