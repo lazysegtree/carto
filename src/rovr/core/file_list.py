@@ -300,6 +300,7 @@ class FileList(SelectionList, inherit_bindings=False):
         # Get the selected option
         selected_option = self.get_option_at_index(self.highlighted)
         file_name = path_utils.decompress(selected_option.value)
+        self.update_border_subtitle()
         if self.dummy and path.isdir(path.join(self.enter_into, file_name)):
             # if the folder is selected, then cd there,
             # skipping the middle folder entirely
@@ -315,16 +316,8 @@ class FileList(SelectionList, inherit_bindings=False):
                 path_utils.open_file(path.join(cwd, file_name))
             if self.highlighted is None:
                 self.highlighted = 0
-            utils.set_scuffed_subtitle(
-                self.parent,
-                "NORMAL",
-                f"{self.highlighted + 1}/{self.option_count}",
-            )
             self.app.tabWidget.active_tab.selectedItems = []
         else:
-            utils.set_scuffed_subtitle(
-                self.parent, "SELECT", f"{len(self.selected)}/{len(self.options)}"
-            )
             self.app.tabWidget.active_tab.session.selectedItems = self.selected.copy()
 
     # No clue why I'm using an OptionList method for SelectionList
@@ -337,20 +330,7 @@ class FileList(SelectionList, inherit_bindings=False):
             self.app.query_one("PreviewContainer").remove_children()
             return
         assert isinstance(event.option, FileListSelectionWidget)
-        if self.dummy:
-            return
-        if self.select_mode_enabled and self.selected is not None:
-            utils.set_scuffed_subtitle(
-                self.parent,
-                "SELECT",
-                f"{len(self.selected)}/{len(self.options)}",
-            )
-        elif self.selected is not None:
-            utils.set_scuffed_subtitle(
-                self.parent,
-                "NORMAL",
-                f"{self.highlighted + 1}/{self.option_count}",
-            )
+        self.update_border_subtitle()
         # Get the highlighted option
         highlighted_option = event.option
         self.app.tabWidget.active_tab.session.lastHighlighted[
@@ -500,6 +480,7 @@ class FileList(SelectionList, inherit_bindings=False):
             self._option_render_cache.clear()
         self.refresh(layout=True, repaint=True)
         self.app.tabWidget.active_tab.session.selectMode = self.select_mode_enabled
+        self.update_border_subtitle()
 
     async def get_selected_objects(self) -> list[str] | None:
         """Get the selected objects in the file list.
@@ -731,3 +712,18 @@ class FileList(SelectionList, inherit_bindings=False):
                 case key if key in config["keybinds"]["focus_search"]:
                     event.stop()
                     self.input.focus()
+
+    def update_border_subtitle(self) -> None:
+        if self.dummy:
+            return
+        elif (not self.select_mode_enabled) or (self.selected is None):
+            utils.set_scuffed_subtitle(
+                self.parent,
+                "NORMAL",
+                f"{self.highlighted + 1}/{self.option_count}",
+            )
+            self.app.tabWidget.active_tab.selectedItems = []
+        else:
+            utils.set_scuffed_subtitle(
+                self.parent, "SELECT", f"{len(self.selected)}/{len(self.options)}"
+            )

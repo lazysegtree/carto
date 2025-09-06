@@ -63,22 +63,27 @@ def set_nested_value(d: dict, path_str: str, value: bool) -> None:
             current = current[key]
 
 
-def set_scuffed_subtitle(element: Widget, mode: str, frac: str) -> None:
+def set_scuffed_subtitle(element: Widget, *sections: str) -> None:
     """The most scuffed way to display a custom subtitle
 
     Args:
         element (Widget): The element containing style information.
-        mode (str): The mode of the subtitle.
-        frac (str): The fraction to display.
+        *sections (str): The sections to display
     """
     border_bottom = BORDER_BOTTOM.get(
         element.styles.border_bottom[0], BORDER_BOTTOM["blank"]
     )
-    element.border_subtitle = (
-        f"{mode} "
-        + (border_bottom if element.app.ansi_color else f"[r]{border_bottom}[/]")
-        + f" {frac}"
-    )
+    subtitle = ""
+    for index, section in enumerate(sections):
+        subtitle += section
+        if index + 1 != len(sections):
+            subtitle += " "
+            subtitle += (
+                border_bottom if element.app.ansi_color else f"[r]{border_bottom}[/]"
+            )
+            subtitle += " "
+
+    element.border_subtitle = subtitle
 
 
 def natural_size(integer: int, suffix: str, filesize_decimals: int) -> str:

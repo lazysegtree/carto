@@ -436,13 +436,12 @@ ProgressBarContainer {
 }
 
 Content.selected { color: red }
-
 FileList, PinnedSidebar, Clipboard, CommandList {
   padding: 0 0 0 0;
   .option-list--option-disabled { color: $border-blurred }
   &:light .option-list--option-disabled { color: $border-blurred-light }
   .option-list--option-highlighted {
-    color: $block-cursor-background;
+    color: $foreground;
     background: transparent;
   }
   .option-list--option-hover {
@@ -452,34 +451,33 @@ FileList, PinnedSidebar, Clipboard, CommandList {
   &:focus .option-list--option-highlighted,
   &CommandList:blur .option-list--option-highlighted {
     color: $block-cursor-foreground;
-    background: $border;
+    background: $primary;
   }
   .selection-list--button {
     background: transparent;
-    color: $foreground;
+    color: $primary;
   }
   .selection-list--button-selected {
     background: transparent;
     color: $primary;
   }
   .selection-list--button-highlighted {
-    background: $primary;
+    background: $border;
     color: $background;
   }
   .selection-list--button-selected-highlighted {
-    background: $primary;
+    background: $border;
     color: $background;
-  }
-  &:blur .selection-list--button-highlighted,
-  &:blur .option-list--option-highlighted {
-    background: transparent;
-    color: $primary;
-    text-style: bold
   }
   &:blur .selection-list--button-selected-highlighted {
     background: transparent;
     color: $primary
   }
+}
+FileList .option-list--option-highlighted {
+  color: $block-cursor-background;
+  background: transparent;
+  text-style: bold;
 }
 
 /* Screen mode modifiers */
@@ -588,7 +586,7 @@ ZDToDirectory {
     border: $border-style $border;
     padding: 0;
     .option-list--option-highlighted {
-      background: $border;
+      background: $primary;
       color: $background;
     }
   }
@@ -813,7 +811,7 @@ CommandPalette {
     max-height: 50vh;
     & > .option-list--option-highlighted {
       color: $background;
-      background: $border;
+      background: $primary;
     }
   }
   SearchIcon {
