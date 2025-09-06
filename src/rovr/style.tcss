@@ -112,7 +112,6 @@ Input, TextArea {
 
 Toast {
   max-height: 100%;
-  padding: 0;
   width: 33vw;
   .toast--title {
     text-style: underline;
@@ -121,6 +120,7 @@ Toast {
   &.-warning { border-right: outer $warning }
   &.-error { border-right: outer $error }
   &:ansi {
+    padding: 0;
     background: transparent;
     padding-left: 1;
     &.-information { border: $border-style $success }
@@ -148,8 +148,6 @@ Tooltip {
   }
   &:light:ansi { border: $border-style $border-blurred-light }
 }
-
-CommandInput { border: blank !important }
 
 #headerArea {
   padding: 0 1 0 1;
@@ -282,10 +280,15 @@ CommandInput { border: blank !important }
     AutoCompleteList {
       width: 1fr;
       max-height: 4;
+      scrollbar-color: $accent;
+      scrollbar-background: $accent-muted;
+      scrollbar-color-hover: $accent-lighten-3;
+      scrollbar-color-active: $accent-lighten-3;
+      scrollbar-background-hover: $accent-muted;
+      scrollbar-background-active: $accent-muted;
       .option-list--option-highlighted {
         color: $block-cursor-foreground;
-        background: $block-cursor-background;
-        text-style: $block-cursor-text-style;
+        background: $accent;
       }
     }
     Option { width: 100% }
@@ -362,9 +365,7 @@ CommandInput { border: blank !important }
     text-wrap: nowrap;
     width: auto;
   }
-  TextArea * {
-    background: transparent;
-  }
+  TextArea * { background: transparent }
  /* scrollbars are useless, reminder */
   &.clip { scrollbar-size: 0 0 }
   &.clip > Static {
@@ -436,7 +437,7 @@ ProgressBarContainer {
 
 Content.selected { color: red }
 
-FileList, PinnedSidebar, Clipboard {
+FileList, PinnedSidebar, Clipboard, CommandList {
   padding: 0 0 0 0;
   .option-list--option-disabled { color: $border-blurred }
   &:light .option-list--option-disabled { color: $border-blurred-light }
@@ -448,10 +449,10 @@ FileList, PinnedSidebar, Clipboard {
     color: $primary;
     background: transparent
   }
-  &:focus .option-list--option-highlighted {
+  &:focus .option-list--option-highlighted,
+  &CommandList:blur .option-list--option-highlighted {
     color: $block-cursor-foreground;
-    background: $block-cursor-background;
-    text-style: $block-cursor-text-style;
+    background: $border;
   }
   .selection-list--button {
     background: transparent;
@@ -780,12 +781,8 @@ ModalInput {
     background: transparent !important;
     border-title-align: left;
     border-subtitle-align: right;
-    &.invalid {
-      border: $border-style $error-lighten-3
-    }
-    &:light {
-      border: $border-style $error;
-    }
+    &.invalid { border: $border-style $error-lighten-3 }
+    &:light { border: $border-style $error }
   }
   Input {
     background: transparent !important;
@@ -806,3 +803,31 @@ TerminalTooSmall {
   }
   & > Static { height: 1fr }
 }
+
+
+CommandPalette {
+  align: center middle;
+  CommandList {
+    border: $border-style $border;
+    border-top: none;
+    max-height: 50vh;
+    & > .option-list--option-highlighted {
+      color: $background;
+      background: $border;
+    }
+  }
+  SearchIcon {
+    margin-left: 2;
+    margin-top: 1;
+  }
+  & > Vertical {
+    background: transparent;
+    width: 50vw;
+    height: 50vh;
+    margin-top: 0;
+  }
+  #--input { border: $border-style $border }
+  #--input.--list-visible { border-bottom: none }
+  LoadingIndicator { border-bottom: $border-style $border }
+}
+

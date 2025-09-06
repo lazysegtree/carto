@@ -3,10 +3,10 @@ import shutil
 from contextlib import suppress
 from os import chdir, getcwd, listdir, path
 from types import SimpleNamespace
-from typing import Callable
+from typing import Callable, Iterable
 
 from textual import events, work
-from textual.app import App, ComposeResult
+from textual.app import App, ComposeResult, SystemCommand
 from textual.binding import Binding
 from textual.color import ColorParseError
 from textual.containers import (
@@ -16,7 +16,9 @@ from textual.containers import (
     VerticalGroup,
 )
 from textual.content import Content
+from textual.css.errors import StyleValueError
 from textual.css.query import NoMatches
+from textual.screen import Screen
 from textual.widgets import Input
 
 from rovr.action_buttons import (
@@ -47,7 +49,7 @@ from rovr.navigation_widgets import (
     PathInput,
     UpButton,
 )
-from rovr.screens import YesOrNo, ZDToDirectory
+from rovr.screens import DummyScreen, YesOrNo, ZDToDirectory
 from rovr.screens.way_too_small import TerminalTooSmall
 from rovr.search_container import SearchInput
 from rovr.variables.constants import MaxPossible, config
@@ -408,19 +410,88 @@ class Application(App, inherit_bindings=False):
             self.has_pushed_screen = False
 
     async def _on_css_change(self) -> None:
-        await super()._on_css_change()
-        if self._css_has_errors:
+        try:
+            await super()._on_css_change()
+            if self._css_has_errors:
+                self.notify(
+                    "Errors were found in the TCSS!",
+                    title="Stylesheet Watcher",
+                    severity="error",
+                )
+            else:
+                self.notify(
+                    "TCSS reloaded successfully!",
+                    title="Stylesheet Watcher",
+                    severity="information",
+                )
+        except StyleValueError as exc:
             self.notify(
-                "Errors were found in the TCSS!",
+                f"Errors were found in the TCSS!\n{exc}",
                 title="Stylesheet Watcher",
                 severity="error",
             )
-        else:
-            self.notify(
-                "TCSS reloaded successfully!",
-                title="Stylesheet Watcher",
-                severity="information",
+
+    def get_system_commands(self, screen: Screen) -> Iterable[SystemCommand]:
+        if not self.ansi_color:
+            yield SystemCommand(
+                "Change theme",
+                "Change the current theme",
+                self.action_change_theme,
             )
+        yield SystemCommand(
+            "Quit the application",
+            "Quit the application as soon as possible",
+            self.action_quit,
+        )
+
+        # # the HelpPanel will need some fixes.
+        # if screen.query("HelpPanel"):
+        #     yield SystemCommand(
+        #         "Hide keys and help panel",
+        #         "Hide the keys and widget help panel",
+        #         self.action_hide_help_panel,
+        #     )
+        # else:
+        #     yield SystemCommand(
+        #         "Show keys and help panel",
+        #         "Show help for the focused widget and a summary of available keys",
+        #         self.action_show_help_panel,
+        #     )
+
+        if screen.maximized is not None:
+            yield SystemCommand(
+                "Minimize",
+                "Minimize the widget and restore to normal size",
+                screen.action_minimize,
+            )
+        elif screen.focused is not None and screen.focused.allow_maximize:
+            yield SystemCommand(
+                "Maximize", "Maximize the focused widget", screen.action_maximize
+            )
+
+        yield SystemCommand(
+            "Save screenshot",
+            "Save an SVG 'screenshot' of the current screen",
+            lambda: self.set_timer(0.1, self.deliver_screenshot),
+        )
+
+        if self.ansi_color:
+            yield SystemCommand(
+                "Disable Transparent Theme",
+                "Go back to an opaque background.",
+                lambda: self.set_timer(0.1, self._toggle_transparency),
+            )
+        else:
+            yield SystemCommand(
+                "Enable Transparent Theme",
+                "Have a transparent background.",
+                lambda: self.set_timer(0.1, self._toggle_transparency),
+            )
+
+    @work
+    async def _toggle_transparency(self) -> None:
+        self.ansi_color = not self.ansi_color
+        await self.push_screen_wait(DummyScreen())
 
 
 app = Application(watch_css=True)
