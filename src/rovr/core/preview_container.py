@@ -518,7 +518,8 @@ class PreviewContainer(Container):
                         content = f.read()
                 except UnicodeDecodeError:
                     content = config["interface"]["preview_binary"]
-                except (FileNotFoundError, PermissionError, OSError):
+                except (FileNotFoundError, PermissionError, OSError, MemoryError):
+                    # not taking my chances with a memory error
                     content = config["interface"]["preview_error"]
 
             if self.any_in_queue():
