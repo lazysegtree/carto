@@ -162,7 +162,7 @@ code {
   font-weight: 599;
   font-size: 1rem;
 }
-summary {
+summary:not(#starlight__on-this-page--mobile) {
   justify-content: start;
   padding: 0.2em 0;
   > svg {
@@ -229,6 +229,12 @@ summary {
     scrollbar-color: var(--sl-color-bg-accent) transparent;
   }
 }
+@media (max-width: 50rem) {
+  .sidebar-pane {
+    background: transparent;
+    backdrop-filter: blur(10px);
+  }
+}
 .main-frame {
   background: transparent;
 }
@@ -256,8 +262,14 @@ select > option:hover {
   transition: transform var(--sl-transition-duration) ease;
   box-shadow: unset;
   cursor: pointer;
+  svg {
+    transition: transform var(--sl-transition-duration) ease;
+  }
   &:hover {
     transform: scale(1.01);
+    svg {
+      transform: scale(1.5);
+    }
   }
 }
 .pagination-links:has(> a:hover) > a:not(:hover) {
@@ -300,7 +312,7 @@ button {
   box-shadow: unset !important;
   transition-property:
     background, color, border-inline-start, scrollbar-color, transform;
-  &:hover {
+  &:hover:not([aria-label="Search"]) {
     transform: scale(1.125);
   }
 }
@@ -486,4 +498,18 @@ a[id^=tab] {
 pre.mermaid[data-processed] {
   background: transparent !important;
   transition: all var(--sl-transition-duration) linear;
+}
+
+.social-icons > *,
+.sl-markdown-content + footer > div:not(.pagination-links) > a > svg {
+  transition: rotate calc(var(--sl-transition-duration) * 2) cubic-bezier(0.34, 1.56, 0.64, 1)
+}
+.social-icons > *:hover,
+.sl-markdown-content + footer > div:not(.pagination-links) > a:hover > svg {
+  rotate: 360deg;
+  user-select: none;
+}
+.group-label + svg {
+  transition: transform var(--sl-transition-duration) cubic-bezier(0.34, 1.56, 0.64, 1);
+  user-select: none;
 }

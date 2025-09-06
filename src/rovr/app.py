@@ -492,6 +492,7 @@ class Application(App, inherit_bindings=False):
     async def _toggle_transparency(self) -> None:
         self.ansi_color = not self.ansi_color
         await self.push_screen_wait(DummyScreen())
+        self.query_one("#file_list").update_border_subtitle()
 
 
 app = Application(watch_css=True)

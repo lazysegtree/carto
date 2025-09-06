@@ -61,7 +61,7 @@ tag_format = "$version"
 version_scheme = "pep440"
 version_provider = "uv"
 update_changelog_on_bump = true
-major_version_zero = false
+major_version_zero = true
 
 [tool.poe.tasks]
 dev = "textual run --dev rovr.__main__:main"
