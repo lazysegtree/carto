@@ -55,7 +55,7 @@ try:
             )
             return
         elif show_version:
-            pprint("v0.2.1-post2")
+            pprint("v0.3.0")
             return
 
         for feature_path in with_features:
