@@ -79,12 +79,12 @@ export default defineConfig({
           label: "contributing",
           items: [
             {
-              label: "project structure",
-              slug: "contributing/project-structure",
-            },
-            {
               label: "how to contribute",
               slug: "contributing/how-to-contribute",
+            },
+            {
+              label: "project structure",
+              slug: "contributing/project-structure",
             },
             {
               label: "optimisations",
