@@ -378,7 +378,8 @@ class Application(App, inherit_bindings=False):
         self.query_one("#file_list").update_file_list(
             add_to_session=add_to_history, focus_on=focus_on
         )
-        self.tabWidget.active_tab.session.search = ""
+        if hasattr(self, "tabWidget"):
+            self.tabWidget.active_tab.session.search = ""
         if callback:
             self.call_later(callback)
 
