@@ -431,8 +431,13 @@ class PreviewContainer(Container):
                 and worker.name == "_perform_show_preview"
                 for worker in self.app.workers
             )
+            # toggle hide
             or "hide" in self.classes
+            # zen mode
             or "zen" in self.app.classes
+            # horizontal breakpoints
+            or "-nopreview" in self.screen.classes
+            or "-filelistonly" in self.screen.classes
         ):
             self._queued_task = self._perform_show_preview
             self._queued_task_args = file_path

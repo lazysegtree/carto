@@ -189,8 +189,8 @@ Tooltip {
       }
     }
     .underline--bar {
-      background: $background-lighten-1;
-      color: $border;
+      color: $primary;
+      background: $background;
     }
     /* color may be inaccurate due to terminals *\
     \* you need to change the underline bar and */
@@ -436,7 +436,7 @@ ProgressBarContainer {
 }
 
 Content.selected { color: red }
-FileList, PinnedSidebar, Clipboard, CommandList {
+FileList, PinnedSidebar, Clipboard, CommandList, #zoxide_options {
   padding: 0 0 0 0;
   .option-list--option-disabled { color: $border-blurred }
   &:light .option-list--option-disabled { color: $border-blurred-light }
@@ -482,38 +482,6 @@ FileList .option-list--option-highlighted {
 }
 
 /* Screen mode modifiers */
-Screen {
-  &.-filelistonly {
-    #pinned_sidebar_container,
-    #preview_sidebar,
-    #below_menu Button { display: none !important }
-    #below_menu PathAutoCompleteInput { margin: -1 1 0 1 !important }
-  }
-  &.-nopreview {
-    #preview_sidebar,
-    #below_menu Button { display: none !important }
-    #below_menu PathAutoCompleteInput { margin: -1 1 0 1 !important }
-    #pinned_sidebar_container { max-width: 25vw }
-  }
-  &.-all-vertical #footer { max-height: 25vh }
-  &.-nopath {
-    #below_menu { display: none !important }
-    #footer { max-height: 30vh }
-  }
-  &.-nomenu-atall {
-    #menu,
-    #below_menu { display: none !important }
-    #footer { max-height: 30vh }
-  }
-  &.-filelistonly-vertical {
-    #menu { display: none !important }
-  }
-  &.-middle-only {
-    #menu,
-    #below_menu { display: none !important }
-    #footer { max-height: 25vh }
-  }
-}
 .zen {
   #menu,
   #below_menu,
@@ -830,3 +798,49 @@ CommandPalette {
   LoadingIndicator { border-bottom: $border-style $border }
 }
 
+Screen {
+  &.-filelistonly {
+    #pinned_sidebar_container,
+    #preview_sidebar,
+    #below_menu Button { display: none !important }
+    #below_menu PathAutoCompleteInput { margin: -1 1 0 1 !important }
+    #zoxide_group,
+    CommandPalette > Vertical,
+    #dialog,
+    ModalInput {
+      width: 90vw;
+      max-width: 90vw;
+    }
+  }
+  &.-nopreview {
+    #preview_sidebar,
+    #below_menu Button { display: none !important }
+    #below_menu PathAutoCompleteInput { margin: -1 1 0 1 !important }
+    #pinned_sidebar_container { max-width: 25vw }
+    #zoxide_group,
+    CommandPalette > Vertical,
+    #dialog,
+    ModalInput {
+      width: 75vw;
+      max-width: 75vw;
+    }
+  }
+  &.-all-vertical #footer { max-height: 25vh }
+  &.-nopath {
+    #below_menu { display: none !important }
+    #footer { max-height: 30vh }
+  }
+  &.-nomenu-atall {
+    #menu,
+    #below_menu { display: none !important }
+    #footer { max-height: 30vh }
+  }
+  &.-filelistonly-vertical {
+    #menu { display: none !important }
+  }
+  &.-middle-only {
+    #menu,
+    #below_menu { display: none !important }
+    #footer { max-height: 25vh }
+  }
+}
