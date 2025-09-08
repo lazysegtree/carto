@@ -1,4 +1,5 @@
 from subprocess import run
+from time import monotonic
 
 from textual import events, work
 from textual.app import ComposeResult
@@ -9,6 +10,28 @@ from textual.widgets import Input, OptionList
 from textual.widgets.option_list import Option
 
 from rovr.functions import path as path_utils
+
+
+class ZoxideOptionList(OptionList):
+    def on_mount(self) -> None:
+        self.last_click = monotonic()
+
+    async def _on_click(self, event: events.Click) -> None:
+        """React to the mouse being clicked on an item.
+
+        Args:
+            event: The click event.
+        """
+        event.prevent_default()
+        clicked_option: int | None = event.style.meta.get("option")
+        if clicked_option is not None and not self._options[clicked_option].disabled:
+            if monotonic() - self.last_click < 0.25:
+                if self.highlighted != clicked_option:
+                    self.highlighted = clicked_option
+                self.action_select()
+            else:
+                self.highlighted = clicked_option
+        self.last_click = monotonic()
 
 
 class ZDToDirectory(ModalScreen):
@@ -25,7 +48,7 @@ class ZDToDirectory(ModalScreen):
                 id="zoxide_input",
                 placeholder="Enter directory name or pattern",
             )
-            yield OptionList(
+            yield ZoxideOptionList(
                 Option("  No input provided", disabled=True),
                 id="zoxide_options",
                 classes="empty",
@@ -71,7 +94,9 @@ class ZDToDirectory(ModalScreen):
         # check 2 for queue, to ignore mounting as a whole
         if self.any_in_queue():
             return
-        zoxide_options = self.query_one("#zoxide_options", OptionList)
+        zoxide_options: ZoxideOptionList = self.query_one(
+            "#zoxide_options", ZoxideOptionList
+        )
         zoxide_options.add_class("empty")
         options = []
         if zoxide_output.stdout:
@@ -113,10 +138,10 @@ class ZDToDirectory(ModalScreen):
             zoxide_options.highlighted = 0
         zoxide_options.action_select()
 
-    # You cant manually tab into the option list, but you can click, so I guess
+    # You can't manually tab into the option list, but you can click, so I guess
     @work(exclusive=True)
     async def on_option_list_option_selected(
-        self, event: OptionList.OptionSelected
+        self, event: ZoxideOptionList.OptionSelected
     ) -> None:
         """Handle option selection."""
         selected_value = event.option.id
