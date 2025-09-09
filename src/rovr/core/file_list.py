@@ -1,6 +1,5 @@
 from os import getcwd, path
 from os import system as cmd
-from time import monotonic
 from typing import ClassVar
 
 from rich.segment import Segment
@@ -80,7 +79,6 @@ class FileList(SelectionList, inherit_bindings=False):
     def on_mount(self) -> None:
         if not self.dummy:
             self.input: Input = self.parent.query_one(Input)
-        self.last_click = monotonic()
 
     # ignore single clicks
     async def _on_click(self, event: events.Click) -> None:
@@ -94,18 +92,13 @@ class FileList(SelectionList, inherit_bindings=False):
         clicked_option: int | None = event.style.meta.get("option")
         if clicked_option is not None and not self._options[clicked_option].disabled:
             # in future, if anything was changed, you just need to add the lines below
-            if (
-                self.highlighted == clicked_option
-                and monotonic() - self.last_click
-                < config["settings"]["double_click_delay"]
-            ):
+            if self.highlighted == clicked_option and event.chain == 2:
                 self.action_select()
             elif self.select_mode_enabled:
                 self.highlighted = clicked_option
                 self.action_select()
             else:
                 self.highlighted = clicked_option
-        self.last_click = monotonic()
 
     @work(exclusive=True)
     async def update_file_list(

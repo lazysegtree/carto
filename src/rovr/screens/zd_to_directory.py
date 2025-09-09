@@ -25,7 +25,7 @@ class ZoxideOptionList(OptionList):
         event.prevent_default()
         clicked_option: int | None = event.style.meta.get("option")
         if clicked_option is not None and not self._options[clicked_option].disabled:
-            if monotonic() - self.last_click < 0.25:
+            if event.chain == 2:
                 if self.highlighted != clicked_option:
                     self.highlighted = clicked_option
                 self.action_select()

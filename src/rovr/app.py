@@ -88,12 +88,13 @@ class Application(App, inherit_bindings=False):
         if config["interface"]["use_reactive_layout"]
         else []
     )
+    CLICK_CHAIN_TIME_THRESHOLD: int = config["settings"]["double_click_delay"]
 
     def __init__(self, startup_path: str = "", *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self.app_blurred = False
-        self.startup_path = startup_path
-        self.has_pushed_screen = False
+        self.app_blurred: bool = False
+        self.startup_path: str = startup_path
+        self.has_pushed_screen: bool = False
 
     def compose(self) -> ComposeResult:
         print("Starting Rovr...")
