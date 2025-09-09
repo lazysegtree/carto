@@ -763,12 +763,20 @@ TerminalTooSmall {
   align: center middle;
   background: transparent;
   height: 1fr;
+  scrollbar-size: 0 0;
+  #logo { offset: 0 -1 }
   HorizontalGroup {
     width: auto;
     background: transparent;
     align: center middle;
   }
   & > Static { height: 1fr }
+  #logo.hidden {
+    color: $error;
+    display: block;
+    height: 1fr;
+    offset: 0 0;
+  }
 }
 
 

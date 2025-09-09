@@ -187,6 +187,9 @@ class Application(App, inherit_bindings=False):
         self.query_one("#file_list").focus()
         # start mini watcher
         self.watch_for_changes_and_update()
+        # disable scrollbars
+        self.show_horizontal_scrollbar = False
+        self.show_vertical_scrollbar = False
 
     @work
     async def action_focus_next(self) -> None:
