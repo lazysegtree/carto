@@ -39,7 +39,8 @@ $scrollbar-corner-color: $primary-muted;
 #path_switcher,
 #zoxide_options,
 #below_menu Button,
-#footer > * {
+#footer > *,
+FileListRightClickOptionList {
   background: transparent;
   border: $border-style $border-blurred;
   border-subtitle-color: $background;
@@ -78,7 +79,8 @@ $scrollbar-corner-color: $primary-muted;
 #file_list.-maximized,
 #pinned_sidebar.-maximized,
 #preview_sidebar .inner_preview.-maximized,
-#footer > *:focus {
+#footer > *:focus,
+FileListRightClickOptionList {
   border: $border-style $border;
   border-subtitle-background: $border;
   &:ansi {
@@ -436,7 +438,7 @@ ProgressBarContainer {
 }
 
 Content.selected { color: red }
-FileList, PinnedSidebar, Clipboard, CommandList, #zoxide_options {
+FileList, PinnedSidebar, Clipboard, CommandList, #zoxide_options, FileListRightClickOptionList {
   padding: 0 0 0 0;
   .option-list--option-disabled { color: $border-blurred }
   &:light .option-list--option-disabled { color: $border-blurred-light }
@@ -449,9 +451,14 @@ FileList, PinnedSidebar, Clipboard, CommandList, #zoxide_options {
     background: transparent
   }
   &:focus .option-list--option-highlighted,
-  &CommandList:blur .option-list--option-highlighted {
+  &.-popup-shown .option-list--option-highlighted {
     color: $block-cursor-foreground;
     background: $primary;
+  }
+  &:blur .selection-list--button-selected-highlighted,
+  &:blur .selection-list--button-highlighted {
+    background: transparent;
+    color: $primary
   }
   .selection-list--button {
     background: transparent;
@@ -461,18 +468,15 @@ FileList, PinnedSidebar, Clipboard, CommandList, #zoxide_options {
     background: transparent;
     color: $primary;
   }
-  .selection-list--button-highlighted {
+  .selection-list--button-highlighted,
+  &.-popup-shown .selection-list--button-highlighted {
     background: $primary;
     color: $background;
   }
-  .selection-list--button-selected-highlighted {
+  .selection-list--button-selected-highlighted,
+  &.-popup-shown .selection-list--button-selected-highlighted {
     background: $primary;
     color: $background;
-  }
-  &:blur .selection-list--button-selected-highlighted,
-  &:blur .selection-list--button-highlighted {
-    background: transparent;
-    color: $primary
   }
 }
 FileList .option-list--option-highlighted {
@@ -850,5 +854,12 @@ Screen {
     #menu,
     #below_menu { display: none !important }
     #footer { max-height: 25vh }
+  }
+}
+FileListRightClickOptionList {
+  width: auto;
+  .option-list--option-highlighted {
+    background: $primary;
+    color: $background;
   }
 }

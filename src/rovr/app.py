@@ -5,7 +5,7 @@ from os import chdir, getcwd, listdir, path
 from types import SimpleNamespace
 from typing import Callable, Iterable
 
-from textual import events, work
+from textual import events, on, work
 from textual.app import App, ComposeResult, SystemCommand
 from textual.binding import Binding
 from textual.color import ColorParseError
@@ -37,6 +37,7 @@ from rovr.core import (
     PinnedSidebar,
     PreviewContainer,
 )
+from rovr.core.file_list import FileListRightClickOptionList
 from rovr.footer import Clipboard, MetadataContainer, ProcessContainer
 from rovr.functions import icons
 from rovr.functions.path import decompress, ensure_existing_directory, normalise
@@ -130,11 +131,12 @@ class Application(App, inherit_bindings=False):
                     yield SearchInput(
                         placeholder=f"({icons.get_icon('general', 'search')[0]}) Search something..."
                     )
-                    yield FileList(
+                    filelist = FileList(
                         id="file_list",
                         name="File List",
                         classes="file-list",
                     )
+                    yield filelist
                 yield PreviewContainer(
                     id="preview_sidebar",
                 )
@@ -142,6 +144,7 @@ class Application(App, inherit_bindings=False):
                 yield ProcessContainer()
                 yield MetadataContainer(id="metadata")
                 yield Clipboard(id="clipboard")
+            yield FileListRightClickOptionList(filelist, classes="hidden")
 
     def on_mount(self) -> None:
         # border titles
@@ -499,6 +502,15 @@ class Application(App, inherit_bindings=False):
         self.ansi_color = not self.ansi_color
         await self.push_screen_wait(DummyScreen())
         self.query_one("#file_list").update_border_subtitle()
+
+    @on(events.Click)
+    @work(thread=True)
+    def when_got_click(self, event: events.Click) -> None:
+        if (
+            not isinstance(event.widget, FileListRightClickOptionList)
+            or event.button != 3
+        ):
+            self.query_one(FileListRightClickOptionList).add_class("hidden")
 
 
 app = Application(watch_css=True)
