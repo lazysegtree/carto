@@ -126,12 +126,17 @@ class ZDToDirectory(ModalScreen):
         zoxide_options.add_class("empty")
         options = []
         if zoxide_output.stdout:
+            first_score_width = 0
             for line in zoxide_output.stdout.splitlines():
                 path, score = self._parse_zoxide_line(line, show_scores)
-
                 if show_scores and score:
+
+                    # This ensures that we dont add only necessary padding
+                    # first score is going to be the largest, so we take its width
+                    if first_score_width == 0:
+                        first_score_width = len(score)
                     # Fixed size to make it look good.
-                    display_text = f" {score:>6} | {path}"
+                    display_text = f" {score:>{first_score_width}} | {path}"
                 else:
                     display_text = f" {path}"
 
