@@ -138,7 +138,7 @@ class ZDToDirectory(ModalScreen):
                 path, score = self._parse_zoxide_line(line, show_scores)
                 if show_scores and score:
 
-                    # This ensures that we dont add only necessary padding
+                    # This ensures that we only add necessary padding
                     # first score is going to be the largest, so we take its width
                     if first_score_width == 0:
                         first_score_width = len(score)
