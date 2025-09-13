@@ -95,6 +95,13 @@ class ZDToDirectory(ModalScreen):
             return path, score_str
         else:
             # This should ideally never happen
+            self.notify(
+                # Not printing the entire line as that could be too big for UI
+                # message. We anyway have the lines in logs
+                "Unexpected tokens count while parsing zoxide lines",
+                title="Zoxide Plugin",
+                severity="error",
+            )
             print(f"Problems while parsing zoxide line - '{line}'")
             return line, None
 
