@@ -51,7 +51,7 @@ class PinnedSidebar(OptionList, inherit_bindings=False):
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
 
-    @work(exclusive=True)
+    @work
     async def reload_pins(self) -> None:
         """Reload pins shown
 
