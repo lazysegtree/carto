@@ -32,6 +32,8 @@ cd_on_quit = false
 
 double_click_delay = 0.25
 
+drive_watcher_frequency = 3.0
+
 [metadata]
 fields = ["type", "permissions", "size", "modified", "accessed", "created"]
 datetime_format = "%Y-%m-%d %H:%M"

@@ -116,6 +116,11 @@
           "type": "number",
           "default": 0.25,
           "description": "The delay between two consecutive clicks to enter into a directory, or open a file."
+        },
+        "drive_watcher_frequency": {
+          "type": "number",
+          "default": 3.0,
+          "description": "How often (in seconds) to check for changes in mounted drives in the sidebar."
         }
       }
     },
