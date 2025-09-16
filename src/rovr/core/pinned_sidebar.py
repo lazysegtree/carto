@@ -140,7 +140,7 @@ class PinnedSidebar(OptionList, inherit_bindings=False):
                     self._drives = new_drives
                     self.reload_pins()
             except Exception as e:
-                print(f"Error watching drives: {e}")
+                print(f"Exception of type {type(e).__name__} while watching drives: {e}")
                 continue
 
     async def on_mount(self) -> None:
