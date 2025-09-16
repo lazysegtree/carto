@@ -1,3 +1,4 @@
+import asyncio
 from os import path
 from typing import ClassVar
 
@@ -14,6 +15,7 @@ from rovr.variables.constants import config
 
 
 class PinnedSidebar(OptionList, inherit_bindings=False):
+    DRIVE_WATCHER_FREQUENCY: float = config["settings"]["drive_watcher_frequency"]
     # Just so that I can disable space
     BINDINGS: ClassVar[list[BindingType]] = (
         [
@@ -127,10 +129,25 @@ class PinnedSidebar(OptionList, inherit_bindings=False):
             )
         self.add_options(self.list_of_options)
 
+    @work
+    async def watch_for_drive_changes_and_update(self) -> None:
+        self._drives = path_utils.get_mounted_drives()
+        while True:
+            await asyncio.sleep(self.DRIVE_WATCHER_FREQUENCY)
+            try:
+                new_drives = path_utils.get_mounted_drives()
+                if self._drives != new_drives:
+                    self._drives = new_drives
+                    self.reload_pins()
+            except Exception as e:
+                print(f"Error watching drives: {e}")
+                continue
+
     async def on_mount(self) -> None:
         """Reload the pinned files from the config."""
         self.input: Input = self.parent.query_one(Input)
         self.reload_pins()
+        self.watch_for_drive_changes_and_update()
 
     @on(events.Enter)
     @work
