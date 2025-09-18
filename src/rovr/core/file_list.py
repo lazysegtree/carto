@@ -233,6 +233,10 @@ class FileList(SelectionList, inherit_bindings=False):
             self.input.clear()
         if not add_to_session:
             self.input.clear_selected()
+        if self.list_of_options[0].disabled:  # special option
+            if self.select_mode_enabled:
+                await self.toggle_mode()
+            self.update_border_subtitle()
 
     @work(exclusive=True)
     async def dummy_update_file_list(
@@ -345,6 +349,8 @@ class FileList(SelectionList, inherit_bindings=False):
     async def on_option_list_option_highlighted(
         self, event: OptionList.OptionHighlighted
     ) -> None:
+        if self.dummy:
+            return
         if isinstance(event.option, Selection) and not isinstance(
             event.option, FileListSelectionWidget
         ):
@@ -420,7 +426,7 @@ class FileList(SelectionList, inherit_bindings=False):
                     self.get_visual_style("option-list--option").rich_style,
                 )
 
-            mouse_over = self._mouse_hovering_over == option_index
+            mouse_over: bool = self._mouse_hovering_over == option_index
             component_class = ""
             if selection_style == "selection-list--button-selected":
                 component_class = selection_style
