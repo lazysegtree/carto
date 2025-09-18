@@ -3,7 +3,7 @@ $border-style: round;
 $border-blurred: $primary-background-lighten-3;
 $border-blurred-light: $primary-background;
 $border: $primary-lighten-3;
-$border-disabled: $primary-background-lighten-1;
+$border-disabled: $panel;
 
 /* Layout Dimensions */
 $pinned_sidebar_width: 17;
@@ -192,7 +192,10 @@ Tooltip {
     }
     .underline--bar {
       color: $primary;
-      background: $background;
+      background: $background-lighten-3;
+    }
+    Underline:ansi {
+      text-style: none !important;
     }
     /* color may be inaccurate due to terminals *\
     \* you need to change the underline bar and */
@@ -203,9 +206,9 @@ Tooltip {
 
   &:focus-within > HeaderClock,
   &:focus-within > #newTabRight {
-    border-bottom: heavy $foreground-darken-3;
+    border-bottom: solid $foreground-darken-3;
     &:ansi { border-bottom: solid $foreground-darken-3 }
-    &:light { border-bottom: heavy $foreground-lighten-3 }
+    &:light { border-bottom: solid $foreground-lighten-3 }
     &:ansi:light { border-bottom: solid $foreground-lighten-3 }
   }
 
@@ -221,9 +224,9 @@ Tooltip {
     /* border bottom colors, sometimes it can be  *\
     |* too thin, so switch to heavy and not solid *|
     \* use lighten-1 instead of lighten-3         */
-    border-bottom: heavy $background-lighten-1;
+    border-bottom: solid $background-lighten-3;
     &:ansi { border-bottom: solid $background-lighten-3 }
-    &:light { border-bottom: heavy $background-darken-1 }
+    &:light { border-bottom: solid $background-darken-1 }
     &:ansi:light { border-bottom: solid $background-darken-3 }
   }
 }
