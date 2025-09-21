@@ -167,6 +167,7 @@ preview_scroll_left = ["left", "h"]
 preview_scroll_right = ["right", "l"]
 preview_select_left = ["shift+left", "H"]
 preview_select_right = ["shift+right", "L"]
+show_shortcuts = ["question_mark"]
 
 [plugins.zoxide]
 enabled = false

@@ -572,6 +572,26 @@ ZDToDirectory {
   }
 }
 
+Shortcuts {
+  align: center middle;
+  #shortcuts_data {
+    width: 100%;
+    max-width: 100%;
+    height: 1fr;
+    background: transparent;
+    border: $border-style $border;
+    padding: 0;
+    .option-list--option-highlighted {
+      background: $primary;
+      color: $background;
+    }
+  }
+  #shortcuts_group {
+    max-width: 60vw;
+    max-height: 80vh;
+  }
+}
+
 Dismissable {
   align: center middle;
   #dialog {

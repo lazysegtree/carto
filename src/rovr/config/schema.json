@@ -673,6 +673,13 @@
             "type": "string"
           },
           "description": "While using TextArea for previewing, use this keybind to extend selection to the left."
+        },
+        "show_shortcuts": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Show the shortcuts list with all available keybinds."
         }
       }
     },
