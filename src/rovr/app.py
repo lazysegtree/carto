@@ -50,7 +50,7 @@ from rovr.navigation_widgets import (
     PathInput,
     UpButton,
 )
-from rovr.screens import DummyScreen, YesOrNo, ZDToDirectory
+from rovr.screens import DummyScreen, Shortcuts, YesOrNo, ZDToDirectory
 from rovr.screens.way_too_small import TerminalTooSmall
 from rovr.search_container import SearchInput
 from rovr.variables.constants import MaxPossible, config
@@ -339,6 +339,9 @@ class Application(App, inherit_bindings=False):
                     self.remove_class("zen")
                 else:
                     self.add_class("zen")
+            # shortcuts
+            case key if key in config["keybinds"]["show_shortcuts"]:
+                self.push_screen(Shortcuts())
 
     def on_app_blur(self, event: events.AppBlur) -> None:
         self.app_blurred = True
