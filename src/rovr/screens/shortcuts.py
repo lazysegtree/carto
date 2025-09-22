@@ -1,8 +1,8 @@
 from textual import events
 from textual.app import ComposeResult
-from textual.containers import VerticalGroup
+from textual.containers import Horizontal, VerticalGroup, VerticalScroll
 from textual.screen import ModalScreen
-from textual.widgets import OptionList
+from textual.widgets import OptionList, Static
 from textual.widgets.option_list import Option
 
 from rovr.variables.constants import config
@@ -11,22 +11,57 @@ class Shortcuts(ModalScreen):
     def compose(self) -> ComposeResult:
         keybind_data = self.get_keybind_data()
 
-        # Right-align keys for cleaner appearance
-        max_key_width = max(len(keys) for keys, _ in keybind_data)
-
-        options = [
-            Option(f" {keys:>{max_key_width}} | {description} ")
-            for keys, description in keybind_data
-        ]
+        # Create separate options for keys and descriptions
+        key_options = [Option(f" {keys} ") for keys, _ in keybind_data]
+        description_options = [Option(f" {description} ") for _, description in keybind_data]
 
         with VerticalGroup(id="shortcuts_group"):
-            yield OptionList(*options, id="shortcuts_data")
+            with Horizontal():
+                yield OptionList(*key_options, id="shortcuts_keys")
+                yield OptionList(*description_options, id="shortcuts_descriptions")
 
     def on_mount(self) -> None:
-        shortcuts_data = self.query_one("#shortcuts_data")
-        shortcuts_data.border_title = "Shortcuts"
-        shortcuts_data.border_subtitle = "Press Esc or Q to close"
-        shortcuts_data.can_focus = False
+        # Cache widget references for performance
+        self.shortcuts_keys = self.query_one("#shortcuts_keys")
+        self.shortcuts_descriptions = self.query_one("#shortcuts_descriptions")
+
+        self.shortcuts_keys.border_title = "Keys"
+        self.shortcuts_keys.can_focus = False
+
+        self.shortcuts_descriptions.border_title = "Actions"
+        self.shortcuts_descriptions.border_subtitle = "Press Esc or Q to close"
+        self.shortcuts_descriptions.can_focus = True
+        self.shortcuts_descriptions.focus()
+
+    def on_option_list_option_highlighted(self, event: OptionList.OptionHighlighted) -> None:
+        """Synchronize the keys list with the descriptions list."""
+        if event.option_list.id == "shortcuts_descriptions":
+            print(f"OptionHighlighted: desc={event.option_list.highlighted}, keys={self.shortcuts_keys.highlighted}")
+            self.shortcuts_keys.highlighted = event.option_list.highlighted
+
+    def on_mouse_scroll_down(self, event) -> None:
+        """Handle mouse wheel scroll down - sync after scroll happens."""
+        print(f"Mouse scroll down: {event}")
+        print(f"Event attributes: {dir(event)}")
+        self.call_after_refresh(self._sync_scroll_position)
+
+    def on_mouse_scroll_up(self, event) -> None:
+        """Handle mouse wheel scroll up - sync after scroll happens."""
+        print(f"Mouse scroll up: {event}")
+        self.call_after_refresh(self._sync_scroll_position)
+
+    def _sync_scroll_position(self) -> None:
+        """Sync scroll positions between lists after scroll event."""
+        print(f"Syncing: desc_offset={self.shortcuts_descriptions.scroll_offset}, keys_offset={self.shortcuts_keys.scroll_offset}")
+        self.shortcuts_keys.scroll_offset = self.shortcuts_descriptions.scroll_offset
+    
+
+    def on_option_list_option_selected(self, event) -> None:
+        return
+        """Synchronize selection between lists."""
+        if event.option_list.id == "shortcuts_descriptions":
+            self.shortcuts_keys.highlighted = event.option_list.highlighted
+            self.shortcuts_keys.scroll_to(index=event.option_list.highlighted)
 
     def on_key(self, event: events.Key) -> None:
         """Handle key presses."""
