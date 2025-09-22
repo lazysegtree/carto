@@ -80,8 +80,7 @@ def get_cwd_object(cwd: str | bytes) -> tuple[list[dict], list[dict]]:
     try:
         listed_dir = os.scandir(cwd)
     except (PermissionError, FileNotFoundError, OSError):
-        print(f"PermissionError: Unable to access {cwd}")
-        return [PermissionError], [PermissionError]
+        raise PermissionError(f"PermissionError: Unable to access {cwd}")
     for item in listed_dir:
         if item.is_dir():
             folders.append({
