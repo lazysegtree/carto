@@ -142,9 +142,29 @@ class FileList(SelectionList, inherit_bindings=False):
             self.clear_options()
             return
         # Separate folders and files
-        folders, files = path_utils.get_cwd_object(cwd)
         self.list_of_options = []
-        if folders == [PermissionError] or files == [PermissionError]:
+        try:
+            folders, files = path_utils.get_cwd_object(cwd)
+            if folders == [] and files == []:
+                self.list_of_options.append(
+                    Selection("   --no-files--", value="", id="", disabled=True)
+                )
+                preview = self.app.query_one("PreviewContainer")
+                preview.remove_children()
+                preview._current_preview_type = "none"
+            else:
+                file_list_options = folders + files
+                for item in file_list_options:
+                    self.list_of_options.append(
+                        FileListSelectionWidget(
+                            icon=item["icon"],
+                            label=item["name"],
+                            dir_entry=item["dir_entry"],
+                            value=path_utils.compress(item["name"]),
+                            id=path_utils.compress(item["name"]),
+                        )
+                    )
+        except PermissionError:
             self.list_of_options.append(
                 Selection(
                     " Permission Error: Unable to access this directory.",
@@ -153,26 +173,7 @@ class FileList(SelectionList, inherit_bindings=False):
                     disabled=True,
                 ),
             )
-        elif folders == [] and files == []:
-            self.list_of_options.append(
-                Selection("   --no-files--", value="", id="", disabled=True)
-            )
-            preview = self.app.query_one("PreviewContainer")
-            preview.remove_children()
-            preview._current_preview_type = "none"
-            # nothing inside
-        else:
-            file_list_options = folders + files
-            for item in file_list_options:
-                self.list_of_options.append(
-                    FileListSelectionWidget(
-                        icon=item["icon"],
-                        label=item["name"],
-                        dir_entry=item["dir_entry"],
-                        value=path_utils.compress(item["name"]),
-                        id=path_utils.compress(item["name"]),
-                    )
-                )
+
         if len(self.list_of_options) == 1 and self.list_of_options[0].disabled:
             for selector in buttons_that_depend_on_path:
                 self.app.query_one(selector).disabled = True
@@ -250,9 +251,27 @@ class FileList(SelectionList, inherit_bindings=False):
         """
         self.enter_into = cwd
         # Separate folders and files
-        folders, files = path_utils.get_cwd_object(cwd)
         self.list_of_options = []
-        if folders == [PermissionError] or files == [PermissionError]:
+
+        try:
+            folders, files = path_utils.get_cwd_object(cwd)
+            if folders == [] and files == []:
+                self.list_of_options.append(
+                    Selection("  --no-files--", value="", id="", disabled=True)
+                )
+            else:
+                file_list_options = folders + files
+                for item in file_list_options:
+                    self.list_of_options.append(
+                        FileListSelectionWidget(
+                            icon=item["icon"],
+                            label=item["name"],
+                            dir_entry=item["dir_entry"],
+                            value=path_utils.compress(item["name"]),
+                            id=path_utils.compress(item["name"]),
+                        )
+                    )
+        except PermissionError:
             self.list_of_options.append(
                 Selection(
                     " Permission Error: Unable to access this directory.",
@@ -261,22 +280,7 @@ class FileList(SelectionList, inherit_bindings=False):
                     disabled=True,
                 )
             )
-        elif folders == [] and files == []:
-            self.list_of_options.append(
-                Selection("  --no-files--", value="", id="", disabled=True)
-            )
-        else:
-            file_list_options = folders + files
-            for item in file_list_options:
-                self.list_of_options.append(
-                    FileListSelectionWidget(
-                        icon=item["icon"],
-                        label=item["name"],
-                        dir_entry=item["dir_entry"],
-                        value=path_utils.compress(item["name"]),
-                        id=path_utils.compress(item["name"]),
-                    )
-                )
+
         self.clear_options()
         self.add_options(self.list_of_options)
         # somehow prevents more debouncing, ill take it
@@ -518,19 +522,23 @@ class FileList(SelectionList, inherit_bindings=False):
         cwd = path_utils.normalise(getcwd())
         if not self.select_mode_enabled:
             return [
-                path_utils.normalise(
-                    path.join(
-                        cwd,
-                        path_utils.decompress(
-                            self.get_option_at_index(self.highlighted).value
-                        ),
+                str(
+                    path_utils.normalise(
+                        path.join(
+                            cwd,
+                            path_utils.decompress(
+                                self.get_option_at_index(self.highlighted).value
+                            ),
+                        )
                     )
                 )
             ]
         else:
             return [
-                path_utils.normalise(path.join(cwd, path_utils.decompress(option)))
-                for option in self.selected
+                str(
+                    path_utils.normalise(path.join(cwd, path_utils.decompress(option)))
+                    for option in self.selected
+                )
             ]
 
     async def on_key(self, event: events.Key) -> None:
