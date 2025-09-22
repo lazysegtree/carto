@@ -15,7 +15,7 @@ class Shortcuts(ModalScreen):
         max_key_width = max(len(keys) for keys, _ in keybind_data)
 
         options = [
-            Option(f" {keys:>{max_key_width}} | {description} ")
+            Option(f" {keys:>{max_key_width}} │ {description} ")
             for keys, description in keybind_data
         ]
 
