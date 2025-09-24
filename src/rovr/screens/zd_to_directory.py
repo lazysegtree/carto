@@ -89,7 +89,7 @@ class ZDToDirectory(ModalScreen):
 
         # Example "  <floating_score> <path_with_spaces>"
         # Split only on first space to make sure path with spaces work
-        parts = line.split(" ", 1)
+        parts = line.split(None, 1)
         if len(parts) == 2:
             score_str, path = parts
             return path, score_str
