@@ -5,7 +5,10 @@ from textual.screen import ModalScreen
 from textual.widgets import OptionList
 from textual.widgets.option_list import Option
 
+from rovr.functions import icons
+from rovr.search_container import SearchInput
 from rovr.variables.constants import config
+from rovr.classes.textual_options import ShortcutOption
 
 
 class ShortcutList(OptionList):
@@ -14,22 +17,12 @@ class ShortcutList(OptionList):
 
         max_key_width = max(len(keys) for keys, _ in keybind_data)
 
-        options = [
-            Option(f" {keys:>{max_key_width}} │ {description} ")
+        self.list_of_options = [
+            ShortcutOption(keys, description, max_key_width)
             for keys, description in keybind_data
         ]
 
-        super().__init__(*options, **kwargs)
-
-        shortcut_keys = config["keybinds"]["show_shortcuts"]
-        additional_key_string = ""
-
-        # Access [0] only if list has elements
-        if shortcut_keys:
-            short_key = "?" if shortcut_keys[0] == "question_mark" else shortcut_keys[0]
-            additional_key_string = f"or {short_key} "
-        self.border_title = "Shortcuts"
-        self.border_subtitle = f"Press Esc {additional_key_string}to close"
+        super().__init__(*self.list_of_options, **kwargs)
 
     def get_keybind_data(self) -> list[tuple[str, str]]:
         # Hardcoded descriptions based on BINDINGS from various files
@@ -104,11 +97,29 @@ class ShortcutList(OptionList):
 class Shortcuts(ModalScreen):
     def compose(self) -> ComposeResult:
         with VerticalGroup(id="shortcuts_group"):
+            yield SearchInput(
+                placeholder=f"({icons.get_icon('general', 'search')[0]}) Search shortcuts..."
+            )
             yield ShortcutList(id="shortcuts_data")
 
+    def on_mount(self) -> None:
+        self.input = self.query_one(SearchInput)
+        self.container = self.query_one("#shortcuts_group")
+
+        self.container.border_title = "Shortcuts"
+
+        shortcut_keys = config["keybinds"]["show_shortcuts"]
+        additional_key_string = ""
+        if shortcut_keys:
+            short_key = "?" if shortcut_keys[0] == "question_mark" else shortcut_keys[0]
+            additional_key_string = f"or {short_key} "
+        self.container.border_subtitle = f"Press Esc {additional_key_string}to close"
+
     def on_key(self, event: events.Key) -> None:
-        """Handle key presses."""
         match event.key:
+            case key if key in config["keybinds"]["focus_search"]:
+                event.stop()
+                self.input.focus()
             case key if key in config["keybinds"]["show_shortcuts"] or key == "escape":
                 event.stop()
                 self.dismiss()

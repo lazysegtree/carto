@@ -3,6 +3,7 @@ from os import DirEntry
 from textual.content import Content, ContentText
 from textual.widgets.option_list import Option
 from textual.widgets.selection_list import Selection
+from textual.widgets.option_list import Option
 
 
 class PinnedSidebarOption(Option):
@@ -58,3 +59,12 @@ class ClipboardSelection(Selection):
         """
         super().__init__(prompt, *args, **kwargs)
         self.initial_prompt = prompt
+
+
+class ShortcutOption(Option):
+    def __init__(
+        self, keys: str, description: str, max_key_width: int, **kwargs
+    ) -> None:
+        # Should be named 'label' for searching
+        self.label = f" {keys:>{max_key_width}} │ {description} "
+        super().__init__(self.label, **kwargs)
