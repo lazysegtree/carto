@@ -3,12 +3,11 @@ from textual.app import ComposeResult
 from textual.containers import VerticalGroup
 from textual.screen import ModalScreen
 from textual.widgets import OptionList
-from textual.widgets.option_list import Option
 
+from rovr.classes.textual_options import ShortcutOption
 from rovr.functions import icons
 from rovr.search_container import SearchInput
 from rovr.variables.constants import config
-from rovr.classes.textual_options import ShortcutOption
 
 
 class ShortcutList(OptionList):

@@ -3,7 +3,6 @@ from os import DirEntry
 from textual.content import Content, ContentText
 from textual.widgets.option_list import Option
 from textual.widgets.selection_list import Selection
-from textual.widgets.option_list import Option
 
 
 class PinnedSidebarOption(Option):
