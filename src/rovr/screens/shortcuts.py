@@ -104,6 +104,10 @@ class Shortcuts(ModalScreen):
     def on_mount(self) -> None:
         self.input = self.query_one(SearchInput)
         self.container = self.query_one("#shortcuts_group")
+        self.shortcut_list = self.query_one("#shortcuts_data")
+
+        # Prevent the first focus to go to search bar
+        self.shortcut_list.focus()
 
         self.container.border_title = "Shortcuts"
 
