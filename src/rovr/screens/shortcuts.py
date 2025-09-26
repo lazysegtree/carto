@@ -9,10 +9,14 @@ from rovr.functions import icons
 from rovr.search_container import SearchInput
 from rovr.variables.constants import config
 
+keybind_data: list[tuple[str, str]] | None = None
+
 
 class ShortcutList(OptionList):
     def __init__(self, **kwargs) -> None:
-        keybind_data = self.get_keybind_data()
+        global keybind_data
+        if keybind_data is None:
+            keybind_data = self.get_keybind_data()
 
         max_key_width = max(len(keys) for keys, _ in keybind_data)
 
@@ -86,8 +90,8 @@ class ShortcutList(OptionList):
         keybind_data = []
         for action, keys in config["keybinds"].items():
             if action in keybind_descriptions:
-                formatted_keys = ", ".join(f"<{key}>" for key in keys)
-                description = keybind_descriptions[action]
+                formatted_keys: str = " ".join(f"<{key}>" for key in keys)
+                description: str = keybind_descriptions[action]
                 keybind_data.append((formatted_keys, description))
 
         return keybind_data
