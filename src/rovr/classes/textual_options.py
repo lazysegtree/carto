@@ -60,7 +60,7 @@ class ClipboardSelection(Selection):
         self.initial_prompt = prompt
 
 
-class ShortcutOption(Option):
+class KeybindOption(Option):
     def __init__(
         self, keys: str, description: str, max_key_width: int, **kwargs
     ) -> None:

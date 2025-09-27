@@ -7,13 +7,13 @@ from textual.containers import VerticalGroup
 from textual.screen import ModalScreen
 from textual.widgets import OptionList
 
-from rovr.classes.textual_options import ShortcutOption
+from rovr.classes.textual_options import KeybindOption
 from rovr.functions import icons
 from rovr.search_container import SearchInput
 from rovr.variables.constants import config
 
 
-class ShortcutList(OptionList, inherit_bindings=False):
+class KeybindList(OptionList, inherit_bindings=False):
     BINDINGS: ClassVar[list[BindingType]] = (
         [
             Binding(bind, "cursor_down", "Down", show=False)
@@ -51,7 +51,7 @@ class ShortcutList(OptionList, inherit_bindings=False):
         max_key_width = max(len(keys) for keys, _ in keybind_data)
 
         self.list_of_options = [
-            ShortcutOption(keys, description, max_key_width)
+            KeybindOption(keys, description, max_key_width)
             for keys, description in keybind_data
         ]
 
@@ -81,7 +81,7 @@ class ShortcutList(OptionList, inherit_bindings=False):
             "zip": "Zip",
             "unzip": "Unzip",
             "copy_path": "Copy path",
-            # Interface - app-level shortcuts
+            # Interface - app-level keybinds
             "focus_file_list": "Focus file list",
             "focus_toggle_pinned_sidebar": "Focus sidebar",
             "focus_toggle_preview_sidebar": "Focus preview",
@@ -94,7 +94,7 @@ class ShortcutList(OptionList, inherit_bindings=False):
             "toggle_preview_sidebar": "Toggle preview",
             "toggle_footer": "Toggle footer",
             "toggle_pin": "Pin folder",
-            "show_shortcuts": "Show shortcuts",
+            "show_keybinds": "Show keybinds",
             # Selection - from core/preview_container.py
             "toggle_visual": "Visual mode",
             "toggle_all": "Select all",
@@ -104,7 +104,7 @@ class ShortcutList(OptionList, inherit_bindings=False):
             "select_page_down": "Select page down",
             "select_home": "Select to top",
             "select_end": "Select to end",
-            # Tabs - app-level shortcuts
+            # Tabs - app-level keybinds
             "tab_new": "New tab",
             "tab_close": "Close tab",
             "tab_next": "Next tab",
@@ -127,28 +127,28 @@ class ShortcutList(OptionList, inherit_bindings=False):
         return keybind_data
 
 
-class Shortcuts(ModalScreen):
+class Keybinds(ModalScreen):
     def compose(self) -> ComposeResult:
-        with VerticalGroup(id="shortcuts_group"):
+        with VerticalGroup(id="keybinds_group"):
             yield SearchInput(
-                placeholder=f"({icons.get_icon('general', 'search')[0]}) Search shortcuts..."
+                placeholder=f"{icons.get_icon('general', 'search')[0]} Search keybinds..."
             )
-            yield ShortcutList(id="shortcuts_data")
+            yield KeybindList(id="keybinds_data")
 
     def on_mount(self) -> None:
         self.input = self.query_one(SearchInput)
-        self.container = self.query_one("#shortcuts_group")
-        self.shortcut_list = self.query_one("#shortcuts_data")
+        self.container = self.query_one("#keybinds_group")
+        self.keybinds_list = self.query_one("#keybinds_data")
 
         # Prevent the first focus to go to search bar
-        self.shortcut_list.focus()
+        self.keybinds_list.focus()
 
-        self.container.border_title = "Shortcuts"
+        self.container.border_title = "Keybinds"
 
-        shortcut_keys = config["keybinds"]["show_shortcuts"]
+        keybind_keys = config["keybinds"]["show_keybinds"]
         additional_key_string = ""
-        if shortcut_keys:
-            short_key = "?" if shortcut_keys[0] == "question_mark" else shortcut_keys[0]
+        if keybind_keys:
+            short_key = "?" if keybind_keys[0] == "question_mark" else keybind_keys[0]
             additional_key_string = f"or {short_key} "
         self.container.border_subtitle = f"Press Esc {additional_key_string}to close"
 
@@ -157,14 +157,16 @@ class Shortcuts(ModalScreen):
             case key if key in config["keybinds"]["focus_search"]:
                 event.stop()
                 self.input.focus()
-            case key if key in config["keybinds"]["show_shortcuts"] or key == "escape":
+            case key if key in config["keybinds"]["show_keybinds"] or key == "escape":
                 event.stop()
                 self.dismiss()
 
     def on_option_list_option_selected(self, event: OptionList.OptionSelected) -> None:
         if hasattr(event.option, "key_press"):
             event.stop()
-            self.app.simulate_key(cast(ShortcutOption, event.option).key_press)
+            self.app.simulate_key(cast(KeybindOption, event.option).key_press)
             self.dismiss()
         else:
-            raise RuntimeError()
+            raise RuntimeError(
+                f"Expected a <KeybindOption> but received <{type(event.option).__name__}>"
+            )
