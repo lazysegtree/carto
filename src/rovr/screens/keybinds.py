@@ -46,18 +46,20 @@ class KeybindList(OptionList, inherit_bindings=False):
     )
 
     def __init__(self, **kwargs) -> None:
-        keybind_data = self.get_keybind_data()
+        keybind_data, primary_keybind_data = self.get_keybind_data()
 
         max_key_width = max(len(keys) for keys, _ in keybind_data)
 
         self.list_of_options = [
-            KeybindOption(keys, description, max_key_width)
-            for keys, description in keybind_data
+            KeybindOption(keys, description, max_key_width, primary_key)
+            for (keys, description), primary_key in zip(
+                keybind_data, primary_keybind_data
+            )
         ]
 
         super().__init__(*self.list_of_options, **kwargs)
 
-    def get_keybind_data(self) -> list[tuple[str, str]]:
+    def get_keybind_data(self) -> tuple[list[tuple[str, str]], list[str]]:
         # Hardcoded descriptions based on BINDINGS from various files
         keybind_descriptions = {
             # Navigation - from core/file_list.py, core/pinned_sidebar.py
@@ -118,13 +120,15 @@ class KeybindList(OptionList, inherit_bindings=False):
 
         # Generate keybind data programmatically
         keybind_data = []
+        primary_keys = []
         for action, keys in config["keybinds"].items():
             if action in keybind_descriptions:
                 formatted_keys = ", ".join(f"<{key}>" for key in keys)
+                primary_keys.append(keys[0])
                 description = keybind_descriptions[action]
                 keybind_data.append((formatted_keys, description))
 
-        return keybind_data
+        return keybind_data, primary_keys
 
 
 class Keybinds(ModalScreen):
@@ -164,8 +168,8 @@ class Keybinds(ModalScreen):
     def on_option_list_option_selected(self, event: OptionList.OptionSelected) -> None:
         if hasattr(event.option, "key_press"):
             event.stop()
-            self.app.simulate_key(cast(KeybindOption, event.option).key_press)
             self.dismiss()
+            self.app.simulate_key(cast(KeybindOption, event.option).key_press)
         else:
             raise RuntimeError(
                 f"Expected a <KeybindOption> but received <{type(event.option).__name__}>"

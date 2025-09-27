@@ -62,9 +62,14 @@ class ClipboardSelection(Selection):
 
 class KeybindOption(Option):
     def __init__(
-        self, keys: str, description: str, max_key_width: int, **kwargs
+        self,
+        keys: str,
+        description: str,
+        max_key_width: int,
+        primary_key: str,
+        **kwargs,
     ) -> None:
         # Should be named 'label' for searching
         self.label = f" {keys:>{max_key_width}} │ {description} "
+        self.key_press = primary_key
         super().__init__(self.label, **kwargs)
-        self.key_press = keys.split(">")[0].split("<")[-1]
