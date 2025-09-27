@@ -117,6 +117,9 @@ class KeybindList(OptionList, inherit_bindings=False):
             "preview_scroll_right": "Scroll right",
             "preview_select_left": "Select left",
             "preview_select_right": "Select right",
+            # Plugins
+            "zoxide": "Launch zoxide selector",
+            "editor": "Open file with editor",
         }
 
         # Generate keybind data programmatically
@@ -131,6 +134,22 @@ class KeybindList(OptionList, inherit_bindings=False):
                     formatted_keys = ", ".join(f"<{key}>" for key in keys)
                     primary_keys.append(keys[0])
                 description = keybind_descriptions[action]
+                keybind_data.append((formatted_keys, description))
+
+        # for plugins
+        for key, value in config["plugins"].items():
+            if (
+                "enabled" in value
+                and "keybinds" in value
+                and key in keybind_descriptions
+            ):
+                if not value["keys"] or not value["enabled"]:
+                    formatted_keys = "<disabled>"
+                    primary_keys.append("")
+                else:
+                    formatted_keys = ", ".join(f"<{key}>" for key in value["keybinds"])
+                    primary_keys.append(value["keybinds"][0])
+                description = keybind_descriptions[key]
                 keybind_data.append((formatted_keys, description))
 
         return keybind_data, primary_keys
