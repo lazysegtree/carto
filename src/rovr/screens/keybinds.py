@@ -50,12 +50,13 @@ class KeybindList(OptionList, inherit_bindings=False):
 
         max_key_width = max(len(keys) for keys, _ in keybind_data)
 
-        self.list_of_options = [
-            KeybindOption(keys, description, max_key_width, primary_key)
-            for (keys, description), primary_key in zip(
-                keybind_data, primary_keybind_data
+        self.list_of_options = []
+        for (keys, description), primary_key in zip(keybind_data, primary_keybind_data):
+            self.list_of_options.append(
+                KeybindOption(keys, description, max_key_width, primary_key)
             )
-        ]
+            if primary_key == "":
+                self.list_of_options[-1].disabled = True
 
         super().__init__(*self.list_of_options, **kwargs)
 
@@ -123,8 +124,12 @@ class KeybindList(OptionList, inherit_bindings=False):
         primary_keys = []
         for action, keys in config["keybinds"].items():
             if action in keybind_descriptions:
-                formatted_keys = ", ".join(f"<{key}>" for key in keys)
-                primary_keys.append(keys[0])
+                if not keys:
+                    formatted_keys = "<disabled>"
+                    primary_keys.append("")
+                else:
+                    formatted_keys = ", ".join(f"<{key}>" for key in keys)
+                    primary_keys.append(keys[0])
                 description = keybind_descriptions[action]
                 keybind_data.append((formatted_keys, description))
 
