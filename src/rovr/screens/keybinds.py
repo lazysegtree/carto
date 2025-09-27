@@ -156,7 +156,8 @@ class Keybinds(ModalScreen):
     def compose(self) -> ComposeResult:
         with VerticalGroup(id="keybinds_group"):
             yield SearchInput(
-                placeholder=f"{icons.get_icon('general', 'search')[0]} Search keybinds..."
+                always_add_disabled=False,
+                placeholder=f"{icons.get_icon('general', 'search')[0]} Search keybinds...",
             )
             yield KeybindList(id="keybinds_data")
 
