@@ -333,15 +333,6 @@ class Application(App, inherit_bindings=False):
                         )
 
                 self.push_screen(ZDToDirectory(), on_response)
-            # zen mode
-            case key if (
-                config["plugins"]["zen_mode"]["enabled"]
-                and key in config["plugins"]["zen_mode"]["keybinds"]
-            ):
-                if "zen" in self.classes:
-                    self.remove_class("zen")
-                else:
-                    self.add_class("zen")
             # keybinds
             case key if key in config["keybinds"]["show_keybinds"]:
                 self.push_screen(Keybinds())
