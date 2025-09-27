@@ -143,7 +143,7 @@ class KeybindList(OptionList, inherit_bindings=False):
                 and "keybinds" in value
                 and key in keybind_descriptions
             ):
-                if not value["keys"] or not value["enabled"]:
+                if not value["keybinds"] or not value["enabled"]:
                     formatted_keys = "<disabled>"
                     primary_keys.append("")
                 else:
