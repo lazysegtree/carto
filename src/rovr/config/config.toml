@@ -184,7 +184,3 @@ enabled = false
 file_executable = "nano"
 folder_executable = "code"
 keybinds = ["e"]
-
-[plugins.zen_mode]
-enabled = true
-keybinds = ["Z"]

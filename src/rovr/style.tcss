@@ -489,17 +489,6 @@ FileList .option-list--option-highlighted {
   text-style: bold;
 }
 
-/* Screen mode modifiers */
-.zen {
-  #menu,
-  #below_menu,
-  #below_menu Input,
-  #below_menu Button,
-  #pinned_sidebar_container,
-  #preview_sidebar,
-  #footer { display: none !important }
-}
-
 #dialog {
   max-width: 57;
   max-height: 15;

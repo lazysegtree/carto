@@ -433,8 +433,6 @@ class PreviewContainer(Container):
             )
             # toggle hide
             or "hide" in self.classes
-            # zen mode
-            or "zen" in self.app.classes
             # horizontal breakpoints
             or "-nopreview" in self.screen.classes
             or "-filelistonly" in self.screen.classes

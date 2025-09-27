@@ -12,7 +12,7 @@ try:
         "with_features",
         multiple=True,
         type=str,
-        help="Enable a feature (e.g., 'plugins.zen_mode').",
+        help="Enable a feature (e.g., 'plugins.bat').",
     )
     @click.option(
         "--without",
