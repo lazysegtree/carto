@@ -208,6 +208,9 @@ class Application(App, inherit_bindings=False):
         # Not really sure why this can happen, but I will still handle this
         if self.focused is None or not self.focused.id:
             return
+        # if current screen isn't the app screen
+        if len(self.screen_stack) != 1:
+            return
         # Make sure that key binds don't break
         match event.key:
             # placeholder, not yet existing

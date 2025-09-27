@@ -1,4 +1,4 @@
-from typing import ClassVar
+from typing import ClassVar, cast
 
 from textual import events
 from textual.app import ComposeResult
@@ -160,3 +160,11 @@ class Shortcuts(ModalScreen):
             case key if key in config["keybinds"]["show_shortcuts"] or key == "escape":
                 event.stop()
                 self.dismiss()
+
+    def on_option_list_option_selected(self, event: OptionList.OptionSelected) -> None:
+        if hasattr(event.option, "key_press"):
+            event.stop()
+            self.app.simulate_key(cast(ShortcutOption, event.option).key_press)
+            self.dismiss()
+        else:
+            raise RuntimeError()

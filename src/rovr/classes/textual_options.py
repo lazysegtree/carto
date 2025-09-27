@@ -67,3 +67,4 @@ class ShortcutOption(Option):
         # Should be named 'label' for searching
         self.label = f" {keys:>{max_key_width}} │ {description} "
         super().__init__(self.label, **kwargs)
+        self.key_press = keys.split(">")[0].split("<")[-1]
