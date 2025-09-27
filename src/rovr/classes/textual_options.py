@@ -72,4 +72,7 @@ class KeybindOption(Option):
         # Should be named 'label' for searching
         self.label = f" {keys:>{max_key_width}} │ {description} "
         self.key_press = primary_key
+
         super().__init__(self.label, **kwargs)
+        if primary_key == "":
+            self.disabled = True

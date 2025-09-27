@@ -55,9 +55,6 @@ class KeybindList(OptionList, inherit_bindings=False):
             self.list_of_options.append(
                 KeybindOption(keys, description, max_key_width, primary_key)
             )
-            if primary_key == "":
-                self.list_of_options[-1].disabled = True
-
         super().__init__(*self.list_of_options, **kwargs)
 
     def get_keybind_data(self) -> tuple[list[tuple[str, str]], list[str]]:
